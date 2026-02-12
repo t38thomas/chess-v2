@@ -79,7 +79,8 @@ export class GameFacade {
             history: [], // Placeholder
             phase: this.game.phase,
             pacts: this.game.pacts,
-            pendingPromotion: this.game.enPassantTarget ? null : this.getPendingPromotion()
+            pendingPromotion: this.game.enPassantTarget ? null : this.getPendingPromotion(),
+            winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined
         };
     }
 

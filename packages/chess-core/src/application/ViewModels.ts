@@ -33,4 +33,5 @@ export interface BoardViewModel {
     phase: GamePhase;
     pacts: Record<PieceColor, Pact[]>;
     pendingPromotion?: { x: number; y: number; color: PieceColor } | null;
+    winner?: PieceColor;
 }

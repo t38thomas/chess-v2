@@ -182,18 +182,37 @@ export class ChessGame {
             this.board.movePiece(from, to);
         }
 
-        // --- EXPRESS PROMOTION ---
-        let isExpressPromotion = false;
-        // Logic removed as 'express_promotion' is not in V3
+        // --- PROMOTION LOGIC ---
+        // Check for ANY promotion (Standard or Express)
+        let isPromotion = false;
 
+        // Standard Promotion Check
+        if (movingPiece.type === 'pawn') {
+            const finalRank = pieceColor === 'white' ? 7 : 0;
+            if (to.y === finalRank) isPromotion = true;
+        }
 
-        // Handle pawn promotion
-        if (isExpressPromotion) {
-            const pieceToPromote = promotionPiece || 'queen';
+        // Express Promotion Check (if needed in future, currently empty as V3 has none)
+        if (!isPromotion && movingPiece.type === 'pawn') {
+            // Placeholder for any ability that might trigger early promotion
+        }
+
+        if (isPromotion) {
+            let pieceToPromote = promotionPiece || 'queen';
+
+            // Validate promotion type against active pacts (Fix for Saboteur Malus)
+            const allowedTypes = RuleEngine.getAllowedPromotionTypes(movingPiece, playerPacts);
+            if (!allowedTypes.includes(pieceToPromote)) {
+                // If requested type is not allowed, default to the first allowed type
+                if (allowedTypes.length > 0) {
+                    pieceToPromote = allowedTypes[0];
+                }
+            }
+
             const pieceOnBoard = this.board.getSquare(to)?.piece;
             if (pieceOnBoard) pieceOnBoard.type = pieceToPromote;
             move.promotion = pieceToPromote;
-            eventType = 'promotion';
+            eventType = 'promotion'; // Fix for Necromancer Malus (event type)
         }
 
         // RuleEngine side effects (e.g., tracking usage, extra turn costs)
@@ -226,11 +245,14 @@ export class ChessGame {
         else if (this.status === 'draw') eventType = 'draw';
         else if (this.isInCheck(this.turn)) eventType = 'check';
 
-        this.emit(eventType);
+        this.emit(eventType, move);
         return true;
     }
 
     private updateGameStatus(): void {
+        // Fix for Swarm Malus: Do not overwrite if already Checkmate/GameOver by a Pact
+        if (this.status === 'checkmate' || this.phase === 'game_over') return;
+
         const hasLegalMoves = this.hasAnyLegalMoves(this.turn);
         const opponentColor: PieceColor = this.turn === 'white' ? 'black' : 'white';
         const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();

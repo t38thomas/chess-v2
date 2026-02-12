@@ -13,6 +13,7 @@ export const en = {
         or: 'OR',
         backToMenu: 'Back to Menu',
         copy: 'Copy',
+        home: 'Home',
     },
     home: {
         playOnline: 'Play Online',
@@ -112,6 +113,11 @@ export const en = {
         yourColor: 'Your Color',
         waitingForWhite: 'Waiting for White...',
         waitingForBlack: 'Waiting for Black...',
+        stalemateMessage: 'Game ended in a stalemate. Neither side wins.',
+        winnerMessage: '{winner} wins by Checkmate!',
+        gameOver: 'Game Over',
+        draw: 'Draw',
+        rematch: 'Rematch',
     },
     pact: {
         title: 'Forge Your Pact',

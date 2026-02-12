@@ -9,6 +9,7 @@ import { Icon } from '../ui/components/Icon';
 import { PromotionModal } from '../ui/components/PromotionModal';
 import { PactSelectionModal } from '../ui/components/PactSelectionModal';
 import { PactDetailsModal } from '../ui/components/PactDetailsModal';
+import { GameEndModal } from '../ui/components/GameEndModal';
 import { GameSessionLayout } from '../ui/components/GameSessionLayout';
 import { useTheme } from '../ui/theme';
 import { useTranslation } from '../i18n';
@@ -38,7 +39,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
         pacts,
         assignPact,
         useAbility,
-        availableAbilities
+        availableAbilities,
+        status,
+        winner
     } = useGame();
 
 
@@ -101,39 +104,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
                 </Card>
             )}
 
-            {/* History Section */}
-            <Card variant="outlined" style={styles.historyCard} padding="sm">
-                <View style={styles.sectionHeader}>
-                    <Icon name="history" size={18} color={colors.textSecondary} />
-                    <Text variant="body" bold style={{ marginLeft: spacing[2], fontSize: 14 }}>
-                        {t('game.moveHistory')}
-                    </Text>
-                </View>
-
-                <ScrollView
-                    style={{ marginTop: spacing[2] }}
-                    contentContainerStyle={styles.historyScroll}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {history.map((move, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => jumpToMove(index)}
-                            style={[
-                                styles.moveItem,
-                                { backgroundColor: colors.surfaceHighlight }
-                            ]}
-                        >
-                            <Text style={styles.moveText}>{index + 1}. {move.san}</Text>
-                        </TouchableOpacity>
-                    ))}
-                    {history.length === 0 && (
-                        <View style={styles.emptyHistory}>
-                            <Text color="secondary" variant="caption">{t('game.noMoves')}</Text>
-                        </View>
-                    )}
-                </ScrollView>
-            </Card>
+            {/* History Section Removed */}
 
             {/* Spectral Actions */}
             {availableAbilities.length > 0 && (
@@ -223,6 +194,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
                 visible={!!selectedPact}
                 pact={selectedPact}
                 onClose={() => setSelectedPact(null)}
+            />
+
+            <GameEndModal
+                visible={status !== 'active' && phase !== 'setup'}
+                status={status}
+                winner={winner}
+                onRestart={resetGame}
+                onHome={onNavigateBack || (() => { })}
             />
         </React.Fragment>
     );

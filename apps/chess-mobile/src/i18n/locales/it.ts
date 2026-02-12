@@ -14,7 +14,8 @@ export const it: Translations = {
         black: 'Nero',
         or: 'O',
         backToMenu: 'Torna al Menu',
-        copy: "Copia"
+        copy: "Copia",
+        home: 'Home',
     },
     home: {
         playOnline: 'Gioca Online',
@@ -114,6 +115,11 @@ export const it: Translations = {
         yourColor: 'Il Tuo Colore',
         waitingForWhite: 'In attesa del Bianco...',
         waitingForBlack: 'In attesa del Nero...',
+        stalemateMessage: 'La partita è terminata in stallo. Nessun vincitore.',
+        winnerMessage: '{winner} vince per Scacco Matto!',
+        gameOver: 'Partita Terminata',
+        draw: 'Patta',
+        rematch: 'Rivincita',
     },
     pact: {
         title: 'Forgia il tuo Patto',

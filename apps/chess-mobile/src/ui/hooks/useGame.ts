@@ -88,6 +88,8 @@ export const useGame = () => {
         completePromotion,
         pendingPromotion,
         phase,
+        status: viewModel.status,
+        winner: viewModel.winner,
         pacts,
         assignPact,
         useAbility: (id: string, params?: any) => facade.useAbility(id, params),

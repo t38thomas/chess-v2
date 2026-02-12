@@ -7,9 +7,11 @@ export class SwarmBonus extends PactLogic {
     id = 'hydra';
 
     onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'capture') {
+        if (event === 'capture' && payload) {
             const { game, playerId } = context;
-            const capturedPiece: Piece = payload.capturedPiece; // Assuming payload has captured piece
+            // Payload is the Move object
+            const move = payload as any; // Cast to avoid circular import issues if Move isn't imported, but assuming payload implies Move structure
+            const capturedPiece: Piece = move.capturedPiece;
 
             // Check if it was OUR pawn that died
             if (capturedPiece && capturedPiece.type === 'pawn' && capturedPiece.color === playerId) {
@@ -24,8 +26,7 @@ export class SwarmBonus extends PactLogic {
 
         // Find empty square on starting rank
         const cols = [0, 1, 2, 3, 4, 5, 6, 7];
-        // Shuffle cols for randomness? Or strict order?
-        // Implementation: "appears in the backlines". Random is cooler.
+        // Shuffle cols for randomness
         this.shuffleArray(cols);
 
         for (const x of cols) {
@@ -34,9 +35,7 @@ export class SwarmBonus extends PactLogic {
             if (square && !square.piece) {
                 // Spawn!
                 // Need unique ID.
-                const id = `${color}-pawn-hydra-${Date.now()}-${x}`; // improved ID generation needed?
-                // Date.now() might collide if multiple die same ms (unlikely in turn based).
-                // Use a counter if possible or just random.
+                const id = `${color}-pawn-hydra-${Date.now()}-${x}`;
                 const newPawn = new Piece('pawn', color, id);
                 game.board.placePiece(coord, newPawn);
                 game.emit('ability_activated', { abilityId: this.id, playerId: color });
@@ -57,9 +56,10 @@ export class SwarmMalus extends PactLogic {
     id = 'hive_queen';
 
     onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'capture') {
+        if (event === 'capture' && payload) {
             const { game, playerId } = context;
-            const capturedPiece: Piece = payload.capturedPiece;
+            const move = payload as any;
+            const capturedPiece: Piece = move.capturedPiece;
 
             if (capturedPiece && capturedPiece.type === 'queen' && capturedPiece.color === playerId) {
                 // Hive Queen died. Instant Loss.

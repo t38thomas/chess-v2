@@ -41,6 +41,7 @@ export class NecromancerBonus extends PactLogic {
             if (square && !square.piece) {
                 // Resurrect
                 game.board.placePiece(startSquare, lostPiece);
+                game.perkUsage[playerId].add(this.id); // Track usage to disable button
                 game.emit('ability_activated', { abilityId: this.id, playerId });
             } else {
                 // Square occupied
@@ -58,6 +59,8 @@ export class NecromancerBonus extends PactLogic {
         const type = parts[1] as PieceType;
         const index = parseInt(parts[2], 10);
 
+        if (isNaN(index)) return null; // Handle non-standard IDs (e.g. Swarm pawns)
+
         if (type === 'pawn') {
             const y = color === 'white' ? 1 : 6;
             return new Coordinate(index, y);
@@ -68,9 +71,6 @@ export class NecromancerBonus extends PactLogic {
         const backRank = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
 
         // We need to find the X for this type at this index.
-        // There can be multiple pieces of same type (2 rooks, 2 knights, 2 bishops).
-        // index 0 is the first one (leftmost), index 1 is the 2nd.
-
         let count = 0;
         for (let x = 0; x < backRank.length; x++) {
             if (backRank[x] === type) {
@@ -88,17 +88,15 @@ export class NecromancerBonus extends PactLogic {
 export class NecromancerMalus extends PactLogic {
     id = 'ascension_cost';
 
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'promotion') {
-            // payload is Move
-            const move = payload;
-            if (move.piece && move.piece.color === context.playerId) {
-                // Determine opponent color
-                const opponent = context.playerId === 'white' ? 'black' : 'white';
-
-                // Grant extra turn to opponent
-                context.game.extraTurns[opponent] = (context.game.extraTurns[opponent] || 0) + 1;
+    getRuleModifiers(): RuleModifiers {
+        return {
+            modifyNextTurn: (game, currentTurn, eventType) => {
+                if (eventType === 'promotion') {
+                    const opponent = currentTurn === 'white' ? 'black' : 'white';
+                    game.extraTurns[opponent] = (game.extraTurns[opponent] || 0) + 1;
+                }
+                return null;
             }
-        }
+        };
     }
 }
