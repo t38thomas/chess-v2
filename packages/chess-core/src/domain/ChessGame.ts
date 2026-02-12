@@ -170,11 +170,7 @@ export class ChessGame {
             eventType = 'castle';
         }
 
-        // --- THE ROYAL DEBT ---
-        if (move.capturedPiece?.type === 'queen' && opponentPacts.some(p => p.id === 'royal_debt')) {
-            this.status = 'checkmate'; // Instant loss simulated as checkmate
-            this.phase = 'game_over';
-        }
+
 
         // Execute the move
         if (move.isSwap) {
@@ -188,15 +184,8 @@ export class ChessGame {
 
         // --- EXPRESS PROMOTION ---
         let isExpressPromotion = false;
-        if (movingPiece.type === 'pawn') {
-            const hasExpressPerk = playerPacts.some(p => p.id === 'express_promotion');
-            const expressRank = pieceColor === 'white' ? 6 : 1;
-            const finalRank = pieceColor === 'white' ? 7 : 0;
+        // Logic removed as 'express_promotion' is not in V3
 
-            if ((hasExpressPerk && to.y === expressRank) || to.y === finalRank) {
-                isExpressPromotion = true;
-            }
-        }
 
         // Handle pawn promotion
         if (isExpressPromotion) {
@@ -248,29 +237,10 @@ export class ChessGame {
         const isInCheck = CheckDetector.isKingInCheck(this.board, this.turn, opponentPacts);
 
         if (!hasLegalMoves) {
-            // Queen Aura Immunity Check
-            const queenAuraPower = opponentPacts.some(p => p.id === 'queen_aura'); // Wait, opponent pacts? No, player's queen aura.
-            const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
-            const hasQueenAura = playerPacts.some(p => p.id === 'queen_aura');
-
-            let isImmune = false;
-            if (hasQueenAura && isInCheck) {
-                // Find king and see if near queen
-                const kingSq = this.board.getAllSquares().find(s => s.piece?.type === 'king' && s.piece.color === this.turn);
-                const queenSq = this.board.getAllSquares().find(s => s.piece?.type === 'queen' && s.piece.color === this.turn);
-                if (kingSq && queenSq) {
-                    const dx = Math.abs(kingSq.coordinate.x - queenSq.coordinate.x);
-                    const dy = Math.abs(kingSq.coordinate.y - queenSq.coordinate.y);
-                    if (dx <= 1 && dy <= 1) isImmune = true;
-                }
-            }
-
-            if (isInCheck && !isImmune) {
+            if (isInCheck) {
                 this.status = 'checkmate';
-            } else if (!isInCheck) {
-                this.status = 'stalemate';
             } else {
-                this.status = 'active'; // Saved by the Queen!
+                this.status = 'stalemate';
             }
         } else {
             this.status = 'active';
