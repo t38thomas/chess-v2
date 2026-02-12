@@ -92,8 +92,8 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     wingless: { id: 'wingless', name: 'wingless', icon: 'feather-off', description: 'desc_wingless', ranking: -3, category: 'Board Transform' },
 
     // --- 17. L'ALCHIMISTA ---
-    transmutation: { id: 'transmutation', name: 'transmutation', icon: 'flask', description: 'desc_transmutation', ranking: 3, category: 'Board Transform' },
-    equivalent_exchange: { id: 'equivalent_exchange', name: 'equivalent_exchange', icon: 'scale-balance', description: 'desc_equivalent_exchange', ranking: -2, category: 'King Safety' },
+    transmutation: { id: 'transmutation', name: 'transmutation', icon: 'flask', description: 'desc_transmutation', ranking: 3, category: 'Action' },
+    volatile_reagents: { id: 'volatile_reagents', name: 'volatile_reagents', icon: 'flask-outline', description: 'desc_volatile_reagents', ranking: -2, category: 'Other' },
 
     // --- 18. IL VETERANO ---
     bayonet: { id: 'bayonet', name: 'bayonet', icon: 'knife', description: 'desc_bayonet', ranking: 3, category: 'Capture Rules' },
@@ -165,7 +165,7 @@ export const PACT_CARDS: Pact[] = [
     { id: 'shadow', title: 'title_shadow', bonus: PERK_LIBRARY.stealth, malus: PERK_LIBRARY.blind_light, description: 'desc_pact_shadow' },
     { id: 'swarm', title: 'title_swarm', bonus: PERK_LIBRARY.hydra, malus: PERK_LIBRARY.hive_queen, description: 'desc_pact_swarm' },
     { id: 'phoenix', title: 'title_phoenix', bonus: PERK_LIBRARY.rebirth, malus: PERK_LIBRARY.wingless, description: 'desc_pact_phoenix' },
-    { id: 'alchemist', title: 'title_alchemist', bonus: PERK_LIBRARY.transmutation, malus: PERK_LIBRARY.equivalent_exchange, description: 'desc_pact_alchemist' },
+    { id: 'alchemist', title: 'title_alchemist', bonus: PERK_LIBRARY.transmutation, malus: PERK_LIBRARY.volatile_reagents, description: 'desc_pact_alchemist' },
     { id: 'veteran', title: 'title_veteran', bonus: PERK_LIBRARY.bayonet, malus: PERK_LIBRARY.old_guard, description: 'desc_pact_veteran' },
     { id: 'golem', title: 'title_golem', bonus: PERK_LIBRARY.stone_skin, malus: PERK_LIBRARY.lead_feet, description: 'desc_pact_golem' },
     { id: 'spectre', title: 'title_spectre', bonus: PERK_LIBRARY.incorporeal, malus: PERK_LIBRARY.possession, description: 'desc_pact_spectre' },

@@ -11,7 +11,7 @@ import { PactRegistry } from './pacts/PactRegistry';
 
 export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw';
 export type GamePhase = 'setup' | 'playing' | 'game_over';
-export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated';
+export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start';
 
 export class ChessGame {
     public readonly board: BoardModel;
@@ -60,6 +60,7 @@ export class ChessGame {
         } else {
             // Swap turn so the other player can select their pact
             this.turn = this.turn === 'white' ? 'black' : 'white';
+            this.emit('turn_start', this.turn);
         }
     }
 
@@ -78,6 +79,13 @@ export class ChessGame {
         if (success) {
             this.perkUsage[this.turn].add(abilityId);
             this.emit('ability_activated', { abilityId, playerId: this.turn });
+
+            const logic = PactRegistry.getInstance().get(abilityId);
+            if (logic?.activeAbility?.consumesTurn) {
+                this.turn = RuleEngine.getNextTurn(this, this.turn, 'ability_activated', playerPacts);
+                this.emit('turn_start', this.turn);
+            }
+
             this.updateGameStatus();
             return true;
         }
@@ -246,6 +254,7 @@ export class ChessGame {
         else if (this.isInCheck(this.turn)) eventType = 'check';
 
         this.emit(eventType, move);
+        this.emit('turn_start', this.turn);
         return true;
     }
 

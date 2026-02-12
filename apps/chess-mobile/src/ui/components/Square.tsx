@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { SquareViewModel } from 'chess-core';
 import { useTheme } from '../theme';
+import { Text } from './Text';
 
 interface SquareProps {
     viewModel: SquareViewModel;
@@ -25,11 +26,17 @@ export const Square: React.FC<SquareProps> = ({
                 { width: size, height: size, backgroundColor },
                 viewModel.isSelected && styles.selected,
                 viewModel.isLastMove && styles.lastMove,
+                !!viewModel.targetIndex && styles.targetSquare,
             ]}
             onPress={onPress}
             activeOpacity={0.8}
         >
             {viewModel.isValidTarget && <View style={styles.validTargetMarker} />}
+            {viewModel.targetIndex && (
+                <View style={styles.targetBadge}>
+                    <Text variant="caption" bold color="inverse">{viewModel.targetIndex}</Text>
+                </View>
+            )}
             {children}
         </TouchableOpacity>
     );
@@ -54,4 +61,19 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(16, 185, 129, 0.6)', // emerald dot for valid moves
         zIndex: 1,
     },
+    targetSquare: {
+        backgroundColor: 'rgba(59, 130, 246, 0.5)', // blue for targeting
+    },
+    targetBadge: {
+        position: 'absolute',
+        top: 2,
+        right: 2,
+        backgroundColor: '#3B82F6',
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2,
+    }
 });

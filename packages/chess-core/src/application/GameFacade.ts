@@ -6,6 +6,7 @@ import { MoveGenerator } from '../domain/rules/MoveGenerator';
 import { CheckDetector } from '../domain/rules/CheckDetector';
 import { BoardViewModel, SquareViewModel } from './ViewModels';
 import { Pact } from '../domain/models/Pact';
+import { PactRegistry } from '../domain/pacts/PactRegistry';
 
 export { GameEvent };
 
@@ -17,6 +18,8 @@ export class GameFacade {
     private listeners: (() => void)[] = [];
     private playerColor?: PieceColor;
     private pendingPromotionMove: Move | null = null;
+    private activeAbilityId: string | null = null;
+    private pendingTargets: Coordinate[] = [];
 
     constructor(
         private onMove?: (move: Move) => void,
@@ -64,7 +67,10 @@ export class GameFacade {
                 isSelected,
                 isValidTarget,
                 isLastMove,
-                isCheck
+                isCheck,
+                targetIndex: this.pendingTargets.findIndex(c => c.equals(coord)) !== -1
+                    ? this.pendingTargets.findIndex(c => c.equals(coord)) + 1
+                    : null
             });
         });
 
@@ -85,7 +91,9 @@ export class GameFacade {
                 y: this.pendingPromotionMove.to.y,
                 color: this.pendingPromotionMove.piece.color
             } : null,
-            winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined
+            winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined,
+            activeAbilityId: this.activeAbilityId,
+            pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y }))
         };
     }
 
@@ -101,6 +109,11 @@ export class GameFacade {
     public handleSquarePress(x: number, y: number, promotion?: PieceType) {
         const coord = new Coordinate(x, y);
         const square = this.game.board.getSquare(coord);
+
+        if (this.activeAbilityId) {
+            this.handleAbilityTargetPress(x, y);
+            return;
+        }
 
         if (this.selectedSquare) {
             if (this.selectedSquare.equals(coord)) {
@@ -208,9 +221,81 @@ export class GameFacade {
     }
 
     public useAbility(id: string, params?: any) {
+        const playerPacts = this.game.pacts[this.game.turn].map(p => [p.bonus, p.malus]).flat();
+        const perk = playerPacts.find(p => p.id === id);
+        const registry = PactRegistry.getInstance();
+        const logic = registry.get(id);
+
+        if (logic?.activeAbility && logic.activeAbility.targetType !== 'none' && !params) {
+            // Enter targeting mode
+            this.activeAbilityId = id;
+            this.pendingTargets = [];
+            this.deselect(); // Clear piece selection
+            this.notify();
+            return true;
+        }
+
         const success = this.game.useAbility(id, params);
-        if (success) this.notify();
+        if (success) {
+            this.activeAbilityId = null;
+            this.pendingTargets = [];
+            this.notify();
+        }
         return success;
+    }
+
+    private handleAbilityTargetPress(x: number, y: number) {
+        if (!this.activeAbilityId) return;
+
+        const coord = new Coordinate(x, y);
+
+        // Toggle target if already selected
+        const existingIdx = this.pendingTargets.findIndex(c => c.equals(coord));
+        if (existingIdx !== -1) {
+            this.pendingTargets.splice(existingIdx, 1);
+            this.notify();
+            return;
+        }
+
+        this.pendingTargets.push(coord);
+
+        // Check if we have enough targets
+        const logic = PactRegistry.getInstance().get(this.activeAbilityId);
+        if (!logic?.activeAbility) return;
+
+        let requiredTargets = 0;
+        if (this.activeAbilityId === 'transmutation') requiredTargets = 2;
+        // Add more abilities here if they have different target requirements
+
+        if (this.pendingTargets.length === requiredTargets) {
+            let params: any = {};
+            if (this.activeAbilityId === 'transmutation') {
+                params = {
+                    from: this.pendingTargets[0],
+                    to: this.pendingTargets[1]
+                };
+            }
+
+            const success = this.game.useAbility(this.activeAbilityId, params);
+            if (success) {
+                this.activeAbilityId = null;
+                this.pendingTargets = [];
+            }
+            // If failed, we keep targets so user can adjust? 
+            // Better to clear if it was an invalid selection according to logic
+            if (!success) {
+                this.pendingTargets = [];
+            }
+            this.notify();
+        } else {
+            this.notify();
+        }
+    }
+
+    public cancelAbility() {
+        this.activeAbilityId = null;
+        this.pendingTargets = [];
+        this.notify();
     }
 
     public getAvailableAbilities(): string[] {

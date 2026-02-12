@@ -40,6 +40,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
         assignPact,
         useAbility,
         availableAbilities,
+        activeAbilityId,
+        cancelAbility,
         status,
         winner
     } = useGame();
@@ -107,26 +109,36 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
             {/* History Section Removed */}
 
             {/* Spectral Actions */}
-            {availableAbilities.length > 0 && (
+            {(availableAbilities.length > 0 || activeAbilityId) && (
                 <View style={styles.spectralActionsContainer}>
                     <Text variant="caption" color="secondary" bold style={{ marginBottom: 8 }}>
-                        {t('pact.spectralActions')}
+                        {activeAbilityId ? t('pact.selectTargets') : t('pact.spectralActions')}
                     </Text>
                     <View style={styles.spectralActionsList}>
-                        {availableAbilities.map(abilityId => {
-                            const perk = PERK_LIBRARY[abilityId];
-                            if (!perk) return null;
-                            return (
-                                <Button
-                                    key={abilityId}
-                                    label={perk.name}
-                                    icon={perk.icon as any}
-                                    variant="primary"
-                                    onPress={() => useAbility(abilityId)}
-                                    style={{ flex: 1 }}
-                                />
-                            );
-                        })}
+                        {activeAbilityId ? (
+                            <Button
+                                label={t('common.cancel')}
+                                variant="destructive"
+                                icon="close"
+                                onPress={cancelAbility}
+                                style={{ flex: 1 }}
+                            />
+                        ) : (
+                            availableAbilities.map(abilityId => {
+                                const perk = PERK_LIBRARY[abilityId];
+                                if (!perk) return null;
+                                return (
+                                    <Button
+                                        key={abilityId}
+                                        label={perk.name}
+                                        icon={perk.icon as any}
+                                        variant="primary"
+                                        onPress={() => useAbility(abilityId)}
+                                        style={{ flex: 1 }}
+                                    />
+                                );
+                            })
+                        )}
                     </View>
                 </View>
             )}

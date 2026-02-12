@@ -10,7 +10,7 @@ export const useGame = () => {
     // Initialize Facade once (lazy init) with game event handler
     const [facade] = useState(() => new GameFacade(
         undefined, // onMove callback
-        (event) => playGameEvent(event) // onGameEvent callback for sounds
+        (event) => playGameEvent(event as any) // onGameEvent callback for sounds
     ));
 
     // Sync state
@@ -93,6 +93,9 @@ export const useGame = () => {
         pacts,
         assignPact,
         useAbility: (id: string, params?: any) => facade.useAbility(id, params),
+        cancelAbility: () => facade.cancelAbility(),
         availableAbilities,
+        activeAbilityId: viewModel.activeAbilityId,
+        pendingTargets: viewModel.pendingTargets,
     };
 }

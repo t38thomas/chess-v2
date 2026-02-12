@@ -18,6 +18,7 @@ export interface ActiveAbilityConfig {
     cooldown?: number; // Turns
     maxUses?: number; // per game
     targetType: 'none' | 'square' | 'piece';
+    consumesTurn?: boolean;
     execute: (context: PactContext, target?: any) => boolean;
 }
 

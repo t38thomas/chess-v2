@@ -16,6 +16,7 @@ export interface SquareViewModel {
     isValidTarget: boolean;
     isLastMove: boolean;
     isCheck: boolean; // King in check
+    targetIndex?: number | null; // For multi-target abilities
 }
 
 export interface MoveViewModel {
@@ -34,4 +35,6 @@ export interface BoardViewModel {
     pacts: Record<PieceColor, Pact[]>;
     pendingPromotion?: { x: number; y: number; color: PieceColor } | null;
     winner?: PieceColor;
+    activeAbilityId?: string | null;
+    pendingTargets?: { x: number; y: number }[];
 }
