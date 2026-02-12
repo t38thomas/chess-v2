@@ -1,0 +1,25 @@
+{
+    "name": "chess-server",
+    "version": "1.0.0",
+    "description": "Minimal authoritative chess server",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "dev": "ts-node src/index.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "chess-core": "*",
+        "uuid": "^11.0.5",
+        "ws": "^8.18.0",
+        "zod": "^4.3.6"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.5",
+        "@types/uuid": "^10.0.0",
+        "@types/ws": "^8.5.13",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.7.3"
+    }
+}

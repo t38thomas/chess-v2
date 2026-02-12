@@ -1,0 +1,20 @@
+
+export class Coordinate {
+    constructor(
+        public readonly x: number,
+        public readonly y: number
+    ) { }
+
+    static fromString(key: string): Coordinate {
+        const [x, y] = key.split(',').map(Number);
+        return new Coordinate(x, y);
+    }
+
+    toString(): string {
+        return `${this.x},${this.y}`;
+    }
+
+    equals(other: Coordinate): boolean {
+        return this.x === other.x && this.y === other.y;
+    }
+}
