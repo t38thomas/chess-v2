@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useMemo, useEffect } from '
 import { useColorScheme } from 'react-native';
 import { lightColors, darkColors, typography, spacing, radii, shadows, motion } from './tokens';
 
+import { StorageService, STORAGE_KEYS } from '../../services/StorageService';
+
 type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
@@ -21,7 +23,23 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const systemScheme = useColorScheme();
-    const [mode, setMode] = useState<ThemeMode>('system');
+    const [mode, setModeState] = useState<ThemeMode>('system');
+
+    // Load theme on mount
+    useEffect(() => {
+        const loadTheme = async () => {
+            const savedTheme = await StorageService.getItem(STORAGE_KEYS.THEME_MODE);
+            if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')) {
+                setModeState(savedTheme as ThemeMode);
+            }
+        };
+        loadTheme();
+    }, []);
+
+    const setMode = async (newMode: ThemeMode) => {
+        setModeState(newMode);
+        await StorageService.setItem(STORAGE_KEYS.THEME_MODE, newMode);
+    };
 
     const isDark = useMemo(() => {
         if (mode === 'system') {
@@ -45,10 +63,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }), [mode, isDark, colors]);
 
     return (
-        <ThemeContext.Provider value= { value } >
-        { children }
+        <ThemeContext.Provider value={value} >
+            {children}
         </ThemeContext.Provider>
-  );
+    );
 };
 
 export const useTheme = () => {

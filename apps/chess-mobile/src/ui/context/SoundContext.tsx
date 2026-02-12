@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SoundManager, SoundType, GameEvent } from '../../services/SoundManager';
 
+import { StorageService, STORAGE_KEYS } from '../../services/StorageService';
+
 interface SoundContextValue {
     isEnabled: boolean;
     toggleSound: () => void;
@@ -19,6 +21,13 @@ export const SoundProvider: React.FC<SoundProviderProps> = ({ children }) => {
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+        // Load sound preference
+        const loadSoundPreference = async () => {
+            const saved = await StorageService.getBoolean(STORAGE_KEYS.SOUND_ENABLED, true);
+            setIsEnabled(saved);
+        };
+        loadSoundPreference();
+
         // Initialize sound manager on mount
         SoundManager.initialize()
             .then(() => {
@@ -35,8 +44,9 @@ export const SoundProvider: React.FC<SoundProviderProps> = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        // Sync enabled state with SoundManager
+        // Sync enabled state with SoundManager and save
         SoundManager.setEnabled(isEnabled);
+        StorageService.setBoolean(STORAGE_KEYS.SOUND_ENABLED, isEnabled);
     }, [isEnabled]);
 
     const toggleSound = () => {

@@ -6,6 +6,8 @@ import { SwarmBonus, SwarmMalus } from './definitions/TheSwarm';
 import { AlchemistBonus, AlchemistMalus } from './definitions/TheAlchemist';
 import { BerserkerBonus, BerserkerMalus } from './definitions/TheBerserker';
 
+import { HeavyCavalryBonus, HeavyCavalryMalus } from './definitions/TheHeavyCavalry';
+
 export class PactFactory {
     public static initialize() {
         const registry = PactRegistry.getInstance();
@@ -33,6 +35,10 @@ export class PactFactory {
         // 6. Il Berserker
         registry.register(new BerserkerBonus());
         registry.register(new BerserkerMalus());
+
+        // 7. Cavalleria Pesante
+        registry.register(new HeavyCavalryBonus());
+        registry.register(new HeavyCavalryMalus());
 
         // ... more to come
     }
