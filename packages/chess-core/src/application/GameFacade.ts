@@ -16,6 +16,7 @@ export class GameFacade {
     private lastMove: { from: Coordinate, to: Coordinate } | null = null;
     private listeners: (() => void)[] = [];
     private playerColor?: PieceColor;
+    private pendingPromotionMove: Move | null = null;
 
     constructor(
         private onMove?: (move: Move) => void,
@@ -79,34 +80,20 @@ export class GameFacade {
             history: [], // Placeholder
             phase: this.game.phase,
             pacts: this.game.pacts,
-            pendingPromotion: this.game.enPassantTarget ? null : this.getPendingPromotion(),
+            pendingPromotion: this.pendingPromotionMove ? {
+                x: this.pendingPromotionMove.to.x,
+                y: this.pendingPromotionMove.to.y,
+                color: this.pendingPromotionMove.piece.color
+            } : null,
             winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined
         };
     }
 
-    private getPendingPromotion() {
-        // Enforce express or normal promotion check
-        const allSquares = this.game.board.getAllSquares();
-        for (const sq of allSquares) {
-            if (sq.piece?.type === 'pawn') {
-                const isExpress = this.game.pacts[sq.piece.color].some(p => [p.bonus, p.malus].some(perk => perk.id === 'express_promotion'));
-                const promotionRank = sq.piece.color === 'white' ? (isExpress ? 6 : 7) : (isExpress ? 1 : 0);
-                if (sq.coordinate.y === promotionRank) {
-                    return { x: sq.coordinate.x, y: sq.coordinate.y, color: sq.piece.color };
-                }
-            }
-        }
-        return null;
-    }
-
     public completePromotion(pieceType: PieceType) {
-        const pending = this.getPendingPromotion();
-        if (pending) {
-            const sq = this.game.board.getSquare(new Coordinate(pending.x, pending.y));
-            if (sq?.piece) {
-                sq.piece.type = pieceType;
-                this.notify();
-            }
+        if (this.pendingPromotionMove) {
+            const move = this.pendingPromotionMove;
+            this.pendingPromotionMove = null;
+            this.executeMove(move, pieceType);
         }
     }
 
@@ -123,6 +110,24 @@ export class GameFacade {
 
             const move = this.validMoves.find(m => m.to.equals(coord));
             if (move) {
+                // Check if this is a promotion move
+                const isPawn = move.piece.type === 'pawn';
+                const finalRank = move.piece.color === 'white' ? 7 : 0;
+
+                // Check for express promotion perk
+                const playerPacts = this.game.pacts[move.piece.color].map(p => [p.bonus, p.malus]).flat();
+                const isExpress = playerPacts.some(p => p.id === 'express_promotion');
+
+                const promotionRank = move.piece.color === 'white' ? (isExpress ? 6 : 7) : (isExpress ? 1 : 0);
+                const isPromotionMove = isPawn && move.to.y === promotionRank;
+
+                if (isPromotionMove && !promotion) {
+                    this.pendingPromotionMove = move;
+                    this.deselect(); // Clear selection but keep pending move
+                    this.notify();
+                    return;
+                }
+
                 this.executeMove(move, promotion);
                 return;
             }

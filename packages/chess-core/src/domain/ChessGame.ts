@@ -183,36 +183,35 @@ export class ChessGame {
         }
 
         // --- PROMOTION LOGIC ---
-        // Check for ANY promotion (Standard or Express)
-        let isPromotion = false;
-
-        // Standard Promotion Check
         if (movingPiece.type === 'pawn') {
             const finalRank = pieceColor === 'white' ? 7 : 0;
-            if (to.y === finalRank) isPromotion = true;
-        }
+            const isStandardPromotion = to.y === finalRank;
 
-        // Express Promotion Check (if needed in future, currently empty as V3 has none)
-        if (!isPromotion && movingPiece.type === 'pawn') {
-            // Placeholder for any ability that might trigger early promotion
-        }
+            // Future: Add Express Promotion check here if needed
+            const isExpressPromotion = false;
 
-        if (isPromotion) {
-            let pieceToPromote = promotionPiece || 'queen';
+            if (isStandardPromotion || isExpressPromotion) {
+                let pieceToPromote = promotionPiece || 'queen';
 
-            // Validate promotion type against active pacts (Fix for Saboteur Malus)
-            const allowedTypes = RuleEngine.getAllowedPromotionTypes(movingPiece, playerPacts);
-            if (!allowedTypes.includes(pieceToPromote)) {
-                // If requested type is not allowed, default to the first allowed type
-                if (allowedTypes.length > 0) {
-                    pieceToPromote = allowedTypes[0];
+                // Validate promotion type against active pacts (Fix for Saboteur Malus)
+                const allowedTypes = RuleEngine.getAllowedPromotionTypes(movingPiece, playerPacts);
+
+                // Ensure the requested type is allowed. If not, fallback to the first allowed type.
+                if (!allowedTypes.includes(pieceToPromote)) {
+                    if (allowedTypes.length > 0) {
+                        pieceToPromote = allowedTypes[0];
+                    } else {
+                        // Edge case: No promotion allowed (rare). Default to Queen if list empty?
+                        // Should technically block move, but for safety in this block:
+                        pieceToPromote = 'queen';
+                    }
                 }
-            }
 
-            const pieceOnBoard = this.board.getSquare(to)?.piece;
-            if (pieceOnBoard) pieceOnBoard.type = pieceToPromote;
-            move.promotion = pieceToPromote;
-            eventType = 'promotion'; // Fix for Necromancer Malus (event type)
+                const pieceOnBoard = this.board.getSquare(to)?.piece;
+                if (pieceOnBoard) pieceOnBoard.type = pieceToPromote;
+                move.promotion = pieceToPromote;
+                eventType = 'promotion'; // Fix for Necromancer Malus (event type)
+            }
         }
 
         // RuleEngine side effects (e.g., tracking usage, extra turn costs)

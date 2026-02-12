@@ -126,7 +126,7 @@ export const it: Translations = {
         subtitle: 'Profeta {color}, sacrifica il controllo per un potere proibito.',
         ascension: 'ASCENSIONE',
         sacrifice: 'SACRIFICIO',
-        embrace: 'ABBRACCIA',
+        embrace: 'SELEZIONA',
         activePacts: 'Patti Attivi',
         spectralActions: 'Azioni Spettrali',
         abilityActivated: 'Abilità attivata!',

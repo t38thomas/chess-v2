@@ -7,7 +7,7 @@ import { SoundProvider } from './src/ui/context/SoundContext';
 import { GameScreen } from './src/screens/GameScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 type Screen = 'home' | 'local' | 'online';
 
@@ -44,16 +44,18 @@ export default function App() {
     };
 
     return (
-        <ThemeProvider>
-            <I18nProvider>
-                <SoundProvider>
-                    <SafeAreaView style={styles.container}>
-                        <StatusBar style="auto" />
-                        {renderScreen()}
-                    </SafeAreaView>
-                </SoundProvider>
-            </I18nProvider>
-        </ThemeProvider>
+        <SafeAreaProvider>
+            <ThemeProvider>
+                <I18nProvider>
+                    <SoundProvider>
+                        <SafeAreaView style={styles.container}>
+                            <StatusBar style="auto" />
+                            {renderScreen()}
+                        </SafeAreaView>
+                    </SoundProvider>
+                </I18nProvider>
+            </ThemeProvider>
+        </SafeAreaProvider>
     );
 }
 
