@@ -4,6 +4,7 @@ import { SaboteurBonus, SaboteurMalus } from './definitions/TheSaboteur';
 import { NecromancerBonus, NecromancerMalus } from './definitions/TheNecromancer';
 import { SwarmBonus, SwarmMalus } from './definitions/TheSwarm';
 import { AlchemistBonus, AlchemistMalus } from './definitions/TheAlchemist';
+import { BerserkerBonus, BerserkerMalus } from './definitions/TheBerserker';
 
 export class PactFactory {
     public static initialize() {
@@ -28,6 +29,10 @@ export class PactFactory {
         // 5. L'Alchimista
         registry.register(new AlchemistBonus());
         registry.register(new AlchemistMalus());
+
+        // 6. Il Berserker
+        registry.register(new BerserkerBonus());
+        registry.register(new BerserkerMalus());
 
         // ... more to come
     }

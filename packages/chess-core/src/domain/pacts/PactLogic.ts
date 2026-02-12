@@ -52,10 +52,12 @@ export interface RuleModifiers {
 
     // King Safety
     canCastleWhileMoved?: (piece: Piece) => boolean;
+    canCastle?: (piece: Piece) => boolean;
     mustMoveKingInCheck?: (color: PieceColor) => boolean;
 
     // Turn Economy & Special Rules
     modifyNextTurn?: (game: ChessGame, currentTurn: PieceColor, eventType: GameEvent) => PieceColor | null;
+    onExecuteMove?: (game: ChessGame, move: Move) => void;
 
     // Attack/Defense modifiers
     isImmuneToCheckmate?: (game: ChessGame) => boolean;

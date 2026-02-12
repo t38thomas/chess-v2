@@ -132,6 +132,7 @@ export const en = {
         noMoves: 'No moves recorded yet',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
+        searchPlaceholder: 'Search for a pact...',
     },
     pacts: {
         necromancer: { title: 'The Necromancer', description: 'Resurrects allies, but ascension has a cost.' },

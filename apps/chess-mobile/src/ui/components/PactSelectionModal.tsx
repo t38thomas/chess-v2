@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ScrollView,
     Dimensions,
+    TextInput,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -41,6 +42,7 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
     onSelect
 }) => {
     const [options, setOptions] = useState<Pact[]>([]);
+    const [searchText, setSearchText] = useState('');
     const { colors, spacing } = useTheme();
     const { t } = useTranslation();
     const { translatePact } = usePactTranslation();
@@ -48,11 +50,25 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
 
     useEffect(() => {
         if (visible) {
-            // Pick 3 random pacts for the current player
-            const shuffled = [...PACT_CARDS].sort(() => 0.5 - Math.random());
-            setOptions(shuffled.slice(0, 3));
+            if (searchText && __DEV__) {
+                const filtered = PACT_CARDS.filter(pact => {
+                    const translated = translatePact(pact);
+                    if (!translated) return false;
+                    const search = searchText.toLowerCase();
+                    return (
+                        translated.title.toLowerCase().includes(search) ||
+                        translated.description.toLowerCase().includes(search) ||
+                        pact.id.toLowerCase().includes(search)
+                    );
+                });
+                setOptions(filtered);
+            } else {
+                // Pick 3 random pacts for the current player
+                const shuffled = [...PACT_CARDS].sort(() => 0.5 - Math.random());
+                setOptions(shuffled.slice(0, 3));
+            }
         }
-    }, [visible, color]);
+    }, [visible, color, searchText, translatePact]);
 
     if (!visible) return null;
 
@@ -69,6 +85,24 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                                 {t('pact.subtitle', { color: colorName })}
                             </Text>
                         </View>
+
+                        {__DEV__ && (
+                            <View style={styles.searchContainer}>
+                                <TextInput
+                                    style={[styles.searchInput, {
+                                        color: '#fff',
+                                        borderColor: colors.border,
+                                        backgroundColor: colors.surface
+                                    }]}
+                                    placeholder={t('pact.searchPlaceholder')}
+                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    value={searchText}
+                                    onChangeText={setSearchText}
+                                    autoCorrect={false}
+                                    clearButtonMode="while-editing"
+                                />
+                            </View>
+                        )}
 
                         <ScrollView
                             contentContainerStyle={styles.scrollContent}
@@ -227,7 +261,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 12,
         paddingHorizontal: 40,
-        marginBottom: 30,
+        marginBottom: 20,
+    },
+    searchContainer: {
+        paddingHorizontal: 16,
+        marginBottom: 16,
+    },
+    searchInput: {
+        height: 48,
+        borderRadius: 12,
+        borderWidth: 1,
+        paddingHorizontal: 16,
+        fontSize: 16,
     },
     scrollContent: {
         paddingBottom: 30,

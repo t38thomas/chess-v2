@@ -134,6 +134,7 @@ export const it: Translations = {
         noMoves: 'Nessuna mossa ancora',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
+        searchPlaceholder: 'Cerca un patto...',
     },
     pacts: {
         necromancer: { title: 'Il Negromante', description: 'Resuscita gli alleati, ma l\'ascensione ha un costo.' },

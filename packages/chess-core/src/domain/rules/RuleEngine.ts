@@ -143,6 +143,16 @@ export class RuleEngine {
         });
     }
 
+    public static canCastle(piece: Piece, perks: Perk[]): boolean {
+        const registry = PactRegistry.getInstance();
+        for (const perk of perks) {
+            const pactLogic = registry.get(perk.id);
+            const modifier = pactLogic?.getRuleModifiers()?.canCastle;
+            if (modifier && modifier(piece) === false) return false;
+        }
+        return true;
+    }
+
     public static mustMoveKingInCheck(color: PieceColor, perks: Perk[]): boolean {
         const registry = PactRegistry.getInstance();
         return perks.some(p => {
@@ -154,12 +164,11 @@ export class RuleEngine {
     // --- TURN ECONOMY & EVENTS ---
 
     public static onExecuteMove(game: ChessGame, move: Move, perks: Perk[]) {
-        // While we don't have a specific onExecuteMove logic in RuleModifiers yet,
-        // we can dispatch generic events using PactLogic.onEvent('move', ...) via ChessGame emit.
-        // However, RuleEngine mostly provided static hooks. 
-        // If specific logic is needed here that isn't covered by 'onEvent' listeners, we can add it later.
-        // For now, removing legacy logic. The ChessGame.makeMove calls this, but it also calls game.emit('move').
-        // So Pacts should listen to 'move' event instead of relying on this static hook.
+        const registry = PactRegistry.getInstance();
+        for (const perk of perks) {
+            const pactLogic = registry.get(perk.id);
+            pactLogic?.getRuleModifiers()?.onExecuteMove?.(game, move);
+        }
     }
 
     public static getNextTurn(game: ChessGame, currentTurn: PieceColor, eventType: GameEvent, perks: Perk[]): PieceColor {

@@ -255,6 +255,9 @@ export class MoveGenerator {
         // King must not have moved (unless RuleEngine allows it)
         if (piece.hasMoved && !RuleEngine.canCastleWhileMoved(piece, perks)) return;
 
+        // Check if castling is generally allowed by active pacts
+        if (!RuleEngine.canCastle(piece, perks)) return;
+
         const { x, y } = from;
         const baseRank = piece.color === 'white' ? 0 : 7;
 
