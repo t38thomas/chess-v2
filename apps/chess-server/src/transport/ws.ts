@@ -25,7 +25,7 @@ export function setupWebSocket(wss: WebSocketServer, matchService: MatchService)
                         clients.get(matchId)!.push(ws);
 
                         broadcast(matchId, {
-                            type: 'state',
+                            type: 'stateSync',
                             payload: DtoMapper.toMatchDto(match)
                         });
                         break;
@@ -40,7 +40,7 @@ export function setupWebSocket(wss: WebSocketServer, matchService: MatchService)
                         const updatedMatch = await matchService.getMatch(currentMatchId);
                         if (updatedMatch) {
                             broadcast(currentMatchId, {
-                                type: 'state',
+                                type: 'stateSync',
                                 payload: DtoMapper.toMatchDto(updatedMatch)
                             });
                         }

@@ -72,11 +72,12 @@ export class ChessGame {
         if (!abilityPerk || abilityPerk.category !== 'Action') return false;
         if (this.perkUsage[this.turn].has(abilityId)) return false;
 
-        RuleEngine.useAbility(this, abilityId, params, playerPacts);
+        const success = RuleEngine.useAbility(this, abilityId, params, playerPacts);
 
-        // If the ability was successfully used, it should be in perkUsage now
-        if (this.perkUsage[this.turn].has(abilityId)) {
-            this.emit('ability_activated');
+        // Mark as used if successful
+        if (success) {
+            this.perkUsage[this.turn].add(abilityId);
+            this.emit('ability_activated', { abilityId, playerId: this.turn });
             this.updateGameStatus();
             return true;
         }

@@ -29,23 +29,21 @@ export class NecromancerBonus extends PactLogic {
 
             if (!lostPiece) {
                 // No piece to resurrect
-                // TODO: Feedback to user?
-                return;
+                return false;
             }
 
             const startSquare = this.getStartingSquare(lostPiece);
-            if (!startSquare) return;
+            if (!startSquare) return false;
 
             // Check if square is empty
             const square = game.board.getSquare(startSquare);
             if (square && !square.piece) {
                 // Resurrect
                 game.board.placePiece(startSquare, lostPiece);
-                game.perkUsage[playerId].add(this.id); // Track usage to disable button
-                game.emit('ability_activated', { abilityId: this.id, playerId });
+                return true;
             } else {
                 // Square occupied
-                // TODO: Feedback
+                return false;
             }
         }
     };

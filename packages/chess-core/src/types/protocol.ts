@@ -97,6 +97,7 @@ export interface StateSyncPayload {
     phase: 'setup' | 'playing' | 'game_over';
     turn: 'white' | 'black';
     pacts: { white: any[], black: any[] };
+    perkUsage: { white: string[], black: string[] };
     board?: Array<[string, { coordinate: { x: number; y: number }; piece: { type: string; color: string; id: string } | null }]>;
     lastMove?: { from: { x: number; y: number }; to: { x: number; y: number } };
     players: {

@@ -185,7 +185,7 @@ export class RuleEngine {
         return opponent;
     }
 
-    public static useAbility(game: ChessGame, abilityId: string, params?: any, perks: Perk[] = []) {
+    public static useAbility(game: ChessGame, abilityId: string, params?: any, perks: Perk[] = []): boolean {
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             if (perk.id === abilityId) {
@@ -196,10 +196,11 @@ export class RuleEngine {
                         playerId: game.turn,
                         pactId: perk.id
                     };
-                    pactLogic.activeAbility.execute(context, params);
+                    return pactLogic.activeAbility.execute(context, params);
                 }
             }
         }
+        return false;
     }
 
     // --- UTILS & HOOKS ---
