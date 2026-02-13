@@ -59,27 +59,12 @@ export class NecromancerBonus extends PactLogic {
 
         if (isNaN(index)) return null; // Handle non-standard IDs (e.g. Swarm pawns)
 
-        if (type === 'pawn') {
-            const y = color === 'white' ? 1 : 6;
-            return new Coordinate(index, y);
-        }
+        // All standard pieces (pawns and backrank) use the index as their starting X coordinate.
+        const y = type === 'pawn'
+            ? (color === 'white' ? 1 : 6)
+            : (color === 'white' ? 0 : 7);
 
-        // Non-pawns: Backrank
-        const y = color === 'white' ? 0 : 7;
-        const backRank = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
-
-        // We need to find the X for this type at this index.
-        let count = 0;
-        for (let x = 0; x < backRank.length; x++) {
-            if (backRank[x] === type) {
-                if (count === index) {
-                    return new Coordinate(x, y);
-                }
-                count++;
-            }
-        }
-
-        return null;
+        return new Coordinate(index, y);
     }
 }
 
