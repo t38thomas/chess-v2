@@ -1,5 +1,5 @@
 import { PieceType, PieceColor } from '../domain/models/Piece';
-import { GameStatus, GamePhase } from '../domain/ChessGame';
+import { GameStatus, GamePhase } from '../domain/GameTypes';
 import { Pact } from '../domain/models/Pact';
 
 // Simplified view models for UI - pure data, no methods

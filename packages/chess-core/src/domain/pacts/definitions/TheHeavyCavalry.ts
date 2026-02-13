@@ -1,15 +1,14 @@
 import { PactLogic, RuleModifiers } from '../PactLogic';
-import { PieceType } from '../../models/Piece';
 import { Move } from '../../models/Move';
 import { Coordinate } from '../../models/Coordinate';
-import { ChessGame } from '../../ChessGame';
+import { GameEvent, IChessGame } from '../../GameTypes';
 
 export class HeavyCavalryBonus extends PactLogic {
     id = 'trample';
 
     getRuleModifiers(): RuleModifiers {
         return {
-            onExecuteMove: (game: ChessGame, move: Move) => {
+            onExecuteMove: (game: IChessGame, move: Move) => {
                 // If it's a Knight move
                 if (move.piece.type !== 'knight') return;
 
@@ -29,11 +28,9 @@ export class HeavyCavalryBonus extends PactLogic {
                         const coord = new Coordinate(nx, ny);
                         const square = game.board.getSquare(coord);
 
+                        // Trample enemy pawns adjacent to landing spot
                         if (square && square.piece && square.piece.color !== move.piece.color && square.piece.type === 'pawn') {
-                            // Trample! Record the capture for history maybe? 
-                            // For now just remove and emit event.
                             game.board.removePiece(coord);
-
                             game.emit('pact_effect', {
                                 pactId: this.id,
                                 title: 'pact.toasts.heavy_cavalry.trample.title',

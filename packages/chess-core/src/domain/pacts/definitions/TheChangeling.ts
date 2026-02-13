@@ -1,6 +1,6 @@
 import { PactLogic, RuleModifiers, PactContext, MoveParams } from '../PactLogic';
 import { PieceType, Piece } from '../../models/Piece';
-import { GameEvent } from '../../ChessGame';
+import { GameEvent } from '../../GameTypes';
 import { Move } from '../../models/Move';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 
