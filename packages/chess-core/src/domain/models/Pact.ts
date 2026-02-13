@@ -128,7 +128,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     gigantism: { id: 'gigantism', name: 'gigantism', icon: 'arrow-expand-all', description: 'desc_gigantism', ranking: -2, category: 'Movement' },
 
     // --- 26. IL LADRO ---
-    pickpocket: { id: 'pickpocket', name: 'pickpocket', icon: 'hand-coin', description: 'desc_pickpocket', ranking: 4, category: 'Action' },
+    pickpocket: { id: 'pickpocket', name: 'pickpocket', icon: 'hand-coin', description: 'desc_pickpocket', ranking: 4, category: 'Movement' },
     wanted: { id: 'wanted', name: 'wanted', icon: 'handcuffs', description: 'desc_wanted', ranking: -4, category: 'Promotion' },
 
     // --- 27. L'INGEGNERE ---

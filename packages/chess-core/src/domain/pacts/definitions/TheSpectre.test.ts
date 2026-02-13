@@ -94,7 +94,7 @@ describe('The Spectre Pact', () => {
             malus.getRuleModifiers().onExecuteMove!(game, move);
 
             expect(events.length).toBeGreaterThan(0);
-            expect(events[0].title).toBe('Pawn Possession');
+            expect(events[0].title).toBe('pact.toasts.spectre.possession.title');
             expect(board.getSquare(new Coordinate(0, 1))?.piece).toBeNull();
         });
 

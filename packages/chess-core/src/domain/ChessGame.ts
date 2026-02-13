@@ -211,16 +211,18 @@ export class ChessGame {
                     if (allowedTypes.length > 0) {
                         pieceToPromote = allowedTypes[0];
                     } else {
-                        // Edge case: No promotion allowed (rare). Default to Queen if list empty?
-                        // Should technically block move, but for safety in this block:
-                        pieceToPromote = 'queen';
+                        // Edge case: No promotion allowed (rare). 
+                        // We skip changing the type, piece remains a pawn (as per Thief Malus)
+                        pieceToPromote = 'pawn';
                     }
                 }
 
-                const pieceOnBoard = this.board.getSquare(to)?.piece;
-                if (pieceOnBoard) pieceOnBoard.type = pieceToPromote;
-                move.promotion = pieceToPromote;
-                eventType = 'promotion'; // Fix for Necromancer Malus (event type)
+                if (pieceToPromote !== 'pawn') {
+                    const pieceOnBoard = this.board.getSquare(to)?.piece;
+                    if (pieceOnBoard) pieceOnBoard.type = pieceToPromote;
+                    move.promotion = pieceToPromote;
+                    eventType = 'promotion';
+                }
             }
         }
 
@@ -243,9 +245,6 @@ export class ChessGame {
         }
         this.lastMovedPiecePos = to;
 
-        // Turn Economy via RuleEngine
-        this.turn = RuleEngine.getNextTurn(this, this.turn, eventType, playerPacts);
-
         this.updateGameStatus();
 
         // Check for specific end-game or status events
@@ -255,6 +254,23 @@ export class ChessGame {
         else if (this.isInCheck(this.turn)) eventType = 'check';
 
         this.emit(eventType, move);
+
+        // Turn Economy via RuleEngine
+        this.turn = RuleEngine.getNextTurn(this, this.turn, eventType, playerPacts);
+
+        // Central Cooldown Management: Decrement cooldowns for the player who is about to start their turn
+        // We do this AFTER the move event so that passive effects triggered by the move (like Pickpocket) 
+        // can set cooldowns that are immediately decremented by the upcoming turn.
+        const pieces = this.board.getAllSquares().map(s => s.piece).filter(p => p !== null);
+        pieces.forEach(p => {
+            if (p && p.color === this.turn) {
+                const cd = this.pieceCooldowns.get(p.id) || 0;
+                if (cd > 0) {
+                    this.pieceCooldowns.set(p.id, cd - 1);
+                }
+            }
+        });
+
         this.emit('turn_start', this.turn);
         return true;
     }

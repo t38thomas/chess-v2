@@ -54,16 +54,7 @@ export class AlchemistMalus extends PactLogic {
     id = 'volatile_reagents';
 
     getRuleModifiers(): RuleModifiers {
-        return {
-            canMovePiece: (game, from) => {
-                const square = game.board.getSquare(from);
-                if (square && square.piece) {
-                    const cooldown = game.pieceCooldowns.get(square.piece.id);
-                    if (cooldown && cooldown > 0) return false;
-                }
-                return true;
-            }
-        };
+        return {};
     }
 
     onEvent(event: GameEvent, payload: any, context: PactContext): void {
@@ -86,19 +77,6 @@ export class AlchemistMalus extends PactLogic {
                     description: 'pact.toasts.alchemist.stun.desc',
                     icon: 'flask',
                     type: 'malus'
-                });
-            }
-        }
-
-        // Handle turn start to decrement cooldowns
-        if (event === ('turn_start' as GameEvent)) {
-            const currentTurnPlayer = payload as PieceColor;
-            if (currentTurnPlayer === playerId) {
-                // It's the Alchemist's turn. Decrement cooldowns for their pieces.
-                game.pieceCooldowns.forEach((cd, id) => {
-                    if (cd > 0 && id.startsWith(playerId)) {
-                        game.pieceCooldowns.set(id, cd - 1);
-                    }
                 });
             }
         }

@@ -83,12 +83,20 @@ export class RuleEngine {
         return false;
     }
 
-    public static canMovePiece(game: ChessGame, from: Coordinate, perks: Perk[]): boolean {
+    public static canMovePiece(game: ChessGame, from: Coordinate, perks: Perk[], board?: BoardModel): boolean {
+        // Core Rule: Generic Cooldown check
+        const targetBoard = board || game.board;
+        const square = targetBoard.getSquare(from);
+        if (square?.piece) {
+            const cooldown = game.pieceCooldowns.get(square.piece.id);
+            if (cooldown && cooldown > 0) return false;
+        }
+
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             const pactLogic = registry.get(perk.id);
             const modifier = pactLogic?.getRuleModifiers()?.canMovePiece;
-            if (modifier && modifier(game, from) === false) return false;
+            if (modifier && modifier(game, from, targetBoard) === false) return false;
         }
         return true;
     }

@@ -37,28 +37,29 @@ describe('The Swarm Pact', () => {
             bonus.onEvent('capture', move, context);
 
             expect(events.length).toBe(1);
-            expect(events[0].title).toBe('Hydra Spawn');
+            expect(events[0].title).toBe('pact.toasts.swarm.spawn.title');
         });
     });
 
     describe('SwarmMalus (Hive Queen)', () => {
         it('should emit a toast when the queen is lost', () => {
-            board.clear();
-            const whiteQueen = new Piece('queen', 'white', 'white-queen-0');
-            board.placePiece(new Coordinate(0, 0), whiteQueen);
-
             const events: any[] = [];
             game.subscribe((event, payload) => {
                 if (event === 'pact_effect') events.push(payload);
             });
 
-            const context = { game, playerId: 'white' as any, pactId: 'hive_queen' };
-            const move = { capturedPiece: whiteQueen };
+            const blackQueen = new Piece('queen', 'black', 'black-queen');
+            game.board.placePiece(new Coordinate(0, 0), blackQueen);
 
-            malus.onEvent('capture', move, context);
+            // Assign Swarm pact to black
+            game.pacts.black = [{ id: 'swarm', title: 'Swarm', bonus: { id: 'hydra', name: 'hydra', icon: '', description: '', ranking: 5, category: 'Other' }, malus: { id: 'hive_queen', name: 'hive_queen', icon: '', description: '', ranking: -5, category: 'Other' }, description: '' }];
+
+            // Simulate loss of queen
+            game.board.removePiece(new Coordinate(0, 0));
+            game.emit('capture', { piece: new Piece('pawn', 'white', 'white-pawn'), capturedPiece: blackQueen });
 
             expect(events.length).toBe(1);
-            expect(events[0].title).toBe('Hive Queen Fallen');
+            expect(events[0].title).toBe('pact.toasts.swarm.death.title');
             expect(game.status).toBe('checkmate');
         });
     });

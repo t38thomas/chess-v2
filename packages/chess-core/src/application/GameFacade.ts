@@ -113,8 +113,28 @@ export class GameFacade {
 
         ['white', 'black'].forEach(c => {
             const color = c as PieceColor;
-            const playerPacts = this.game.pacts[color];
 
+            // 1. Generic Stun Check (for the victim)
+            let maxCooldown = 0;
+            this.game.pieceCooldowns.forEach((cd, id) => {
+                // Piece ID starts with color (e.g., 'white-rook-0')
+                if (id.startsWith(color) && cd > 0) {
+                    if (cd > maxCooldown) maxCooldown = cd;
+                }
+            });
+
+            if (maxCooldown > 0) {
+                counters[color].push({
+                    id: `stunned_${color}`,
+                    label: 'stunned_label',
+                    value: maxCooldown,
+                    pactId: 'stun', // Virtual pact ID for styling
+                    type: 'cooldown'
+                });
+            }
+
+            // 2. Pact Specific Counters
+            const playerPacts = this.game.pacts[color];
             playerPacts.forEach(pact => {
                 const registry = PactRegistry.getInstance();
                 // Check bonus

@@ -32,7 +32,7 @@ describe('The Necromancer Pact', () => {
             }
 
             expect(events.length).toBe(1);
-            expect(events[0].title).toBe('Ascension Cost');
+            expect(events[0].title).toBe('pact.toasts.necromancer.cost.title');
             expect(game.extraTurns['black']).toBe(1);
         });
     });

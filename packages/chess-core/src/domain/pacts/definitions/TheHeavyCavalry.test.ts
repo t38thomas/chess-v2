@@ -97,7 +97,7 @@ describe('Heavy Cavalry Pact', () => {
             bonus.getRuleModifiers().onExecuteMove!(game, move);
 
             expect(events.length).toBeGreaterThan(0);
-            expect(events[0].title).toBe('Trample!');
+            expect(events[0].title).toBe('pact.toasts.heavy_cavalry.trample.title');
 
             expect(board.getSquare(new Coordinate(4, 5))?.piece).toBeNull();
             expect(board.getSquare(new Coordinate(5, 4))?.piece).toBeNull();

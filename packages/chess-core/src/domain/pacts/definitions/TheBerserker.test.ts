@@ -46,7 +46,7 @@ describe('The Berserker Pact', () => {
         expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(true);
         expect(game.pactState['frenzy_white'].frenzyPieceId).toBe(whiteRook.id);
         expect(events.length).toBe(1);
-        expect(events[0].title).toBe('Frenzy!');
+        expect(events[0].title).toBe('pact.toasts.berserker.frenzy.title');
     });
 
     it('should prevent capture during frenzy', () => {

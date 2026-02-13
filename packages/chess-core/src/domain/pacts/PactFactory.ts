@@ -12,6 +12,7 @@ import { SniperBonus, SniperMalus } from './definitions/TheSniper';
 import { ChangelingBonus, ChangelingMalus } from './definitions/TheChangeling';
 import { StoneSkinBonus, LeadFeetMalus } from './definitions/TheGolem';
 import { ChaosBonus, JesterMalus } from './definitions/TheJester';
+import { ThiefBonus, ThiefMalus } from './definitions/TheThief';
 
 export class PactFactory {
     public static initialize() {
@@ -64,6 +65,10 @@ export class PactFactory {
         // 12. Il Giullare
         registry.register(new ChaosBonus());
         registry.register(new JesterMalus());
+
+        // 13. Il Ladro
+        registry.register(new ThiefBonus());
+        registry.register(new ThiefMalus());
 
         // ... more to come
     }

@@ -44,7 +44,7 @@ export interface RuleModifiers {
     canSidewaysMove?: (piece: Piece) => boolean;
     canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece) => boolean;
     canMoveLikeKnight?: (pieceType: PieceType) => boolean;
-    canMovePiece?: (game: ChessGame, from: Coordinate) => boolean;
+    canMovePiece?: (game: ChessGame, from: Coordinate, board?: BoardModel) => boolean;
 
     // Promotion overrides
     getAllowedPromotionTypes?: (piece: Piece) => PieceType[];

@@ -136,6 +136,8 @@ export const en = {
         unstable_identity_progress: "Turns without capture",
         reloading: "Reloading",
         volatile_reagents_cooldown: "Cooling down",
+        stunned_label: "Stunned Piece",
+        pickpocket_stun_label: "Enemies Stunned",
         toasts: {
             swarm: {
                 spawn: {
@@ -187,6 +189,12 @@ export const en = {
                 stun: {
                     title: 'Volatile Reaction',
                     desc: 'Your piece is unstable giving off fumes and cannot move next turn!',
+                },
+            },
+            thief: {
+                pickpocket: {
+                    title: 'Pickpocket!',
+                    desc: 'A nearby pawn has stunned the enemy piece!',
                 },
             },
         },
@@ -250,7 +258,7 @@ export const en = {
         diplomatic_immunity: { name: 'Immunity', description: 'The Queen cannot be captured until she captures.' },
         chaos: { name: 'Chaos', description: 'Bishops move like Knights.' },
         earthquake: { name: 'Earthquake', description: 'The Queen pushes away adjacent pawns when moving.' },
-        pickpocket: { name: 'Pickpocket', description: 'Pawn adjacent to major piece blocks it for a turn.' },
+        pickpocket: { name: 'Pickpocket', description: 'Pawn adjacent to Rook or Queen blocks it for a turn.' },
         turret: { name: 'Turret', description: 'Rooks also attack diagonally (1 square).' },
         high_flyer: { name: 'High Flyer', description: 'Bishops can jump over friendly pieces.' },
         bloodline: { name: 'Bloodline', description: 'If the Queen dies, a minor piece becomes Queen.' },

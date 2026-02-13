@@ -138,6 +138,8 @@ export const it: Translations = {
         unstable_identity_progress: "Turni senza cattura",
         reloading: "Ricarica",
         volatile_reagents_cooldown: "Raffreddamento",
+        stunned_label: "Pezzo Stordito",
+        pickpocket_stun_label: "Nemici Storditi",
         toasts: {
             swarm: {
                 spawn: {
@@ -189,6 +191,12 @@ export const it: Translations = {
                 stun: {
                     title: "Reazione Volatile",
                     desc: "Il tuo pezzo è instabile, emette fumi e non può muoversi nel prossimo turno!",
+                },
+            },
+            thief: {
+                pickpocket: {
+                    title: 'Borseggio!',
+                    desc: 'Un pedone vicino ha stordito il pezzo nemico!',
                 },
             },
         },
@@ -252,7 +260,7 @@ export const it: Translations = {
         diplomatic_immunity: { name: 'Immunità', description: 'La Regina non può essere catturata finché non cattura.' },
         chaos: { name: 'Caos', description: 'Gli Alfieri si muovono come i Cavalli.' },
         earthquake: { name: 'Terremoto', description: 'La Regina spinge via i pedoni adiacenti quando muove.' },
-        pickpocket: { name: 'Borseggio', description: 'Pedone adiacente a pezzo maggiore lo blocca per un turno.' },
+        pickpocket: { name: 'Borseggio', description: 'Pedone adiacente a Torre o Regina lo blocca per un turno.' },
         turret: { name: 'Torretta', description: 'Le Torri attaccano anche in diagonale (1 casella).' },
         high_flyer: { name: 'Volo Alto', description: 'Gli Alfieri possono saltare i pezzi amici.' },
         bloodline: { name: 'Linea di Sangue', description: 'Se la Regina muore, un pezzo minore diventa Regina.' },

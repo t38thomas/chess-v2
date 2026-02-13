@@ -21,7 +21,7 @@ export class MoveGenerator {
         const moves: Move[] = [];
 
         // Apply any perk-specific baseline movement restrictions (Slug Move, Heavy Crown)
-        if (game && !RuleEngine.canMovePiece(game, from, perks)) {
+        if (game && !RuleEngine.canMovePiece(game, from, perks, board)) {
             return [];
         }
 
