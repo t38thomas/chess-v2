@@ -64,7 +64,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     ritual_sacrifice: { id: 'ritual_sacrifice', name: 'ritual_sacrifice', icon: 'skull', description: 'desc_ritual_sacrifice', ranking: -5, category: 'Board Transform' },
 
     // --- 10. L'ARCIERE ---
-    snipe: { id: 'snipe', name: 'snipe', icon: 'bow-arrow', description: 'desc_snipe', ranking: 4, category: 'Capture Rules' },
+    snipe: { id: 'snipe', name: 'snipe', icon: 'bow-arrow', description: 'desc_snipe', ranking: 4, category: 'Action' },
     short_sighted: { id: 'short_sighted', name: 'short_sighted', icon: 'glasses', description: 'desc_short_sighted', ranking: -2, category: 'Movement' },
 
     // --- 11. L'ILLUSIONISTA ---

@@ -1,4 +1,4 @@
-import { ChessGame, GameEvent } from '../ChessGame';
+import { IChessGame, GameEvent } from '../GameTypes';
 import { PieceColor, Piece, PieceType } from '../models/Piece';
 import { Move } from '../models/Move';
 import { BoardModel } from '../models/BoardModel';
@@ -6,7 +6,7 @@ import { Coordinate } from '../models/Coordinate';
 import { Perk } from '../models/Pact';
 
 export interface PactContext {
-    game: ChessGame;
+    game: IChessGame;
     playerId: PieceColor;
     pactId: string;
 }
@@ -20,6 +20,7 @@ export interface ActiveAbilityConfig {
     maxUses?: number; // per game
     targetType: 'none' | 'square' | 'piece';
     consumesTurn?: boolean;
+    repeatable?: boolean;
     execute: (context: PactContext, target?: any) => boolean;
 }
 
@@ -28,7 +29,7 @@ export interface MoveParams {
     piece: Piece;
     from: Coordinate;
     moves: Move[];
-    game?: ChessGame;
+    game?: IChessGame;
     perks?: Perk[];
 }
 
@@ -44,7 +45,7 @@ export interface RuleModifiers {
     canSidewaysMove?: (piece: Piece) => boolean;
     canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece) => boolean;
     canMoveLikeKnight?: (pieceType: PieceType) => boolean;
-    canMovePiece?: (game: ChessGame, from: Coordinate, board?: BoardModel) => boolean;
+    canMovePiece?: (game: IChessGame, from: Coordinate, board?: BoardModel) => boolean;
 
     // Promotion overrides
     getAllowedPromotionTypes?: (piece: Piece) => PieceType[];
@@ -52,7 +53,7 @@ export interface RuleModifiers {
 
 
     // Capture overrides
-    canCapture?: (game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
+    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
 
     // King Safety
     canCastleWhileMoved?: (piece: Piece) => boolean;
@@ -60,12 +61,12 @@ export interface RuleModifiers {
     mustMoveKingInCheck?: (color: PieceColor) => boolean;
 
     // Turn Economy & Special Rules
-    modifyNextTurn?: (game: ChessGame, currentTurn: PieceColor, eventType: GameEvent) => PieceColor | null;
-    onExecuteMove?: (game: ChessGame, move: Move) => void;
+    modifyNextTurn?: (game: IChessGame, currentTurn: PieceColor, eventType: GameEvent) => PieceColor | null;
+    onExecuteMove?: (game: IChessGame, move: Move) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
-    isImmuneToCheckmate?: (game: ChessGame) => boolean;
+    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
+    isImmuneToCheckmate?: (game: IChessGame) => boolean;
 }
 
 export abstract class PactLogic {

@@ -31,7 +31,7 @@ describe('The Changeling Pact', () => {
             board.placePiece(start, whitePawn);
             board.placePiece(captureTarget, blackPawn);
 
-            const move = new Move(start, captureTarget, whitePawn, blackPawn);
+            const move = new Move(start, captureTarget, whitePawn, blackPawn, false, false, false, false);
 
             // Execute capture
             game.turn = 'white';
@@ -89,7 +89,7 @@ describe('The Changeling Pact', () => {
             const context = { game, playerId: 'white' as PieceColor, pactId: 'unstable_identity' };
             game.pactState['unstable_identity_white'] = 3;
 
-            const move = new Move(new Coordinate(0, 0), new Coordinate(0, 1), new Piece('pawn', 'white', 'p1'), new Piece('pawn', 'black', 'p2'));
+            const move = new Move(new Coordinate(0, 0), new Coordinate(0, 1), new Piece('pawn', 'white', 'p1'), new Piece('pawn', 'black', 'p2'), false, false, false, false);
             malus.onEvent('capture', move, context);
 
             expect(game.pactState['unstable_identity_white']).toBe(0);

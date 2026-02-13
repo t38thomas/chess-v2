@@ -5,7 +5,8 @@ export * from './domain/models/Move';
 export * from './domain/models/Pact';
 export * from './domain/rules/MoveGenerator';
 export * from './domain/rules/CheckDetector';
-export * from './domain/ChessGame'; // New Export
+export * from './domain/GameTypes';
+export * from './domain/ChessGame';
 export * from './application/GameFacade';
 export * from './application/ViewModels';
 export * from './types/protocol';

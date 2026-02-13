@@ -3,7 +3,7 @@ import { Move } from '../../models/Move';
 import { Coordinate } from '../../models/Coordinate';
 import { BoardModel } from '../../models/BoardModel';
 import { PieceColor } from '../../models/Piece';
-import { GameEvent, ChessGame } from '../../ChessGame';
+import { GameEvent } from '../../GameTypes';
 
 export class SniperBonus extends PactLogic {
     id = 'long_sight';

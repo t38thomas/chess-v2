@@ -1,6 +1,6 @@
 import { PactLogic, PactContext, RuleModifiers } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
-import { GameEvent } from '../../ChessGame';
+import { GameEvent } from '../../GameTypes';
 
 export class ThiefBonus extends PactLogic {
     id = 'pickpocket';

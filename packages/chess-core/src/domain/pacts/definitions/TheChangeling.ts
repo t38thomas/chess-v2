@@ -47,6 +47,7 @@ export class ChangelingBonus extends PactLogic {
                                 m.isCastling,
                                 m.isEnPassant,
                                 m.isSwap,
+                                false, // isSnipe
                                 m.promotion
                             );
                             params.moves.push(correctedMove);

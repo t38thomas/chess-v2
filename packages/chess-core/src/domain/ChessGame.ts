@@ -9,11 +9,9 @@ import { PactFactory } from './pacts/PactFactory';
 import { Pact } from './models/Pact';
 import { PactRegistry } from './pacts/PactRegistry';
 
-export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw';
-export type GamePhase = 'setup' | 'playing' | 'game_over';
-export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start' | 'pact_effect';
+import { IChessGame, GameEvent, GameStatus, GamePhase } from './GameTypes';
 
-export class ChessGame {
+export class ChessGame implements IChessGame {
     public readonly board: BoardModel;
     public turn: PieceColor;
     public history: Move[];
@@ -76,12 +74,15 @@ export class ChessGame {
 
         const success = RuleEngine.useAbility(this, abilityId, params, playerPacts);
 
-        // Mark as used if successful
+        // Mark as used if successful (unless repeatable)
         if (success) {
-            this.perkUsage[this.turn].add(abilityId);
+            const logic = PactRegistry.getInstance().get(abilityId);
+            if (!logic?.activeAbility?.repeatable) {
+                this.perkUsage[this.turn].add(abilityId);
+            }
+
             this.emit('ability_activated', { abilityId, playerId: this.turn });
 
-            const logic = PactRegistry.getInstance().get(abilityId);
             if (logic?.activeAbility?.consumesTurn) {
                 this.turn = RuleEngine.getNextTurn(this, this.turn, 'ability_activated', playerPacts);
                 this.emit('turn_start', this.turn);

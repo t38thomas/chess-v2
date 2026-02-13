@@ -3,7 +3,7 @@ import { Coordinate } from '../models/Coordinate';
 import { Piece, PieceColor, PieceType } from '../models/Piece';
 import { Perk } from '../models/Pact';
 import { Move } from '../models/Move';
-import { ChessGame, GameEvent } from '../ChessGame';
+import { IChessGame, GameEvent } from '../GameTypes';
 import { PactRegistry } from '../pacts/PactRegistry';
 
 export class RuleEngine {
@@ -83,7 +83,7 @@ export class RuleEngine {
         return false;
     }
 
-    public static canMovePiece(game: ChessGame, from: Coordinate, perks: Perk[], board?: BoardModel): boolean {
+    public static canMovePiece(game: IChessGame, from: Coordinate, perks: Perk[], board?: BoardModel): boolean {
         // Core Rule: Generic Cooldown check
         const targetBoard = board || game.board;
         const square = targetBoard.getSquare(from);
@@ -131,7 +131,7 @@ export class RuleEngine {
 
     // --- CAPTURE RULES ---
 
-    public static canCapture(game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {
+    public static canCapture(game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             const pactLogic = registry.get(perk.id);
@@ -182,7 +182,7 @@ export class RuleEngine {
 
     // --- TURN ECONOMY & EVENTS ---
 
-    public static onExecuteMove(game: ChessGame, move: Move, perks: Perk[]) {
+    public static onExecuteMove(game: IChessGame, move: Move, perks: Perk[]) {
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             const pactLogic = registry.get(perk.id);
@@ -190,7 +190,7 @@ export class RuleEngine {
         }
     }
 
-    public static getNextTurn(game: ChessGame, currentTurn: PieceColor, eventType: GameEvent, perks: Perk[]): PieceColor {
+    public static getNextTurn(game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, perks: Perk[]): PieceColor {
         const opponent: PieceColor = currentTurn === 'white' ? 'black' : 'white';
         const registry = PactRegistry.getInstance();
 
@@ -213,7 +213,7 @@ export class RuleEngine {
         return opponent;
     }
 
-    public static useAbility(game: ChessGame, abilityId: string, params?: any, perks: Perk[] = []): boolean {
+    public static useAbility(game: IChessGame, abilityId: string, params?: any, perks: Perk[] = []): boolean {
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             if (perk.id === abilityId) {
@@ -256,7 +256,7 @@ export class RuleEngine {
         });
     }
 
-    public static onGetPseudoMoves(board: BoardModel, from: Coordinate, piece: Piece, moves: Move[], perks: Perk[], game?: ChessGame) {
+    public static onGetPseudoMoves(board: BoardModel, from: Coordinate, piece: Piece, moves: Move[], perks: Perk[], game?: IChessGame) {
         const registry = PactRegistry.getInstance();
         perks.forEach(p => {
             const pactLogic = registry.get(p.id);

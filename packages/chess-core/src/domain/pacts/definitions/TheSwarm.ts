@@ -1,5 +1,5 @@
 import { PactLogic, PactContext, RuleModifiers } from '../PactLogic';
-import { GameEvent } from '../../ChessGame';
+import { GameEvent } from '../../GameTypes';
 import { Piece, PieceColor } from '../../models/Piece';
 import { Coordinate } from '../../models/Coordinate';
 

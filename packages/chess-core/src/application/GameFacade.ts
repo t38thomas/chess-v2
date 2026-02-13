@@ -1,4 +1,5 @@
-import { ChessGame, GameEvent } from '../domain/ChessGame';
+import { ChessGame } from '../domain/ChessGame';
+import { GameEvent } from '../domain/GameTypes';
 import { Coordinate } from '../domain/models/Coordinate';
 import { Move } from '../domain/models/Move';
 import { PieceType, PieceColor } from '../domain/models/Piece';
@@ -7,8 +8,6 @@ import { CheckDetector } from '../domain/rules/CheckDetector';
 import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
 import { Pact } from '../domain/models/Pact';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
-
-export { GameEvent };
 
 export class GameFacade {
     private game: ChessGame;

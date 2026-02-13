@@ -3,7 +3,7 @@ import { Coordinate } from '../models/Coordinate';
 import { PieceColor, PieceType } from '../models/Piece';
 import { MoveGenerator } from './MoveGenerator';
 import { Perk } from '../models/Pact';
-import { ChessGame } from '../ChessGame';
+import { IChessGame } from '../GameTypes';
 
 export class CheckDetector {
     /**
@@ -14,7 +14,7 @@ export class CheckDetector {
         square: Coordinate,
         byColor: PieceColor,
         perks: Perk[] = [],
-        game?: ChessGame
+        game?: IChessGame
     ): boolean {
         // Check all squares for enemy pieces that can attack this square
         const allSquares = board.getAllSquares();
@@ -51,7 +51,7 @@ export class CheckDetector {
     /**
      * Check if the king of the given color is in check
      */
-    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, perks: Perk[] = [], game?: ChessGame): boolean {
+    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, perks: Perk[] = [], game?: IChessGame): boolean {
         const kingPos = this.findKing(board, kingColor);
         if (!kingPos) return false; // No king found (shouldn't happen in valid game)
 
@@ -70,7 +70,7 @@ export class CheckDetector {
         kingColor: PieceColor,
         perks: Perk[] = [],
         isSwap: boolean = false,
-        game?: ChessGame
+        game?: IChessGame
     ): boolean {
         // We need to simulate the move and check
         const sourceSquare = board.getSquare(from);

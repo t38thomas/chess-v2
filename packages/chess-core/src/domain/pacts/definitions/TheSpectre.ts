@@ -1,6 +1,6 @@
 import { PactLogic, RuleModifiers } from '../PactLogic';
 import { Piece } from '../../models/Piece';
-import { ChessGame } from '../../ChessGame';
+import { IChessGame } from '../../GameTypes';
 import { Move } from '../../models/Move';
 import { Coordinate } from '../../models/Coordinate';
 
@@ -22,7 +22,7 @@ export class SpectreMalus extends PactLogic {
 
     getRuleModifiers(): RuleModifiers {
         return {
-            onExecuteMove: (game: ChessGame, move: Move) => {
+            onExecuteMove: (game: IChessGame, move: Move) => {
                 // If a piece moves through friendly pawns, they are killed (removed)
                 if (move.isCastling || move.isEnPassant || move.isSwap || move.piece.type === 'knight') {
                     return;

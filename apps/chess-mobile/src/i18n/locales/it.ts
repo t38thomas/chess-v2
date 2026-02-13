@@ -140,6 +140,7 @@ export const it: Translations = {
         volatile_reagents_cooldown: "Raffreddamento",
         stunned_label: "Pezzo Stordito",
         pickpocket_stun_label: "Nemici Storditi",
+        snipe_ready: "Snipe Pronto",
         toasts: {
             swarm: {
                 spawn: {

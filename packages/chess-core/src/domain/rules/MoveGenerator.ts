@@ -4,7 +4,7 @@ import { Move } from '../models/Move';
 import { Piece, PieceType, PieceColor } from '../models/Piece';
 import { Perk } from '../models/Pact';
 import { RuleEngine } from './RuleEngine';
-import { ChessGame } from '../ChessGame';
+import { IChessGame } from '../GameTypes';
 
 export class MoveGenerator {
     public static readonly ROOK_DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -17,7 +17,7 @@ export class MoveGenerator {
     ];
     public static readonly QUEEN_DIRS = [...MoveGenerator.ROOK_DIRS, ...MoveGenerator.BISHOP_DIRS];
 
-    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, perks: Perk[] = [], perkUsage: Set<string> = new Set(), game?: ChessGame): Move[] {
+    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, perks: Perk[] = [], perkUsage: Set<string> = new Set(), game?: IChessGame): Move[] {
         const moves: Move[] = [];
 
         // Apply any perk-specific baseline movement restrictions (Slug Move, Heavy Crown)
@@ -84,7 +84,7 @@ export class MoveGenerator {
         return !!target && !target.piece;
     }
 
-    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, perks: Perk[] = [], game?: ChessGame) {
+    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, perks: Perk[] = [], game?: IChessGame) {
         const { x, y } = from;
         const dy = piece.color === 'white' ? 1 : -1;
         const startY = piece.color === 'white' ? 1 : 6;
@@ -144,7 +144,7 @@ export class MoveGenerator {
         }
     }
 
-    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: ChessGame) {
+    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: IChessGame) {
         const target = board.getSquare(new Coordinate(x, y));
         if (target && target.piece && target.piece.color !== piece.color) {
             // RuleEngine check for capture restrictions
@@ -162,7 +162,7 @@ export class MoveGenerator {
         moves: Move[],
         maxRange: number = BoardModel.SIZE,
         perks: Perk[] = [],
-        game?: ChessGame
+        game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {

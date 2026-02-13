@@ -12,6 +12,7 @@ export class Move {
         public readonly isCastling: boolean = false,
         public readonly isEnPassant: boolean = false,
         public readonly isSwap: boolean = false,
+        public readonly isSnipe: boolean = false,
         promotion?: PieceType
     ) {
         this.promotion = promotion;

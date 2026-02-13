@@ -138,6 +138,7 @@ export const en = {
         volatile_reagents_cooldown: "Cooling down",
         stunned_label: "Stunned Piece",
         pickpocket_stun_label: "Enemies Stunned",
+        snipe_ready: "Snipe Ready",
         toasts: {
             swarm: {
                 spawn: {
