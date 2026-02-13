@@ -8,6 +8,8 @@ import { GameScreen } from './src/screens/GameScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ToastProvider } from './src/context/ToastContext';
+import { ToastContainer } from './src/ui/components/ToastContainer';
 
 type Screen = 'home' | 'local' | 'online';
 
@@ -59,12 +61,15 @@ export default function App() {
         <SafeAreaProvider>
             <ThemeProvider>
                 <I18nProvider>
-                    <SoundProvider>
-                        <SafeAreaView style={styles.container}>
-                            <StatusBar style="auto" />
-                            {isReady ? renderScreen() : null}
-                        </SafeAreaView>
-                    </SoundProvider>
+                    <ToastProvider>
+                        <SoundProvider>
+                            <SafeAreaView style={styles.container}>
+                                <StatusBar style="auto" />
+                                {isReady ? renderScreen() : null}
+                                <ToastContainer />
+                            </SafeAreaView>
+                        </SoundProvider>
+                    </ToastProvider>
                 </I18nProvider>
             </ThemeProvider>
         </SafeAreaProvider>

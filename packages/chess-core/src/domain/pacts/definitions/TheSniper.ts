@@ -87,6 +87,19 @@ export class SniperMalus extends PactLogic {
     onEvent(event: GameEvent, payload: any, context: PactContext): void {
         const { game, playerId } = context;
 
+        if (event === 'capture' && payload) {
+            const move = payload as Move;
+            if (move.piece.color === playerId && move.piece.type === 'rook') {
+                game.emit('pact_effect', {
+                    pactId: this.id,
+                    title: 'Reloading',
+                    description: 'Your Rook needs to reload and cannot move next turn!',
+                    icon: 'reload',
+                    type: 'malus'
+                });
+            }
+        }
+
         // Handle turn start to decrement cooldowns
         if (event === 'turn_start') {
             const currentTurnPlayer = payload as PieceColor;

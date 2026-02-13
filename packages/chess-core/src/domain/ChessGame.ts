@@ -11,7 +11,7 @@ import { PactRegistry } from './pacts/PactRegistry';
 
 export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw';
 export type GamePhase = 'setup' | 'playing' | 'game_over';
-export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start';
+export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start' | 'pact_effect';
 
 export class ChessGame {
     public readonly board: BoardModel;
@@ -111,7 +111,7 @@ export class ChessGame {
 
     // Overload emit to support payload
     public emit(event: GameEvent, payload?: any) {
-        this.listeners.forEach(l => l(event)); // Legacy listeners might only expect event
+        this.listeners.forEach(l => l(event, payload));
 
         // Notify active pacts
         const registry = PactRegistry.getInstance();

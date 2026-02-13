@@ -17,6 +17,7 @@ import { Pact, PERK_LIBRARY } from 'chess-core';
 import { useBoardSize } from '../ui/responsive/useBoardSize';
 import { usePactTranslation } from '../ui/hooks/usePactTranslation';
 import { PactTurnCounter } from '../ui/components/PactTurnCounter';
+import { useToast } from '../context/ToastContext';
 
 interface GameScreenProps {
     onNavigateBack?: () => void;
@@ -44,7 +45,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
         activeAbilityId,
         cancelAbility,
         status,
-        winner
+        winner,
+        subscribeToGameEvents
     } = useGame();
 
 
@@ -53,6 +55,24 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
     const { t } = useTranslation();
     const { translatePact } = usePactTranslation();
     const boardSize = useBoardSize();
+    const { showToast } = useToast();
+
+    // Subscribe to game events (e.g. malus effects)
+    useEffect(() => {
+        const unsubscribe = subscribeToGameEvents((event, payload) => {
+            console.log('[GameScreen] Received event:', event, payload);
+            if (event === 'pact_effect' && payload) {
+                showToast({
+                    title: payload.title,
+                    description: payload.description,
+                    icon: payload.icon,
+                    type: payload.type || 'info',
+                    duration: 4000
+                });
+            }
+        });
+        return unsubscribe;
+    }, [subscribeToGameEvents, showToast]);
 
 
     const gameInfoContent = (

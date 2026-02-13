@@ -89,7 +89,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
 
     // --- 16. LA FENICE ---
     rebirth: { id: 'rebirth', name: 'rebirth', icon: 'fire', description: 'desc_rebirth', ranking: 4, category: 'Board Transform' },
-    wingless: { id: 'wingless', name: 'wingless', icon: 'feather-off', description: 'desc_wingless', ranking: -3, category: 'Board Transform' },
+    wingless: { id: 'wingless', name: 'wingless', icon: 'feather', description: 'desc_wingless', ranking: -3, category: 'Board Transform' },
 
     // --- 17. L'ALCHIMISTA ---
     transmutation: { id: 'transmutation', name: 'transmutation', icon: 'flask', description: 'desc_transmutation', ranking: 3, category: 'Action' },
@@ -97,7 +97,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
 
     // --- 18. IL VETERANO ---
     bayonet: { id: 'bayonet', name: 'bayonet', icon: 'knife', description: 'desc_bayonet', ranking: 3, category: 'Capture Rules' },
-    old_guard: { id: 'old_guard', name: 'old_guard', icon: 'cane', description: 'desc_old_guard', ranking: -1, category: 'Movement' },
+    old_guard: { id: 'old_guard', name: 'old_guard', icon: 'human-cane', description: 'desc_old_guard', ranking: -1, category: 'Movement' },
 
     // --- 19. IL GOLEM ---
     stone_skin: { id: 'stone_skin', name: 'stone_skin', icon: 'wall', description: 'desc_stone_skin', ranking: 4, category: 'King Safety' },
@@ -105,7 +105,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
 
     // --- 20. LO SPETTRO ---
     incorporeal: { id: 'incorporeal', name: 'incorporeal', icon: 'ghost-outline', description: 'desc_incorporeal', ranking: 4, category: 'Movement' },
-    possession: { id: 'possession', name: 'possession', icon: 'hand-right', description: 'desc_possession', ranking: -3, category: 'Board Transform' },
+    possession: { id: 'possession', name: 'possession', icon: 'hand-pointing-right', description: 'desc_possession', ranking: -3, category: 'Board Transform' },
 
     // --- 21. LA SENTINELLA ---
     vigilance: { id: 'vigilance', name: 'vigilance', icon: 'shield-cross', description: 'desc_vigilance', ranking: 4, category: 'King Safety' },
@@ -144,7 +144,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     young_queen: { id: 'young_queen', name: 'young_queen', icon: 'baby-carriage', description: 'desc_young_queen', ranking: -3, category: 'Capture Rules' },
 
     // --- 30. IL CRONOCRATE ---
-    time_stop: { id: 'time_stop', name: 'time_stop', icon: 'clock-stop', description: 'desc_time_stop', ranking: 5, category: 'Action' },
+    time_stop: { id: 'time_stop', name: 'time_stop', icon: 'clock-remove', description: 'desc_time_stop', ranking: 5, category: 'Action' },
     paradox: { id: 'paradox', name: 'paradox', icon: 'infinity', description: 'desc_paradox', ranking: -4, category: 'Board Transform' }
 };
 

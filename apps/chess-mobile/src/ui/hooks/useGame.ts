@@ -97,5 +97,6 @@ export const useGame = () => {
         availableAbilities,
         activeAbilityId: viewModel.activeAbilityId,
         pendingTargets: viewModel.pendingTargets,
+        subscribeToGameEvents: useCallback((listener: (event: any, payload?: any) => void) => facade.subscribeToGameEvents(listener), [facade]),
     };
 }

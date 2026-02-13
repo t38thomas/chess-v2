@@ -79,6 +79,14 @@ export class AlchemistMalus extends PactLogic {
                 // Start of Turn N+1: stun = 1 (piece cannot move)
                 // Start of Turn N+2: stun = 0 (piece can move)
                 game.pieceCooldowns.set(move.piece.id, 2);
+
+                game.emit('pact_effect', {
+                    pactId: this.id,
+                    title: 'Volatile Reaction',
+                    description: 'Your piece is unstable giving off fumes and cannot move next turn!',
+                    icon: 'flask',
+                    type: 'malus'
+                });
             }
         }
 

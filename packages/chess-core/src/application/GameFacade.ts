@@ -20,15 +20,25 @@ export class GameFacade {
     private pendingPromotionMove: Move | null = null;
     private activeAbilityId: string | null = null;
     private pendingTargets: Coordinate[] = [];
+    private gameEventListeners: ((event: GameEvent, payload?: any) => void)[] = [];
 
     constructor(
         private onMove?: (move: Move) => void,
-        private onEvent?: (event: GameEvent) => void
+        private onEvent?: (event: GameEvent, payload?: any) => void
     ) {
         this.game = new ChessGame();
-        this.game.subscribe((event) => {
-            if (this.onEvent) this.onEvent(event);
+        this.game.subscribe((event, payload) => {
+            console.log('[GameFacade] Forwarding event:', event, payload);
+            if (this.onEvent) this.onEvent(event, payload);
+            this.gameEventListeners.forEach(l => l(event, payload));
         });
+    }
+
+    public subscribeToGameEvents(listener: (event: GameEvent, payload?: any) => void): () => void {
+        this.gameEventListeners.push(listener);
+        return () => {
+            this.gameEventListeners = this.gameEventListeners.filter(l => l !== listener);
+        };
     }
 
     // State Access

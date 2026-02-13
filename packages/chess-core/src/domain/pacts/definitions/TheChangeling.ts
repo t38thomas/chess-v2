@@ -138,6 +138,14 @@ export class ChangelingMalus extends PactLogic {
         if (myPieces.length > 0) {
             const victim = myPieces[Math.floor(Math.random() * myPieces.length)];
             victim.type = 'pawn';
+
+            context.game.emit('pact_effect', {
+                pactId: this.id,
+                title: 'Unstable Identity',
+                description: 'A piece has lost its form and become a pawn!',
+                icon: 'dna', // or 'virus' if available, 'dna' fits changeling
+                type: 'malus'
+            });
         }
     }
 }
