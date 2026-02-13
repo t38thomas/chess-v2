@@ -39,6 +39,13 @@ export class SwarmBonus extends PactLogic {
                 const newPawn = new Piece('pawn', color, id);
                 game.board.placePiece(coord, newPawn);
                 game.emit('ability_activated', { abilityId: this.id, playerId: color });
+                game.emit('pact_effect', {
+                    pactId: this.id,
+                    title: 'pact.toasts.swarm.spawn.title',
+                    description: 'pact.toasts.swarm.spawn.desc',
+                    icon: 'auto-fix',
+                    type: 'bonus'
+                });
                 break;
             }
         }
@@ -64,6 +71,13 @@ export class SwarmMalus extends PactLogic {
             if (capturedPiece && capturedPiece.type === 'queen' && capturedPiece.color === playerId) {
                 // Hive Queen died. Instant Loss.
                 game.status = 'checkmate';
+                game.emit('pact_effect', {
+                    pactId: this.id,
+                    title: 'pact.toasts.swarm.death.title',
+                    description: 'pact.toasts.swarm.death.desc',
+                    icon: 'crown',
+                    type: 'malus'
+                });
                 // Setting status to checkmate triggers game over logic.
             }
         }

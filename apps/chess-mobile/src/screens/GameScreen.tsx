@@ -63,8 +63,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
             console.log('[GameScreen] Received event:', event, payload);
             if (event === 'pact_effect' && payload) {
                 showToast({
-                    title: payload.title,
-                    description: payload.description,
+                    title: t(payload.title as any),
+                    description: payload.description ? t(payload.description as any) : undefined,
                     icon: payload.icon,
                     type: payload.type || 'info',
                     duration: 4000

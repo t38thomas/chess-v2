@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BoardModel } from '../models/BoardModel';
-import { Coordinate } from '../models/Coordinate';
-import { Piece } from '../models/Piece';
-import { Move } from '../models/Move';
+import { BoardModel } from '../../models/BoardModel';
+import { Coordinate } from '../../models/Coordinate';
+import { Piece } from '../../models/Piece';
+import { Move } from '../../models/Move';
 import { HeavyCavalryBonus, HeavyCavalryMalus } from './TheHeavyCavalry';
 import { ChessGame } from '../../ChessGame';
 
@@ -13,9 +13,8 @@ describe('Heavy Cavalry Pact', () => {
     let malus: HeavyCavalryMalus;
 
     beforeEach(() => {
-        board = new BoardModel();
         game = new ChessGame();
-        game.board = board;
+        board = game.board;
         bonus = new HeavyCavalryBonus();
         malus = new HeavyCavalryMalus();
     });
@@ -45,7 +44,7 @@ describe('Heavy Cavalry Pact', () => {
             });
 
             expect(moves.length).toBe(1);
-            expect(moves[0].to.toString()).toBe('(6,5)');
+            expect(moves[0].to.toString()).toBe('6,5');
         });
 
         it('should not block moves if the blocking piece is not a friendly pawn', () => {
@@ -89,8 +88,16 @@ describe('Heavy Cavalry Pact', () => {
             board.placePiece(new Coordinate(5, 4), new Piece('pawn', 'black', 'black-pawn-1'));
             board.placePiece(new Coordinate(3, 3), new Piece('rook', 'black', 'black-rook-0')); // Not a pawn
 
+            const events: any[] = [];
+            game.subscribe((event, payload) => {
+                if (event === 'pact_effect') events.push(payload);
+            });
+
             const move = new Move(start, target, whiteKnight);
             bonus.getRuleModifiers().onExecuteMove!(game, move);
+
+            expect(events.length).toBeGreaterThan(0);
+            expect(events[0].title).toBe('Trample!');
 
             expect(board.getSquare(new Coordinate(4, 5))?.piece).toBeNull();
             expect(board.getSquare(new Coordinate(5, 4))?.piece).toBeNull();

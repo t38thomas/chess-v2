@@ -85,9 +85,16 @@ describe('The Spectre Pact', () => {
             board.placePiece(start, whiteRook);
             board.placePiece(new Coordinate(0, 1), whitePawn);
 
+            const events: any[] = [];
+            game.subscribe((event, payload) => {
+                if (event === 'pact_effect') events.push(payload);
+            });
+
             const move = new Move(start, target, whiteRook);
             malus.getRuleModifiers().onExecuteMove!(game, move);
 
+            expect(events.length).toBeGreaterThan(0);
+            expect(events[0].title).toBe('Pawn Possession');
             expect(board.getSquare(new Coordinate(0, 1))?.piece).toBeNull();
         });
 

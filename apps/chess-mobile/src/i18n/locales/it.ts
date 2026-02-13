@@ -138,6 +138,60 @@ export const it: Translations = {
         unstable_identity_progress: "Turni senza cattura",
         reloading: "Ricarica",
         volatile_reagents_cooldown: "Raffreddamento",
+        toasts: {
+            swarm: {
+                spawn: {
+                    title: "Rinascita dell'Idra",
+                    desc: "Un nuovo pedone è germogliato dal sacrificio!",
+                },
+                death: {
+                    title: "Regina dell'Alveare Caduta",
+                    desc: "La colonia non può sopravvivere senza la sua regina!",
+                },
+            },
+            spectre: {
+                possession: {
+                    title: "Possesso del Pedone",
+                    desc: "Un pedone alleato è stato consumato dalla presenza spettrale!",
+                },
+            },
+            sniper: {
+                reload: {
+                    title: "Ricarica in corso",
+                    desc: "La tua Torre deve ricaricare e non potrà muoversi nel prossimo turno!",
+                },
+            },
+            necromancer: {
+                cost: {
+                    title: "Costo dell'Ascensione",
+                    desc: "Un prezzo più alto è stato pagato per la promozione. L'avversario ottiene un turno extra!",
+                },
+            },
+            heavy_cavalry: {
+                trample: {
+                    title: "Travolgimento!",
+                    desc: "Un pedone nemico è stato schiacciato sotto la carica del tuo Cavaliere!",
+                },
+            },
+            changeling: {
+                demotion: {
+                    title: "Identità Instabile",
+                    desc: "Un pezzo ha perso la sua forma ed è diventato un pedone!",
+                },
+            },
+            berserker: {
+                frenzy: {
+                    title: "Furia!",
+                    desc: "Una cattura ha scatenato la furia della battaglia! Ottieni una mossa extra con questo pezzo.",
+                },
+            },
+            alchemist: {
+                stun: {
+                    title: "Reazione Volatile",
+                    desc: "Il tuo pezzo è instabile, emette fumi e non può muoversi nel prossimo turno!",
+                },
+            },
+        },
     },
     pacts: {
         necromancer: { title: 'Il Negromante', description: 'Resuscita gli alleati, ma l\'ascensione ha un costo.' },

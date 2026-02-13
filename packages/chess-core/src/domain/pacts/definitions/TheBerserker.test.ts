@@ -30,6 +30,12 @@ describe('The Berserker Pact', () => {
 
         const move = new Move(start, captureTarget, whiteRook, blackPawn);
 
+        // Check for pact_effect emission
+        const events: any[] = [];
+        game.subscribe((event, payload) => {
+            if (event === 'pact_effect') events.push(payload);
+        });
+
         // Execute capture
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.onExecuteMove) {
@@ -39,6 +45,8 @@ describe('The Berserker Pact', () => {
         // Check state
         expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(true);
         expect(game.pactState['frenzy_white'].frenzyPieceId).toBe(whiteRook.id);
+        expect(events.length).toBe(1);
+        expect(events[0].title).toBe('Frenzy!');
     });
 
     it('should prevent capture during frenzy', () => {

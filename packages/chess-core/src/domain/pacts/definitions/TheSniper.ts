@@ -92,8 +92,8 @@ export class SniperMalus extends PactLogic {
             if (move.piece.color === playerId && move.piece.type === 'rook') {
                 game.emit('pact_effect', {
                     pactId: this.id,
-                    title: 'Reloading',
-                    description: 'Your Rook needs to reload and cannot move next turn!',
+                    title: 'pact.toasts.sniper.reload.title',
+                    description: 'pact.toasts.sniper.reload.desc',
                     icon: 'reload',
                     type: 'malus'
                 });

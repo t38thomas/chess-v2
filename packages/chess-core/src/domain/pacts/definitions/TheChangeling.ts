@@ -141,8 +141,8 @@ export class ChangelingMalus extends PactLogic {
 
             context.game.emit('pact_effect', {
                 pactId: this.id,
-                title: 'Unstable Identity',
-                description: 'A piece has lost its form and become a pawn!',
+                title: 'pact.toasts.changeling.demotion.title',
+                description: 'pact.toasts.changeling.demotion.desc',
                 icon: 'dna', // or 'virus' if available, 'dna' fits changeling
                 type: 'malus'
             });

@@ -82,8 +82,8 @@ export class AlchemistMalus extends PactLogic {
 
                 game.emit('pact_effect', {
                     pactId: this.id,
-                    title: 'Volatile Reaction',
-                    description: 'Your piece is unstable giving off fumes and cannot move next turn!',
+                    title: 'pact.toasts.alchemist.stun.title',
+                    description: 'pact.toasts.alchemist.stun.desc',
                     icon: 'flask',
                     type: 'malus'
                 });

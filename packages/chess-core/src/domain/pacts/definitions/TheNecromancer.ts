@@ -92,6 +92,14 @@ export class NecromancerMalus extends PactLogic {
                 if (eventType === 'promotion') {
                     const opponent = currentTurn === 'white' ? 'black' : 'white';
                     game.extraTurns[opponent] = (game.extraTurns[opponent] || 0) + 1;
+
+                    game.emit('pact_effect', {
+                        pactId: this.id,
+                        title: 'pact.toasts.necromancer.cost.title',
+                        description: 'pact.toasts.necromancer.cost.desc',
+                        icon: 'trending-up',
+                        type: 'malus'
+                    });
                 }
                 return null;
             }

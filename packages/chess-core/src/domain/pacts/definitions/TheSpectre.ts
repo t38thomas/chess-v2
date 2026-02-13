@@ -43,6 +43,13 @@ export class SpectreMalus extends PactLogic {
                     if (square?.piece && square.piece.color === move.piece.color && square.piece.type === 'pawn') {
                         // Kill the friendly pawn
                         game.board.removePiece(coord);
+                        game.emit('pact_effect', {
+                            pactId: this.id,
+                            title: 'pact.toasts.spectre.possession.title',
+                            description: 'pact.toasts.spectre.possession.desc',
+                            icon: 'ghost',
+                            type: 'malus'
+                        });
                     }
 
                     curX += dx;

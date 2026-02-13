@@ -136,6 +136,60 @@ export const en = {
         unstable_identity_progress: "Turns without capture",
         reloading: "Reloading",
         volatile_reagents_cooldown: "Cooling down",
+        toasts: {
+            swarm: {
+                spawn: {
+                    title: 'Hydra Spawn',
+                    desc: 'A new pawn has sprouted from the sacrifice!',
+                },
+                death: {
+                    title: 'Hive Queen Fallen',
+                    desc: 'The colony cannot survive without its queen!',
+                },
+            },
+            spectre: {
+                possession: {
+                    title: 'Pawn Possession',
+                    desc: 'A friendly pawn was consumed by the spectral presence!',
+                },
+            },
+            sniper: {
+                reload: {
+                    title: 'Reloading',
+                    desc: 'Your Rook needs to reload and cannot move next turn!',
+                },
+            },
+            necromancer: {
+                cost: {
+                    title: 'Ascension Cost',
+                    desc: 'A higher price was paid for promotion. The opponent gains an extra turn!',
+                },
+            },
+            heavy_cavalry: {
+                trample: {
+                    title: 'Trample!',
+                    desc: 'An enemy pawn has been crushed under your Knight\'s charge!',
+                },
+            },
+            changeling: {
+                demotion: {
+                    title: 'Unstable Identity',
+                    desc: 'A piece has lost its form and become a pawn!',
+                },
+            },
+            berserker: {
+                frenzy: {
+                    title: 'Frenzy!',
+                    desc: 'A capture has triggered a battle frenzy! You gain an extra move with this piece.',
+                },
+            },
+            alchemist: {
+                stun: {
+                    title: 'Volatile Reaction',
+                    desc: 'Your piece is unstable giving off fumes and cannot move next turn!',
+                },
+            },
+        },
     },
     pacts: {
         necromancer: { title: 'The Necromancer', description: 'Resurrects allies, but ascension has a cost.' },

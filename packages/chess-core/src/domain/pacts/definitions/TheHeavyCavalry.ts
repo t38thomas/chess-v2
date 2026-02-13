@@ -33,8 +33,14 @@ export class HeavyCavalryBonus extends PactLogic {
                             // Trample! Record the capture for history maybe? 
                             // For now just remove and emit event.
                             game.board.removePiece(coord);
-                            // We should probably emit an event here to notify UI/history
-                            // game.emit('pieceCaptured', { piece: square.piece, coord });
+
+                            game.emit('pact_effect', {
+                                pactId: this.id,
+                                title: 'pact.toasts.heavy_cavalry.trample.title',
+                                description: 'pact.toasts.heavy_cavalry.trample.desc',
+                                icon: 'horse-variant',
+                                type: 'bonus'
+                            });
                         }
                     }
                 }

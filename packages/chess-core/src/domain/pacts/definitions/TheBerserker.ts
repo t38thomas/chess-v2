@@ -31,6 +31,14 @@ export class BerserkerBonus extends PactLogic {
                     // Initial capture triggered frenzy
                     state.isFrenzyActive = true;
                     state.frenzyPieceId = move.piece.id;
+
+                    game.emit('pact_effect', {
+                        pactId: this.id,
+                        title: 'pact.toasts.berserker.frenzy.title',
+                        description: 'pact.toasts.berserker.frenzy.desc',
+                        icon: 'fire',
+                        type: 'bonus'
+                    });
                 }
             },
 
