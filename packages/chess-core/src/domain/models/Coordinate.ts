@@ -17,4 +17,8 @@ export class Coordinate {
     equals(other: Coordinate): boolean {
         return this.x === other.x && this.y === other.y;
     }
+
+    distanceTo(other: Coordinate): number {
+        return Math.max(Math.abs(this.x - other.x), Math.abs(this.y - other.y));
+    }
 }

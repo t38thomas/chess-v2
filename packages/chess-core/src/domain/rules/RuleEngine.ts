@@ -130,6 +130,17 @@ export class RuleEngine {
             const modifier = pactLogic?.getRuleModifiers()?.canCapture;
             if (modifier && modifier(game, attacker, victim, to, from) === false) return false;
         }
+
+        // Check if victim has a pact that prevents it from being captured
+        if (game) {
+            const victimPacts = game.pacts[victim.color].map(p => [p.bonus, p.malus]).flat();
+            for (const perk of victimPacts) {
+                const pactLogic = registry.get(perk.id);
+                const modifier = pactLogic?.getRuleModifiers()?.canBeCaptured;
+                if (modifier && modifier(game, attacker, victim, to, from) === false) return false;
+            }
+        }
+
         return true;
     }
 
@@ -242,7 +253,7 @@ export class RuleEngine {
         perks.forEach(p => {
             const pactLogic = registry.get(p.id);
             pactLogic?.getRuleModifiers()?.onGetPseudoMoves?.({
-                board, from, piece, moves, game
+                board, from, piece, moves, game, perks
             });
         });
     }

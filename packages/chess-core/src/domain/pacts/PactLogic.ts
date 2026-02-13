@@ -3,6 +3,7 @@ import { PieceColor, Piece, PieceType } from '../models/Piece';
 import { Move } from '../models/Move';
 import { BoardModel } from '../models/BoardModel';
 import { Coordinate } from '../models/Coordinate';
+import { Perk } from '../models/Pact';
 
 export interface PactContext {
     game: ChessGame;
@@ -28,6 +29,7 @@ export interface MoveParams {
     from: Coordinate;
     moves: Move[];
     game?: ChessGame;
+    perks?: Perk[];
 }
 
 export interface RuleModifiers {
@@ -62,6 +64,7 @@ export interface RuleModifiers {
     onExecuteMove?: (game: ChessGame, move: Move) => void;
 
     // Attack/Defense modifiers
+    canBeCaptured?: (game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
     isImmuneToCheckmate?: (game: ChessGame) => boolean;
 }
 

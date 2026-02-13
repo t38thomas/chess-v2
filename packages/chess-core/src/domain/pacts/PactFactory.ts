@@ -10,6 +10,8 @@ import { HeavyCavalryBonus, HeavyCavalryMalus } from './definitions/TheHeavyCava
 import { SpectreBonus, SpectreMalus } from './definitions/TheSpectre';
 import { SniperBonus, SniperMalus } from './definitions/TheSniper';
 import { ChangelingBonus, ChangelingMalus } from './definitions/TheChangeling';
+import { StoneSkinBonus, LeadFeetMalus } from './definitions/TheGolem';
+import { ChaosBonus, JesterMalus } from './definitions/TheJester';
 
 export class PactFactory {
     public static initialize() {
@@ -54,6 +56,14 @@ export class PactFactory {
         // 10. Il Mutaforma
         registry.register(new ChangelingBonus());
         registry.register(new ChangelingMalus());
+
+        // 11. Il Golem
+        registry.register(new StoneSkinBonus());
+        registry.register(new LeadFeetMalus());
+
+        // 12. Il Giullare
+        registry.register(new ChaosBonus());
+        registry.register(new JesterMalus());
 
         // ... more to come
     }

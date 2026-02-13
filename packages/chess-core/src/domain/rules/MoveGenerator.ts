@@ -7,15 +7,15 @@ import { RuleEngine } from './RuleEngine';
 import { ChessGame } from '../ChessGame';
 
 export class MoveGenerator {
-    private static readonly ROOK_DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-    private static readonly BISHOP_DIRS = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-    private static readonly KNIGHT_DIRS = [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
-    private static readonly KNIGHT_REACH_DIRS = [
+    public static readonly ROOK_DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    public static readonly BISHOP_DIRS = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    public static readonly KNIGHT_DIRS = [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]];
+    public static readonly KNIGHT_REACH_DIRS = [
         ...MoveGenerator.KNIGHT_DIRS,
         [1, 3], [1, -3], [-1, 3], [-1, -3], [3, 1], [3, -1], [-3, 1], [-3, -1],
         [2, 3], [2, -3], [-2, 3], [-2, -3], [3, 2], [3, -2], [-3, 2], [-3, -2]
     ];
-    private static readonly QUEEN_DIRS = [...MoveGenerator.ROOK_DIRS, ...MoveGenerator.BISHOP_DIRS];
+    public static readonly QUEEN_DIRS = [...MoveGenerator.ROOK_DIRS, ...MoveGenerator.BISHOP_DIRS];
 
     public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, perks: Perk[] = [], perkUsage: Set<string> = new Set(), game?: ChessGame): Move[] {
         const moves: Move[] = [];
@@ -144,7 +144,7 @@ export class MoveGenerator {
         }
     }
 
-    private static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: ChessGame) {
+    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: ChessGame) {
         const target = board.getSquare(new Coordinate(x, y));
         if (target && target.piece && target.piece.color !== piece.color) {
             // RuleEngine check for capture restrictions
@@ -154,7 +154,7 @@ export class MoveGenerator {
         }
     }
 
-    private static addSlidingMoves(
+    public static addSlidingMoves(
         board: BoardModel,
         from: Coordinate,
         dirs: number[][],
@@ -195,7 +195,7 @@ export class MoveGenerator {
         });
     }
 
-    private static addFixedDistanceMoves(
+    public static addFixedDistanceMoves(
         board: BoardModel,
         from: Coordinate,
         dirs: number[][],
@@ -229,7 +229,7 @@ export class MoveGenerator {
         });
     }
 
-    private static addSteppingMoves(
+    public static addSteppingMoves(
         board: BoardModel,
         from: Coordinate,
         dirs: number[][],
