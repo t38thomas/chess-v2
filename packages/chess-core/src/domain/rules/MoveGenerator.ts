@@ -178,7 +178,7 @@ export class MoveGenerator {
                 } else {
                     if (target.piece.color !== piece.color) {
                         this.addCapture(board, x, y, piece, moves, from, perks);
-                    } else if (RuleEngine.canMoveThroughFriendlies(piece, perks)) {
+                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, perks)) {
                         // Keep going if we can move through friendlies
                         x += dx;
                         y += dy;

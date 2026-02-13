@@ -113,11 +113,11 @@ export class RuleEngine {
         return Array.from(allowed);
     }
 
-    public static canMoveThroughFriendlies(piece: Piece, perks: Perk[]): boolean {
+    public static canMoveThroughFriendlies(mover: Piece, obstacle: Piece, perks: Perk[]): boolean {
         const registry = PactRegistry.getInstance();
         return perks.some(p => {
             const pactLogic = registry.get(p.id);
-            return pactLogic?.getRuleModifiers()?.canMoveThroughFriendlies?.(piece);
+            return pactLogic?.getRuleModifiers()?.canMoveThroughFriendlies?.(mover, obstacle);
         });
     }
 

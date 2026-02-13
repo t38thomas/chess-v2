@@ -40,7 +40,7 @@ export interface RuleModifiers {
     canDoubleMove?: (piece: Piece, y: number, startY: number) => boolean;
     canDiagonalDash?: (piece: Piece) => boolean;
     canSidewaysMove?: (piece: Piece) => boolean;
-    canMoveThroughFriendlies?: (piece: Piece) => boolean;
+    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece) => boolean;
     canMoveLikeKnight?: (pieceType: PieceType) => boolean;
     canMovePiece?: (game: ChessGame, from: Coordinate) => boolean;
 

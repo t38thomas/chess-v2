@@ -7,6 +7,9 @@ import { AlchemistBonus, AlchemistMalus } from './definitions/TheAlchemist';
 import { BerserkerBonus, BerserkerMalus } from './definitions/TheBerserker';
 
 import { HeavyCavalryBonus, HeavyCavalryMalus } from './definitions/TheHeavyCavalry';
+import { SpectreBonus, SpectreMalus } from './definitions/TheSpectre';
+import { SniperBonus, SniperMalus } from './definitions/TheSniper';
+import { ChangelingBonus, ChangelingMalus } from './definitions/TheChangeling';
 
 export class PactFactory {
     public static initialize() {
@@ -39,6 +42,18 @@ export class PactFactory {
         // 7. Cavalleria Pesante
         registry.register(new HeavyCavalryBonus());
         registry.register(new HeavyCavalryMalus());
+
+        // 8. Lo Spettro
+        registry.register(new SpectreBonus());
+        registry.register(new SpectreMalus());
+
+        // 9. Il Cecchino
+        registry.register(new SniperBonus());
+        registry.register(new SniperMalus());
+
+        // 10. Il Mutaforma
+        registry.register(new ChangelingBonus());
+        registry.register(new ChangelingMalus());
 
         // ... more to come
     }
