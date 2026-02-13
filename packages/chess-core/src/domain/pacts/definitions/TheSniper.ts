@@ -100,4 +100,30 @@ export class SniperMalus extends PactLogic {
             }
         }
     }
+
+    getTurnCounters(context: PactContext): any[] {
+        const { game, playerId } = context;
+        let maxCooldown = 0;
+
+        // Check if any rook is on cooldown
+        game.pieceCooldowns.forEach((cd, id) => {
+            if (id.startsWith(playerId) && cd > 0) {
+                // Determine piece type from ID is non-trivial without board scan or ID convention
+                // But generally only rooks get cooldown here.
+                // Or we can just show max cooldown for any piece (which is correct as only rooks get it here)
+                if (cd > maxCooldown) maxCooldown = cd;
+            }
+        });
+
+        if (maxCooldown > 0) {
+            return [{
+                id: 'reload_counter',
+                label: 'reloading',
+                value: maxCooldown,
+                pactId: this.id,
+                type: 'cooldown'
+            }];
+        }
+        return [];
+    }
 }

@@ -47,8 +47,10 @@ export interface RuleModifiers {
     // Promotion overrides
     getAllowedPromotionTypes?: (piece: Piece) => PieceType[];
 
+
+
     // Capture overrides
-    canCapture?: (attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel) => boolean;
+    canCapture?: (game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
 
     // King Safety
     canCastleWhileMoved?: (piece: Piece) => boolean;
@@ -80,4 +82,19 @@ export abstract class PactLogic {
 
     // Ability configuration
     readonly activeAbility?: ActiveAbilityConfig;
+
+    // UI Helpers
+    getTurnCounters(context: PactContext): TurnCounter[] {
+        return [];
+    }
+}
+
+export interface TurnCounter {
+    id: string;
+    label: string; // Internal name or key for translation
+    value: number;
+    pactId: string; // The pact ID to get the icon from registry
+    type: 'cooldown' | 'counter';
+    maxValue?: number; // Optional for progress bars
+    subLabel?: string; // Optional sub-label (e.g. "turns left")
 }

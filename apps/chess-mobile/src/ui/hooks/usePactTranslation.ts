@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { Pact, Perk } from 'chess-core';
 import { useTranslation } from '../../i18n';
 
@@ -26,7 +26,7 @@ interface TranslatedPact {
 export const usePactTranslation = () => {
     const { t } = useTranslation();
 
-    const translatePact = (pact: Pact | null): TranslatedPact | null => {
+    const translatePact = useCallback((pact: Pact | null): TranslatedPact | null => {
         if (!pact) return null;
 
         return {
@@ -46,7 +46,7 @@ export const usePactTranslation = () => {
                 icon: pact.malus.icon,
             },
         };
-    };
+    }, [t]);
 
     return { translatePact };
 };

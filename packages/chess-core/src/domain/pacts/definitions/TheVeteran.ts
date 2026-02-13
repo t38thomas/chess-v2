@@ -24,7 +24,7 @@ export class VeteranBonus extends PactLogic {
                     moves.push(new Move(from, forwardCoord, piece, targetSquare.piece));
                 }
             },
-            canCapture: (attacker, victim, to, from, board) => {
+            canCapture: (game, attacker, victim, to, from) => {
                 if (attacker.type !== 'pawn') return true;
 
                 const isForward = attacker.color === 'white' ? to.y > from.y : to.y < from.y;

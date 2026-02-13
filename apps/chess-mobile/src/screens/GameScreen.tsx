@@ -16,6 +16,7 @@ import { useTranslation } from '../i18n';
 import { Pact, PERK_LIBRARY } from 'chess-core';
 import { useBoardSize } from '../ui/responsive/useBoardSize';
 import { usePactTranslation } from '../ui/hooks/usePactTranslation';
+import { PactTurnCounter } from '../ui/components/PactTurnCounter';
 
 interface GameScreenProps {
     onNavigateBack?: () => void;
@@ -141,6 +142,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
                         )}
                     </View>
                 </View>
+            )}
+
+            {/* Pact Turn Counters */}
+            {viewModel.turnCounters && (
+                <PactTurnCounter
+                    turnCounters={viewModel.turnCounters}
+                    bottomColor={reversed ? 'black' : 'white'}
+                />
             )}
 
             {/* Controls */}

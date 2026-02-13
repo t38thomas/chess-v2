@@ -95,4 +95,26 @@ export class AlchemistMalus extends PactLogic {
             }
         }
     }
+
+    getTurnCounters(context: PactContext): any[] {
+        const { game, playerId } = context;
+        let maxCooldown = 0;
+
+        game.pieceCooldowns.forEach((cd, id) => {
+            if (id.startsWith(playerId) && cd > 0) {
+                if (cd > maxCooldown) maxCooldown = cd;
+            }
+        });
+
+        if (maxCooldown > 0) {
+            return [{
+                id: 'volatile_reagents_counter',
+                label: 'volatile_reagents_cooldown',
+                value: maxCooldown,
+                pactId: this.id,
+                type: 'cooldown'
+            }];
+        }
+        return [];
+    }
 }

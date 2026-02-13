@@ -123,12 +123,12 @@ export class RuleEngine {
 
     // --- CAPTURE RULES ---
 
-    public static canCapture(attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {
+    public static canCapture(game: ChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {
         const registry = PactRegistry.getInstance();
         for (const perk of perks) {
             const pactLogic = registry.get(perk.id);
             const modifier = pactLogic?.getRuleModifiers()?.canCapture;
-            if (modifier && modifier(attacker, victim, to, from, board) === false) return false;
+            if (modifier && modifier(game, attacker, victim, to, from) === false) return false;
         }
         return true;
     }

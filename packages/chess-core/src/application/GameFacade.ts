@@ -4,7 +4,7 @@ import { Move } from '../domain/models/Move';
 import { PieceType, PieceColor } from '../domain/models/Piece';
 import { MoveGenerator } from '../domain/rules/MoveGenerator';
 import { CheckDetector } from '../domain/rules/CheckDetector';
-import { BoardViewModel, SquareViewModel } from './ViewModels';
+import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
 import { Pact } from '../domain/models/Pact';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
 
@@ -93,8 +93,35 @@ export class GameFacade {
             } : null,
             winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined,
             activeAbilityId: this.activeAbilityId,
-            pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y }))
+            pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y })),
+            turnCounters: this.getTurnCounters()
         };
+    }
+
+    private getTurnCounters(): Record<PieceColor, TurnCounter[]> {
+        const counters: Record<PieceColor, TurnCounter[]> = { white: [], black: [] };
+
+        ['white', 'black'].forEach(c => {
+            const color = c as PieceColor;
+            const playerPacts = this.game.pacts[color];
+
+            playerPacts.forEach(pact => {
+                const registry = PactRegistry.getInstance();
+                // Check bonus
+                let logic = registry.get(pact.bonus.id);
+                if (logic) {
+                    counters[color].push(...logic.getTurnCounters({ game: this.game, playerId: color, pactId: pact.bonus.id }) as TurnCounter[]);
+                }
+
+                // Check malus
+                logic = registry.get(pact.malus.id);
+                if (logic) {
+                    counters[color].push(...logic.getTurnCounters({ game: this.game, playerId: color, pactId: pact.malus.id }) as TurnCounter[]);
+                }
+            });
+        });
+
+        return counters;
     }
 
     public completePromotion(pieceType: PieceType) {
@@ -184,7 +211,7 @@ export class GameFacade {
             const opponentPacts = this.game.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
 
             this.validMoves = pseudoMoves.filter(m =>
-                !CheckDetector.wouldLeaveKingInCheck(this.game.board, m.from, m.to, square.piece!.color, opponentPacts)
+                !CheckDetector.wouldLeaveKingInCheck(this.game.board, m.from, m.to, square.piece!.color, opponentPacts, false, this.game)
             );
         } else {
             this.validMoves = [];

@@ -22,6 +22,7 @@ export class ChessGame {
     public readonly pacts: Record<PieceColor, Pact[]> = { white: [], black: [] };
     public readonly perkUsage: Record<PieceColor, Set<string>> = { white: new Set(), black: new Set() };
     public readonly pieceCooldowns: Map<string, number> = new Map(); // pieceId -> turnCount to unlock
+    public readonly pactState: Record<string, any> = {}; // Generic storage for pact-specific state
     public totalTurns: number = 0;
     public extraTurns: Record<PieceColor, number> = { white: 0, black: 0 };
     public kingMoves: Record<PieceColor, number> = { white: 0, black: 0 };
@@ -144,7 +145,7 @@ export class ChessGame {
         const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
 
         const legalMoves = pseudoMoves.filter(m =>
-            !CheckDetector.wouldLeaveKingInCheck(this.board, m.from, m.to, pieceColor, opponentPacts, m.isSwap)
+            !CheckDetector.wouldLeaveKingInCheck(this.board, m.from, m.to, pieceColor, opponentPacts, m.isSwap, this)
         );
 
         // Check if piece can move (Slug Move, Heavy Crown)
@@ -265,7 +266,7 @@ export class ChessGame {
         const hasLegalMoves = this.hasAnyLegalMoves(this.turn);
         const opponentColor: PieceColor = this.turn === 'white' ? 'black' : 'white';
         const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
-        const isInCheck = CheckDetector.isKingInCheck(this.board, this.turn, opponentPacts);
+        const isInCheck = CheckDetector.isKingInCheck(this.board, this.turn, opponentPacts, this);
 
         if (!hasLegalMoves) {
             if (isInCheck) {
@@ -299,7 +300,7 @@ export class ChessGame {
             const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
 
             const legalMoves = pseudoMoves.filter(m =>
-                !CheckDetector.wouldLeaveKingInCheck(this.board, m.from, m.to, color, opponentPacts, m.isSwap)
+                !CheckDetector.wouldLeaveKingInCheck(this.board, m.from, m.to, color, opponentPacts, m.isSwap, this)
             );
 
             if (legalMoves.length > 0) return true;
@@ -311,7 +312,7 @@ export class ChessGame {
     public isInCheck(color: PieceColor): boolean {
         const opponentColor: PieceColor = color === 'white' ? 'black' : 'white';
         const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
-        return CheckDetector.isKingInCheck(this.board, color, opponentPacts);
+        return CheckDetector.isKingInCheck(this.board, color, opponentPacts, this);
     }
 
     public reset() {
@@ -325,6 +326,8 @@ export class ChessGame {
         this.enPassantTarget = null;
         this.totalTurns = 0;
         this.pieceCooldowns.clear();
+        // Clear pact state
+        for (const key in this.pactState) delete this.pactState[key];
         this.perkUsage.white.clear();
         this.perkUsage.black.clear();
     }

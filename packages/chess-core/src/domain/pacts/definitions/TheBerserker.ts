@@ -9,21 +9,19 @@ interface BerserkerState {
 export class BerserkerBonus extends PactLogic {
     id = 'frenzy';
 
-    // State per player to avoid interference in local games or if both choose Berserker
-    private states: Map<PieceColor, BerserkerState> = new Map([
-        ['white', { isFrenzyActive: false, frenzyPieceId: null }],
-        ['black', { isFrenzyActive: false, frenzyPieceId: null }]
-    ]);
-
-    private getState(color: PieceColor): BerserkerState {
-        return this.states.get(color)!;
+    private getState(game: any, color: PieceColor): BerserkerState {
+        const key = `frenzy_${color}`;
+        if (!game.pactState[key]) {
+            game.pactState[key] = { isFrenzyActive: false, frenzyPieceId: null };
+        }
+        return game.pactState[key];
     }
 
     getRuleModifiers(): RuleModifiers {
         return {
             onExecuteMove: (game, move) => {
                 const color = move.piece.color;
-                const state = this.getState(color);
+                const state = this.getState(game, color);
 
                 if (state.isFrenzyActive) {
                     // Completing the extra move
@@ -37,7 +35,7 @@ export class BerserkerBonus extends PactLogic {
             },
 
             modifyNextTurn: (game, currentTurn, eventType) => {
-                const state = this.getState(currentTurn);
+                const state = this.getState(game, currentTurn);
                 if (state.isFrenzyActive) {
                     // Force the turn to stay with the current player
                     return currentTurn;
@@ -47,7 +45,7 @@ export class BerserkerBonus extends PactLogic {
 
             canMovePiece: (game, from) => {
                 const color = game.turn;
-                const state = this.getState(color);
+                const state = this.getState(game, color);
 
                 if (state.isFrenzyActive && state.frenzyPieceId) {
                     const square = game.board.getSquare(from);
@@ -59,8 +57,12 @@ export class BerserkerBonus extends PactLogic {
                 return true;
             },
 
-            canCapture: (attacker, victim, to, from, board) => {
-                const state = this.getState(attacker.color);
+            canCapture: (game, attacker, victim, to, from) => {
+                // If game context is missing (e.g. strict analysis), default to allow or restrictive?
+                // Allow capture if we can't check state to avoid breaking generic analysis.
+                if (!game) return true;
+
+                const state = this.getState(game, attacker.color);
                 if (state.isFrenzyActive) {
                     // Cannot capture during the extra turn
                     return false;

@@ -37,4 +37,15 @@ export interface BoardViewModel {
     winner?: PieceColor;
     activeAbilityId?: string | null;
     pendingTargets?: { x: number; y: number }[];
+    turnCounters?: Record<PieceColor, TurnCounter[]>;
+}
+
+export interface TurnCounter {
+    id: string;
+    label: string;
+    value: number;
+    pactId: string;
+    type: 'cooldown' | 'counter';
+    maxValue?: number;
+    subLabel?: string;
 }

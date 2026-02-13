@@ -27,11 +27,11 @@ export class MoveGenerator {
 
         switch (piece.type) {
             case 'pawn':
-                this.addPawnMoves(board, piece, from, moves, enPassantTarget, perks);
+                this.addPawnMoves(board, piece, from, moves, enPassantTarget, perks, game);
                 break;
             case 'rook':
                 const rookRange = RuleEngine.getMaxRange(piece, perks);
-                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, perks);
+                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, perks, game);
                 break;
             case 'bishop':
                 const bishopRange = RuleEngine.getMaxRange(piece, perks);
@@ -40,7 +40,7 @@ export class MoveGenerator {
                 if (bishopFixedDistances) {
                     this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances);
                 } else {
-                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, perks);
+                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, perks, game);
                 }
 
                 // Zealous Bishops: 1 square horizontal/vertical
@@ -49,7 +49,7 @@ export class MoveGenerator {
                 }
                 break;
             case 'queen':
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, perks);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, perks, game);
                 break;
             case 'knight':
                 const knightDirs = perks.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
@@ -84,7 +84,7 @@ export class MoveGenerator {
         return !!target && !target.piece;
     }
 
-    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, perks: Perk[] = []) {
+    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, perks: Perk[] = [], game?: ChessGame) {
         const { x, y } = from;
         const dy = piece.color === 'white' ? 1 : -1;
         const startY = piece.color === 'white' ? 1 : 6;
@@ -123,8 +123,8 @@ export class MoveGenerator {
         }
 
         // Normal captures
-        this.addCapture(board, x + 1, y + dy, piece, moves, from, perks);
-        this.addCapture(board, x - 1, y + dy, piece, moves, from, perks);
+        this.addCapture(board, x + 1, y + dy, piece, moves, from, perks, game);
+        this.addCapture(board, x - 1, y + dy, piece, moves, from, perks, game);
 
         // En passant
         if (enPassantTarget) {
@@ -144,11 +144,11 @@ export class MoveGenerator {
         }
     }
 
-    private static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = []) {
+    private static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: ChessGame) {
         const target = board.getSquare(new Coordinate(x, y));
         if (target && target.piece && target.piece.color !== piece.color) {
             // RuleEngine check for capture restrictions
-            if (!RuleEngine.canCapture(piece, target.piece, target.coordinate, from, board, perks)) return;
+            if (!RuleEngine.canCapture(game, piece, target.piece, target.coordinate, from, board, perks)) return;
 
             moves.push(new Move(from, new Coordinate(x, y), piece, target.piece));
         }
@@ -161,7 +161,8 @@ export class MoveGenerator {
         piece: Piece,
         moves: Move[],
         maxRange: number = BoardModel.SIZE,
-        perks: Perk[] = []
+        perks: Perk[] = [],
+        game?: ChessGame
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -177,7 +178,7 @@ export class MoveGenerator {
                     moves.push(new Move(from, coord, piece));
                 } else {
                     if (target.piece.color !== piece.color) {
-                        this.addCapture(board, x, y, piece, moves, from, perks);
+                        this.addCapture(board, x, y, piece, moves, from, perks, game);
                     } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, perks)) {
                         // Keep going if we can move through friendlies
                         x += dx;

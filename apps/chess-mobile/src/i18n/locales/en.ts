@@ -133,6 +133,9 @@ export const en = {
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Search for a pact...',
+        unstable_identity_progress: "Turns without capture",
+        reloading: "Reloading",
+        volatile_reagents_cooldown: "Cooling down",
     },
     pacts: {
         necromancer: { title: 'The Necromancer', description: 'Resurrects allies, but ascension has a cost.' },

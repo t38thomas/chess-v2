@@ -135,6 +135,9 @@ export const it: Translations = {
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Cerca un patto...',
+        unstable_identity_progress: "Turni senza cattura",
+        reloading: "Ricarica",
+        volatile_reagents_cooldown: "Raffreddamento",
     },
     pacts: {
         necromancer: { title: 'Il Negromante', description: 'Resuscita gli alleati, ma l\'ascensione ha un costo.' },
