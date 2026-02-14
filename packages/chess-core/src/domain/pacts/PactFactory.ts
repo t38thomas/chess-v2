@@ -16,70 +16,95 @@ import { ThiefBonus, ThiefMalus } from './definitions/TheThief';
 import { RangerBonus, RangerMalus } from './definitions/TheRanger';
 import { TidecallerBonus, TidecallerMalus } from './definitions/TheTidecaller';
 
+declare var __DEV__: boolean;
+
 export class PactFactory {
+    private static readonly RELEASE_READY_PACTS = [
+        'bayonet', 'old_guard',
+        'diagonal_dash', 'cut_supplies',
+        'reclaimer', 'ascension_cost',
+        'hydra', 'hive_queen',
+        'transmutation', 'volatile_reagents',
+        'frenzy', 'defenseless',
+        'trample', 'heavy_armor',
+        'incorporeal', 'possession',
+        'long_sight', 'reload',
+        'mimicry', 'unstable_identity',
+        'stone_skin', 'lead_feet',
+        'chaos', 'jester',
+        'pickpocket', 'wanted',
+        'snipe', 'short_sighted',
+        'flow', 'ebb'
+    ];
+
     public static initialize() {
         const registry = PactRegistry.getInstance();
+        const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+
+        const register = (pact: any) => {
+            if (isDev || PactFactory.RELEASE_READY_PACTS.includes(pact.id)) {
+                registry.register(pact);
+            }
+        };
 
         // 1. Il Veterano
-        registry.register(new VeteranBonus());
-        registry.register(new VeteranMalus());
+        register(new VeteranBonus());
+        register(new VeteranMalus());
 
         // 2. Il Sabotatore
-        registry.register(new SaboteurBonus());
-        registry.register(new SaboteurMalus());
+        register(new SaboteurBonus());
+        register(new SaboteurMalus());
 
         // 3. Il Negromante
-        registry.register(new NecromancerBonus());
-        registry.register(new NecromancerMalus());
+        register(new NecromancerBonus());
+        register(new NecromancerMalus());
 
         // 4. Lo Sciame
-        registry.register(new SwarmBonus());
-        registry.register(new SwarmMalus());
+        register(new SwarmBonus());
+        register(new SwarmMalus());
 
         // 5. L'Alchimista
-        registry.register(new AlchemistBonus());
-        registry.register(new AlchemistMalus());
+        register(new AlchemistBonus());
+        register(new AlchemistMalus());
 
         // 6. Il Berserker
-        registry.register(new BerserkerBonus());
-        registry.register(new BerserkerMalus());
+        register(new BerserkerBonus());
+        register(new BerserkerMalus());
 
         // 7. Cavalleria Pesante
-        registry.register(new HeavyCavalryBonus());
-        registry.register(new HeavyCavalryMalus());
+        register(new HeavyCavalryBonus());
+        register(new HeavyCavalryMalus());
 
         // 8. Lo Spettro
-        registry.register(new SpectreBonus());
-        registry.register(new SpectreMalus());
+        register(new SpectreBonus());
+        register(new SpectreMalus());
 
         // 9. Il Cecchino
-        registry.register(new SniperBonus());
-        registry.register(new SniperMalus());
+        register(new SniperBonus());
+        register(new SniperMalus());
 
         // 10. Il Mutaforma
-        registry.register(new ChangelingBonus());
-        registry.register(new ChangelingMalus());
+        register(new ChangelingBonus());
+        register(new ChangelingMalus());
 
         // 11. Il Golem
-        registry.register(new StoneSkinBonus());
-        registry.register(new LeadFeetMalus());
+        register(new StoneSkinBonus());
+        register(new LeadFeetMalus());
 
         // 12. Il Giullare
-        registry.register(new ChaosBonus());
-        registry.register(new JesterMalus());
+        register(new ChaosBonus());
+        register(new JesterMalus());
 
         // 13. Il Ladro
-        registry.register(new ThiefBonus());
-        registry.register(new ThiefMalus());
+        register(new ThiefBonus());
+        register(new ThiefMalus());
 
         // 14. L'Arciere
-        registry.register(new RangerBonus());
-        registry.register(new RangerMalus());
+        register(new RangerBonus());
+        register(new RangerMalus());
 
         // 15. Il Richiamo della Marea (The Tidecaller)
-        registry.register(new TidecallerBonus());
-        registry.register(new TidecallerMalus());
-
-        // ... more to come
+        register(new TidecallerBonus());
+        register(new TidecallerMalus());
     }
 }
