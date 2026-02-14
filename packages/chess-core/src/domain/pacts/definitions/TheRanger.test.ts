@@ -69,6 +69,35 @@ describe('The Ranger Pact', () => {
             expect(snipeMove).toBeDefined();
         });
 
+        it('should allow Snipe at distance 1', () => {
+            board.clear();
+            const whiteBishop = new Piece('bishop', 'white', 'w-bishop');
+            const blackPawn = new Piece('pawn', 'black', 'b-pawn');
+            const start = new Coordinate(4, 4);
+            const target = new Coordinate(5, 5);
+            board.placePiece(start, whiteBishop);
+            board.placePiece(target, blackPawn);
+
+            const moves: Move[] = [];
+
+            // Activate Snipe for the test
+            game.pactState['ranger_snipe_active_white'] = true;
+
+            const modifiers = bonus.getRuleModifiers();
+            if (modifiers.onGetPseudoMoves) {
+                modifiers.onGetPseudoMoves({
+                    board,
+                    piece: whiteBishop,
+                    from: start,
+                    moves,
+                    game
+                });
+            }
+
+            const snipeMove = moves.find(m => m.to.equals(target) && m.isSnipe);
+            expect(snipeMove).toBeDefined();
+        });
+
         it('should move Bishop back if Snipe is active', () => {
             board.clear();
             const whiteBishop = new Piece('bishop', 'white', 'w-bishop');

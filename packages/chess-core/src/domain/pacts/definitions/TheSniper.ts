@@ -99,19 +99,6 @@ export class SniperMalus extends PactLogic {
                 });
             }
         }
-
-        // Handle turn start to decrement cooldowns
-        if (event === 'turn_start') {
-            const currentTurnPlayer = payload as PieceColor;
-            if (currentTurnPlayer === playerId) {
-                // It's the Sniper's turn. Decrement cooldowns for their pieces.
-                game.pieceCooldowns.forEach((cd, id) => {
-                    if (cd > 0 && id.startsWith(playerId)) {
-                        game.pieceCooldowns.set(id, cd - 1);
-                    }
-                });
-            }
-        }
     }
 
     getTurnCounters(context: PactContext): any[] {

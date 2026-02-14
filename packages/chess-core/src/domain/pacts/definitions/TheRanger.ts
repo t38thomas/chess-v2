@@ -33,41 +33,65 @@ export class RangerBonus extends PactLogic {
                 const snipeKey = `ranger_snipe_active_${playerId}`;
                 const isSnipeActive = game.pactState[snipeKey];
 
-                // Snipe is only available for distance 2 captures
+                // Snipe is available for distance 1 and 2 captures
                 MoveGenerator.BISHOP_DIRS.forEach(([dx, dy]) => {
                     const d1 = new Coordinate(from.x + dx, from.y + dy);
                     const d2 = new Coordinate(from.x + dx * 2, from.y + dy * 2);
 
-                    if (d2.isValid()) {
+                    // Check distance 1
+                    if (d1.isValid()) {
                         const target1 = board.getSquare(d1);
-                        const target2 = board.getSquare(d2);
-
-                        // Path must be clear at d1
-                        if (target1 && !target1.piece) {
-                            if (target2 && target2.piece && target2.piece.color !== piece.color) {
-                                // Check if a move to d2 already exists (added by sliding moves)
-                                // If it does, and snipe is active, we mark it.
-                                // Check if a move to d2 already exists
-                                const existingIndex = moves.findIndex(m => m.to.equals(d2));
-                                if (existingIndex !== -1) {
-                                    if (isSnipeActive) {
-                                        const existing = moves[existingIndex];
-                                        moves[existingIndex] = new Move(
-                                            existing.from,
-                                            existing.to,
-                                            existing.piece,
-                                            existing.capturedPiece,
-                                            existing.isCastling,
-                                            existing.isEnPassant,
-                                            existing.isSwap,
-                                            true, // isSnipe
-                                            existing.promotion
-                                        );
-                                    }
-                                } else {
-                                    // If doesn't exist, we add it if Snipe is active.
-                                    if (isSnipeActive) {
-                                        moves.push(new Move(from, d2, piece, target2.piece, false, false, false, true));
+                        if (target1 && target1.piece && target1.piece.color !== piece.color) {
+                            // Enemy at distance 1
+                            // Check if a move to d1 already exists
+                            const existingIndex = moves.findIndex(m => m.to.equals(d1));
+                            if (existingIndex !== -1) {
+                                if (isSnipeActive) {
+                                    const existing = moves[existingIndex];
+                                    moves[existingIndex] = new Move(
+                                        existing.from,
+                                        existing.to,
+                                        existing.piece,
+                                        existing.capturedPiece,
+                                        existing.isCastling,
+                                        existing.isEnPassant,
+                                        existing.isSwap,
+                                        true, // isSnipe
+                                        existing.promotion
+                                    );
+                                }
+                            } else {
+                                // If doesn't exist (should not happen for normal capture, but just in case)
+                                if (isSnipeActive) {
+                                    moves.push(new Move(from, d1, piece, target1.piece, false, false, false, true));
+                                }
+                            }
+                        } else if (target1 && !target1.piece) {
+                            // Empty at d1, check d2
+                            if (d2.isValid()) {
+                                const target2 = board.getSquare(d2);
+                                if (target2 && target2.piece && target2.piece.color !== piece.color) {
+                                    // Enemy at distance 2
+                                    const existingIndex = moves.findIndex(m => m.to.equals(d2));
+                                    if (existingIndex !== -1) {
+                                        if (isSnipeActive) {
+                                            const existing = moves[existingIndex];
+                                            moves[existingIndex] = new Move(
+                                                existing.from,
+                                                existing.to,
+                                                existing.piece,
+                                                existing.capturedPiece,
+                                                existing.isCastling,
+                                                existing.isEnPassant,
+                                                existing.isSwap,
+                                                true, // isSnipe
+                                                existing.promotion
+                                            );
+                                        }
+                                    } else {
+                                        if (isSnipeActive) {
+                                            moves.push(new Move(from, d2, piece, target2.piece, false, false, false, true));
+                                        }
                                     }
                                 }
                             }

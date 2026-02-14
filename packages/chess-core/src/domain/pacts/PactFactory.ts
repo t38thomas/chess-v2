@@ -14,6 +14,7 @@ import { StoneSkinBonus, LeadFeetMalus } from './definitions/TheGolem';
 import { ChaosBonus, JesterMalus } from './definitions/TheJester';
 import { ThiefBonus, ThiefMalus } from './definitions/TheThief';
 import { RangerBonus, RangerMalus } from './definitions/TheRanger';
+import { TidecallerBonus, TidecallerMalus } from './definitions/TheTidecaller';
 
 export class PactFactory {
     public static initialize() {
@@ -74,6 +75,10 @@ export class PactFactory {
         // 14. L'Arciere
         registry.register(new RangerBonus());
         registry.register(new RangerMalus());
+
+        // 15. Il Richiamo della Marea (The Tidecaller)
+        registry.register(new TidecallerBonus());
+        registry.register(new TidecallerMalus());
 
         // ... more to come
     }
