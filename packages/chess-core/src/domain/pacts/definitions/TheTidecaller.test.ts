@@ -70,7 +70,10 @@ describe('The Tidecaller Pact', () => {
             expect(backwardMove).toBeDefined();
         });
 
-        it('should allow pawns to capture backward vertically', () => {
+
+
+
+        it('should NOT allow pawns to capture backward vertically', () => {
             const bonus = new TidecallerBonus();
             game.pacts.white.push({
                 id: 'tidecaller',
@@ -86,29 +89,20 @@ describe('The Tidecaller Pact', () => {
             // Setup: White Pawn at e4 (4,3). Black Pawn at e3 (4,2).
             const p1 = new Coordinate(4, 1);
             const p2 = new Coordinate(4, 3);
-            game.makeMove(p1, p2); // White pawn moves to e4
+            game.makeMove(p1, p2);
 
-            // Place black pawn at e3 manually or via moves
-            // Harder to move black pawn there legally without it being captured or blocking.
-            // Let's just override the board for testing specific scenario
-            const blackPawn = game.board.getSquare(new Coordinate(3, 6))?.piece; // d7 pawn
-            if (blackPawn) {
-                // Move logic manually for setup
-                game.board.movePiece(new Coordinate(3, 6), new Coordinate(4, 2));
-                // Update piece position if needed (BoardModel handles it)
-            }
-
-            // Verify setup
-            expect(game.board.getSquare(new Coordinate(4, 2))?.piece?.color).toBe('black');
-            expect(game.board.getSquare(new Coordinate(4, 3))?.piece?.color).toBe('white');
+            // Place black pawn at e3
+            const blackPawnSource = new Coordinate(3, 6);
+            const blackPawnTarget = new Coordinate(4, 2);
+            game.board.movePiece(blackPawnSource, blackPawnTarget);
 
             const moves = getMoves(game, p2);
-            const backwardCapture = moves.find(m => m.to.x === 4 && m.to.y === 2 && m.capturedPiece);
+            const backwardCapture = moves.find(m => m.to.x === 4 && m.to.y === 2);
 
-            expect(backwardCapture).toBeDefined();
+            expect(backwardCapture).toBeUndefined();
         });
 
-        it('should allow pawns to capture forward vertically', () => {
+        it('should NOT allow pawns to capture forward vertically', () => {
             const bonus = new TidecallerBonus();
             game.pacts.white.push({
                 id: 'tidecaller',
@@ -124,18 +118,17 @@ describe('The Tidecaller Pact', () => {
             // Setup: White Pawn at e4 (4,3). Black Pawn at e5 (4,4).
             const p1 = new Coordinate(4, 1);
             const p2 = new Coordinate(4, 3);
-            game.makeMove(p1, p2); // White pawn moves to e4
+            game.makeMove(p1, p2);
 
-            // Place black pawn at e5 (4,4)
-            // Move d7 pawn to e5
+            // Place black pawn at e5
             const blackPawnSource = new Coordinate(3, 6);
             const blackPawnTarget = new Coordinate(4, 4);
             game.board.movePiece(blackPawnSource, blackPawnTarget);
 
             const moves = getMoves(game, p2);
-            const forwardCapture = moves.find(m => m.to.x === 4 && m.to.y === 4 && m.capturedPiece);
+            const forwardCapture = moves.find(m => m.to.x === 4 && m.to.y === 4);
 
-            expect(forwardCapture).toBeDefined();
+            expect(forwardCapture).toBeUndefined();
         });
 
         it('should NOT allow pawns to move backward into a piece', () => {

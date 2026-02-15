@@ -73,4 +73,5 @@ export const STORAGE_KEYS = {
     LANGUAGE: 'user_language',
     THEME_MODE: 'user_theme_mode',
     SOUND_ENABLED: 'user_sound_enabled',
+    ROTATE_PIECES: 'user_rotate_pieces',
 };

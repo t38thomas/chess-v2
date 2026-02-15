@@ -42,6 +42,7 @@ export const it: Translations = {
         sound: 'Suoni',
         soundOn: 'Attivi',
         soundOff: 'Disattivati',
+        rotatePieces: 'Ruota pezzi (Nero)',
         close: 'Chiudi',
     },
     createMatch: {
@@ -200,6 +201,28 @@ export const it: Translations = {
                     desc: 'Un pedone vicino ha stordito il pezzo nemico!',
                 },
             },
+            timekeeper: {
+                time_stop: {
+                    title: 'Time Stop!',
+                    desc: 'Hai fermato il tempo e ottenuto un turno extra!',
+                },
+                paradox: {
+                    title: 'Paradosso!',
+                    desc: 'La linea temporale si corregge! 3 pedoni amici sono stati cancellati dall\'esistenza.',
+                },
+            },
+            phoenix: {
+                rebirth: {
+                    title: 'Rinascita!',
+                    desc: 'Un fedele pedone è asceso per prendere il posto della Regina caduta!',
+                },
+            },
+            void_jumper: {
+                sacrifice: {
+                    title: 'Sacrificio Rituale',
+                    desc: 'Il teletrasporto ha richiesto una forza vitale. Il tuo pezzo più avanzato è stato sacrificato!',
+                },
+            },
         },
     },
     pacts: {
@@ -242,7 +265,7 @@ export const it: Translations = {
         mimicry: { name: 'Mimica', description: 'Catturando, un pedone assume il movimento della vittima per il prossimo turno.' },
         frenzy: { name: 'Frenesia', description: 'Dopo una cattura, puoi muovere di nuovo lo stesso pezzo (senza catturare).' },
         long_sight: { name: 'Vista Lunga', description: 'Le Torri vedono attraverso un ostacolo.' },
-        flow: { name: 'Flusso', description: 'I pedoni possono muovere indietro e catturare verticalmente.' },
+        flow: { name: 'Flusso', description: 'I pedoni possono muovere indietro di 1 casella.' },
         echolocation: { name: 'Ecolocalizzazione', description: 'I pezzi vedono e attaccano attraverso i muri.' },
         void_jump: { name: 'Salto del Vuoto', description: 'Scambia la posizione di due tuoi pezzi qualsiasi.' },
         snipe: { name: 'Tiro di Precisione', description: 'Gli Alfieri possono catturare a distanza 2 senza muoversi.' },
@@ -251,7 +274,7 @@ export const it: Translations = {
         life_thirst: { name: 'Sete di Sangue', description: 'Catturare la Regina nemica resuscita un tuo pezzo minore.' },
         stealth: { name: 'Furtività', description: 'I pedoni laterali sono invisibili finché non agiscono.' },
         hydra: { name: 'Idra', description: 'Quando un pedone muore, ne appare uno nuovo nelle retrovie.' },
-        rebirth: { name: 'Rinascita', description: 'Se perdi la Regina, un pedone diventa Regina.' },
+        rebirth: { name: 'Rinascita', description: 'Se perdi la Regina, un pedone diventa Regina. (Una sola volta)' },
         transmutation: { name: 'Trasmutazione', description: 'Scambia la posizione di due tuoi pezzi amici (eccetto il Re).' },
         bayonet: { name: 'Baionetta', description: 'I pedoni catturano in avanti, non in diagonale.' },
         stone_skin: { name: 'Pelle di Pietra', description: 'Il Re è immune agli attacchi da lontano (> 3 caselle).' },

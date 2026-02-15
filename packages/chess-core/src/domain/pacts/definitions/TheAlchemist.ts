@@ -2,6 +2,7 @@ import { PactLogic, ActiveAbilityConfig, PactContext, RuleModifiers } from '../P
 import { GameEvent } from '../../GameTypes';
 import { Coordinate } from '../../models/Coordinate';
 import { PieceColor, PieceType } from '../../models/Piece';
+import { PactUtils } from '../PactUtils';
 
 export class AlchemistBonus extends PactLogic {
     id = 'transmutation';
@@ -27,6 +28,7 @@ export class AlchemistBonus extends PactLogic {
             const sq1 = game.board.getSquare(fromCoord);
             const sq2 = game.board.getSquare(toCoord);
 
+            // Validation covered by PactUtils inside? No, we need checking ownership here first.
             if (!sq1 || !sq2 || !sq1.piece || !sq2.piece) return false;
 
             // Both pieces must belong to the player
@@ -36,16 +38,7 @@ export class AlchemistBonus extends PactLogic {
             if (sq1.piece.type === 'king' || sq2.piece.type === 'king') return false;
 
             // Swap pieces
-            const p1 = sq1.piece;
-            const p2 = sq2.piece;
-
-            game.board.removePiece(fromCoord);
-            game.board.removePiece(toCoord);
-
-            game.board.placePiece(fromCoord, p2);
-            game.board.placePiece(toCoord, p1);
-
-            return true;
+            return PactUtils.swapPieces(game, fromCoord, toCoord);
         }
     };
 }

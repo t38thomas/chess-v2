@@ -10,6 +10,7 @@ interface BoardViewProps {
     viewModel: BoardViewModel;
     onSquarePress: (x: number, y: number) => void;
     reversed?: boolean;
+    invertPieces?: boolean;
     size?: number;
 }
 
@@ -17,6 +18,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     viewModel,
     onSquarePress,
     reversed = false,
+    invertPieces = false,
     size
 }) => {
     // Calculate square size
@@ -41,7 +43,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
                                 type={squareVM.piece.type}
                                 color={squareVM.piece.color}
                                 size={squareSize * 0.8}
-                                reversed={reversed}
+                                reversed={invertPieces ? !reversed : reversed}
                             />
                         )}
                     </Square>

@@ -15,6 +15,10 @@ import { ChaosBonus, JesterMalus } from './definitions/TheJester';
 import { ThiefBonus, ThiefMalus } from './definitions/TheThief';
 import { RangerBonus, RangerMalus } from './definitions/TheRanger';
 import { TidecallerBonus, TidecallerMalus } from './definitions/TheTidecaller';
+import { HawkBonus, HawkMalus } from './definitions/TheHawk';
+import { TimeStopBonus, ParadoxMalus } from './definitions/TheTimekeeper';
+import { PhoenixBonus, PhoenixMalus } from './definitions/ThePhoenix';
+import { VoidJumpBonus, RitualSacrificeMalus } from './definitions/TheVoidJumper';
 
 declare var __DEV__: boolean;
 
@@ -34,7 +38,9 @@ export class PactFactory {
         'chaos', 'jester',
         'pickpocket', 'wanted',
         'snipe', 'short_sighted',
-        'flow', 'ebb'
+        'flow', 'ebb',
+        'high_flyer', 'distant_predator',
+        'rebirth', 'wingless'
     ];
 
     public static initialize() {
@@ -106,5 +112,21 @@ export class PactFactory {
         // 15. Il Richiamo della Marea (The Tidecaller)
         register(new TidecallerBonus());
         register(new TidecallerMalus());
+
+        // 16. Il Falco (The Hawk)
+        register(new HawkBonus());
+        register(new HawkMalus());
+
+        // 17. Il Guardiano del Tempo (The Timekeeper)
+        register(new TimeStopBonus());
+        register(new ParadoxMalus());
+
+        // 18. La Fenice (The Phoenix)
+        register(new PhoenixBonus());
+        register(new PhoenixMalus());
+
+        // 19. Il Saltatore del Vuoto (The Void Jumper)
+        register(new VoidJumpBonus());
+        register(new RitualSacrificeMalus());
     }
 }

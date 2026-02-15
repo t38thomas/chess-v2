@@ -18,6 +18,7 @@ import { useBoardSize } from '../ui/responsive/useBoardSize';
 import { usePactTranslation } from '../ui/hooks/usePactTranslation';
 import { PactTurnCounter } from '../ui/components/PactTurnCounter';
 import { useToast } from '../context/ToastContext';
+import { useGameSettings } from '../context/GameSettingsContext';
 
 interface GameScreenProps {
     onNavigateBack?: () => void;
@@ -56,6 +57,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
     const { translatePact } = usePactTranslation();
     const boardSize = useBoardSize();
     const { showToast } = useToast();
+    const { rotatePieces } = useGameSettings();
+
+    const invertPieces = rotatePieces && turn === 'black';
 
     // Subscribe to game events (e.g. malus effects)
     useEffect(() => {
@@ -212,6 +216,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
                         viewModel={viewModel}
                         onSquarePress={handleSquarePress}
                         reversed={reversed}
+                        invertPieces={invertPieces}
                         size={boardSize}
                     />
                 }

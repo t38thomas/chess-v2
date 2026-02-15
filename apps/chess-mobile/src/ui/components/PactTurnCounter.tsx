@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TurnCounter, PieceColor, PACT_CARDS } from 'chess-core';
-import { useTheme } from '../theme';
+import { PACT_CARDS, PieceColor, TurnCounter } from 'chess-core';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from '../../i18n';
+import { useTheme } from '../theme';
 import { Text } from './Text';
 
 interface PactTurnCounterProps {

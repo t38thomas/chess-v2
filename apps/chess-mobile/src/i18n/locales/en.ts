@@ -40,6 +40,7 @@ export const en = {
         sound: 'Sound',
         soundOn: 'On',
         soundOff: 'Off',
+        rotatePieces: 'Rotate pieces (Black)',
         close: 'Close',
     },
     createMatch: {
@@ -198,6 +199,28 @@ export const en = {
                     desc: 'A nearby pawn has stunned the enemy piece!',
                 },
             },
+            timekeeper: {
+                time_stop: {
+                    title: 'Time Stop!',
+                    desc: 'You have frozen time and gained an extra turn!',
+                },
+                paradox: {
+                    title: 'Paradox!',
+                    desc: 'The timeline corrects itself! 3 friendly pawns have been erased from existence.',
+                },
+            },
+            phoenix: {
+                rebirth: {
+                    title: 'Rebirth!',
+                    desc: 'A faithful pawn has ascended to take the place of the fallen Queen!',
+                },
+            },
+            void_jumper: {
+                sacrifice: {
+                    title: 'Ritual Sacrifice',
+                    desc: 'The teleportation required a life force. Your most advanced piece has been sacrificed!',
+                },
+            },
         },
     },
     pacts: {
@@ -230,7 +253,7 @@ export const en = {
         engineer: { title: 'The Engineer', description: 'Defensive turrets with design flaws.' },
         hawk: { title: 'The Hawk', description: 'Predator of the skies but blind up close.' },
         heir: { title: 'The Heir', description: 'Assured dynasty but inexperienced ruler.' },
-        timekeeper: { title: 'The Timekeeper', description: 'Time control at the price of paradoxes.' },
+        timekeeper: { title: 'The Timekeeper', description: 'Control time at the price of paradoxes.' },
     },
     perks: {
         /* BONUS */
@@ -240,7 +263,7 @@ export const en = {
         mimicry: { name: 'Mimicry', description: 'Upon capturing, a pawn assumes the victim\'s movement for the next turn.' },
         frenzy: { name: 'Frenzy', description: 'After a capture, you can move the same piece again (without capturing).' },
         long_sight: { name: 'Long Sight', description: 'Rooks see through one obstacle.' },
-        flow: { name: 'Flow', description: 'Pawns can move backward and capture vertically.' },
+        flow: { name: 'Flow', description: 'Pawns can move backward 1 square.' },
         echolocation: { name: 'Echolocation', description: 'Pieces see and attack through walls.' },
         void_jump: { name: 'Void Jump', description: 'Swap the position of any two of your pieces.' },
         snipe: { name: 'Snipe', description: 'Bishops can capture at range 2 without moving.' },
@@ -249,7 +272,7 @@ export const en = {
         life_thirst: { name: 'Life Thirst', description: 'Capturing the enemy Queen resurrects a minor piece.' },
         stealth: { name: 'Stealth', description: 'Side pawns are invisible until they act.' },
         hydra: { name: 'Hydra', description: 'When a pawn dies, a new one appears in the backlines.' },
-        rebirth: { name: 'Rebirth', description: 'If you lose the Queen, a pawn becomes Queen.' },
+        rebirth: { name: 'Rebirth', description: 'If you lose the Queen, a pawn becomes Queen. (Single use)' },
         transmutation: { name: 'Transmutation', description: 'Swap the position of any two of your pieces (except the King).' },
         bayonet: { name: 'Bayonet', description: 'Pawns capture forward, not diagonally.' },
         stone_skin: { name: 'Stone Skin', description: 'The King is immune to attacks from afar (> 3 squares).' },
@@ -313,6 +336,7 @@ export const en = {
     help: {
         rotateBoard: 'Tap to rotate the board view',
     },
+
 };
 
 export type Translations = typeof en;

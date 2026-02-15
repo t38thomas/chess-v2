@@ -7,6 +7,7 @@ import { Button } from './Button';
 import { IconButton } from './IconButton';
 import { useTranslation } from '../../i18n';
 import { useSoundContext } from '../context/SoundContext';
+import { useGameSettings } from '../../context/GameSettingsContext';
 
 interface SettingsModalProps {
     visible: boolean;
@@ -17,6 +18,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
     const { colors, spacing, radii, typography, mode, setMode } = useTheme();
     const { t, locale, setLocale } = useTranslation();
     const { isEnabled, toggleSound } = useSoundContext();
+    const { rotatePieces, toggleRotatePieces } = useGameSettings();
 
     return (
         <Modal
@@ -100,6 +102,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                                     <Switch
                                         value={isEnabled}
                                         onValueChange={toggleSound}
+                                        trackColor={{ false: colors.border, true: colors.primary }}
+                                        thumbColor={colors.text}
+                                    />
+                                </View>
+                            </View>
+
+                            {/* Gameplay Section */}
+                            <View style={styles.section}>
+                                <Text variant="caption" color="secondary" style={{ marginBottom: spacing[2] }}>
+                                    Gameplay
+                                </Text>
+                                <View style={styles.row}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text>
+                                            {t('settings.rotatePieces')}
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={rotatePieces}
+                                        onValueChange={toggleRotatePieces}
                                         trackColor={{ false: colors.border, true: colors.primary }}
                                         thumbColor={colors.text}
                                     />

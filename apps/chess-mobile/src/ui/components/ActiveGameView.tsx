@@ -13,6 +13,7 @@ import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
 import { Pact, PERK_LIBRARY } from 'chess-core';
 import { usePactTranslation } from '../hooks/usePactTranslation';
+import { useGameSettings } from '../../context/GameSettingsContext';
 
 interface ActiveGameViewProps {
     viewModel: any; // Type should be imported from chess-core if available or defined
@@ -59,7 +60,10 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const { spacing, colors } = useTheme();
     const { t } = useTranslation();
     const { translatePact } = usePactTranslation();
+    const { rotatePieces } = useGameSettings();
     const [selectedPact, setSelectedPact] = useState<Pact | null>(null);
+
+    const invertPieces = rotatePieces && turn === 'black';
 
     const gameInfoContent = (
         <View style={styles.gameInfoContainer}>
@@ -208,6 +212,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         viewModel={viewModel}
                         onSquarePress={onSquarePress}
                         reversed={reversed}
+                        invertPieces={invertPieces}
                         size={boardSize}
                     />
                 }

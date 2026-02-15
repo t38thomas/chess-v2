@@ -10,6 +10,7 @@ import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/context/ToastContext';
 import { ToastContainer } from './src/ui/components/ToastContainer';
+import { GameSettingsProvider } from './src/context/GameSettingsContext';
 
 type Screen = 'home' | 'local' | 'online';
 
@@ -63,11 +64,13 @@ export default function App() {
                 <I18nProvider>
                     <ToastProvider>
                         <SoundProvider>
-                            <SafeAreaView style={styles.container}>
-                                <StatusBar style="auto" />
-                                {isReady ? renderScreen() : null}
-                                <ToastContainer />
-                            </SafeAreaView>
+                            <GameSettingsProvider>
+                                <SafeAreaView style={styles.container}>
+                                    <StatusBar style="auto" />
+                                    {isReady ? renderScreen() : null}
+                                    <ToastContainer />
+                                </SafeAreaView>
+                            </GameSettingsProvider>
                         </SoundProvider>
                     </ToastProvider>
                 </I18nProvider>
