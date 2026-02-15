@@ -139,6 +139,7 @@ export const it: Translations = {
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Cerca un patto...',
+        gotIt: 'Ho Capito',
         unstable_identity_progress: "Turni senza cattura",
         reloading: "Ricarica",
         volatile_reagents_cooldown: "Raffreddamento",
@@ -242,6 +243,12 @@ export const it: Translations = {
                 young_queen: {
                     title: 'Regina Giovane!',
                     desc: 'La Regina è troppo giovane per catturare. Deve aspettare il suo momento.',
+                },
+            },
+            vampire: {
+                life_thirst: {
+                    title: 'Sete di Sangue!',
+                    desc: 'La caduta della Regina ha risvegliato un vecchio alleato!',
                 },
             },
         },

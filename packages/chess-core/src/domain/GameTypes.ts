@@ -1,5 +1,5 @@
 import { BoardModel } from './models/BoardModel';
-import { PieceColor, PieceType } from './models/Piece';
+import { Piece, PieceColor, PieceType } from './models/Piece';
 import { Move } from './models/Move';
 import { Pact } from './models/Pact';
 import { Coordinate } from './models/Coordinate';
@@ -18,6 +18,7 @@ export interface IChessGame {
     perkUsage: Record<PieceColor, Set<string>>;
     pieceCooldowns: Map<string, number>;
     pactState: Record<string, any>;
+    capturedPieces: Record<PieceColor, Piece[]>;
     totalTurns: number;
     extraTurns: Record<PieceColor, number>;
     kingMoves: Record<PieceColor, number>;

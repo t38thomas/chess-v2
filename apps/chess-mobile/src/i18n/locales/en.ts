@@ -137,6 +137,7 @@ export const en = {
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Search for a pact...',
+        gotIt: 'Got It',
         unstable_identity_progress: "Turns without capture",
         reloading: "Reloading",
         volatile_reagents_cooldown: "Cooling down",
@@ -240,7 +241,13 @@ export const en = {
                 },
                 vanished_illusion: {
                     desc: 'A pawn was just an illusion and has vanished!',
-                }
+                },
+            },
+            vampire: {
+                life_thirst: {
+                    title: 'Life Thirst!',
+                    desc: 'The fall of the Queen has awakened an old ally!',
+                },
             },
         },
     },

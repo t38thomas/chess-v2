@@ -1,5 +1,5 @@
 import { BoardModel } from './models/BoardModel';
-import { PieceColor, PieceType } from './models/Piece';
+import { Piece, PieceColor, PieceType } from './models/Piece';
 import { Move } from './models/Move';
 import { Coordinate } from './models/Coordinate';
 import { MoveGenerator } from './rules/MoveGenerator';
@@ -21,6 +21,7 @@ export class ChessGame implements IChessGame {
     public readonly perkUsage: Record<PieceColor, Set<string>> = { white: new Set(), black: new Set() };
     public readonly pieceCooldowns: Map<string, number> = new Map(); // pieceId -> turnCount to unlock
     public readonly pactState: Record<string, any> = {}; // Generic storage for pact-specific state
+    public readonly capturedPieces: Record<PieceColor, Piece[]> = { white: [], black: [] };
     public totalTurns: number = 0;
     public extraTurns: Record<PieceColor, number> = { white: 0, black: 0 };
     public kingMoves: Record<PieceColor, number> = { white: 0, black: 0 };
@@ -41,6 +42,8 @@ export class ChessGame implements IChessGame {
         this.lastMovedPiecePos = null;
         this.perkUsage.white.clear();
         this.perkUsage.black.clear();
+        this.capturedPieces.white = [];
+        this.capturedPieces.black = [];
     }
 
     public assignPact(color: PieceColor, pact: Pact) {
@@ -167,8 +170,17 @@ export class ChessGame implements IChessGame {
         // Handle en passant capture
         if (move.isEnPassant && this.enPassantTarget) {
             const capturedPawnY = pieceColor === 'white' ? to.y - 1 : to.y + 1;
+            const capturedPawnSquare = this.board.getSquare(new Coordinate(to.x, capturedPawnY));
+            if (capturedPawnSquare?.piece) {
+                this.capturedPieces[capturedPawnSquare.piece.color].push(capturedPawnSquare.piece);
+            }
             this.board.removePiece(new Coordinate(to.x, capturedPawnY));
             eventType = 'capture';
+        }
+
+        // Standard capture
+        if (move.capturedPiece && !move.isEnPassant && !move.isSwap) {
+            this.capturedPieces[move.capturedPiece.color].push(move.capturedPiece);
         }
 
         // Handle Castling Execution
@@ -347,6 +359,8 @@ export class ChessGame implements IChessGame {
         for (const key in this.pactState) delete this.pactState[key];
         this.perkUsage.white.clear();
         this.perkUsage.black.clear();
+        this.capturedPieces.white = [];
+        this.capturedPieces.black = [];
     }
 
     public jumpToMove(index: number): boolean {
@@ -386,7 +400,15 @@ export class ChessGame implements IChessGame {
     private executeStoredMove(move: Move) {
         if (move.isEnPassant) {
             const capturedPawnY = move.piece.color === 'white' ? move.to.y - 1 : move.to.y + 1;
+            const capturedPawnSquare = this.board.getSquare(new Coordinate(move.to.x, capturedPawnY));
+            if (capturedPawnSquare?.piece) {
+                this.capturedPieces[capturedPawnSquare.piece.color].push(capturedPawnSquare.piece);
+            }
             this.board.removePiece(new Coordinate(move.to.x, capturedPawnY));
+        }
+
+        if (move.capturedPiece && !move.isEnPassant && !move.isSwap) {
+            this.capturedPieces[move.capturedPiece.color].push(move.capturedPiece);
         }
 
         if (move.isSwap) {

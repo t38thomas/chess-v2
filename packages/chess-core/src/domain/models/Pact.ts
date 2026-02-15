@@ -76,7 +76,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     inevitable_fate: { id: 'inevitable_fate', name: 'inevitable_fate', icon: 'death-star', description: 'desc_inevitable_fate', ranking: -4, category: 'Capture Rules' },
 
     // --- 13. IL VAMPIRO ---
-    life_thirst: { id: 'life_thirst', name: 'life_thirst', icon: 'blood-bag', description: 'desc_life_thirst', ranking: 5, category: 'Action' },
+    life_thirst: { id: 'life_thirst', name: 'life_thirst', icon: 'blood-bag', description: 'desc_life_thirst', ranking: 5, category: 'Capture Rules' },
     vampire_curse: { id: 'vampire_curse', name: 'vampire_curse', icon: 'cross', description: 'desc_vampire_curse', ranking: -5, category: 'King Safety' },
 
     // --- 14. L'OMBRA ---

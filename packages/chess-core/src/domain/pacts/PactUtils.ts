@@ -170,4 +170,107 @@ export class PactUtils {
     }): void {
         game.emit('pact_effect', config);
     }
+
+    /**
+     * Gets all pieces captured that belong to a specific player.
+     * @param game The game instance.
+     * @param color The color of the player whose pieces were captured.
+     * @returns Array of captured pieces.
+     */
+    public static getCapturedPieces(game: IChessGame, color: PieceColor): Piece[] {
+        return game.capturedPieces[color];
+    }
+
+    /**
+     * Finds a valid starting square for a piece of a given type and color.
+     * @param game The game instance.
+     * @param type The piece type.
+     * @param color The piece color.
+     * @returns A coordinate if an empty starting square is found, null otherwise.
+     */
+    public static getEmptyStartingSquare(game: IChessGame, type: PieceType, color: PieceColor): Coordinate | null {
+        const startingRanks = {
+            white: { major: 0, pawn: 1 },
+            black: { major: 7, pawn: 6 }
+        };
+
+        const rank = type === 'pawn' ? startingRanks[color].pawn : startingRanks[color].major;
+        let files: number[] = [];
+
+        switch (type) {
+            case 'rook': files = [0, 7]; break;
+            case 'knight': files = [1, 6]; break;
+            case 'bishop': files = [2, 5]; break;
+            case 'queen': files = [3]; break;
+            case 'king': files = [4]; break;
+            case 'pawn': files = [0, 1, 2, 3, 4, 5, 6, 7]; break;
+        }
+
+        for (const file of files) {
+            const coord = new Coordinate(file, rank);
+            if (!game.board.getSquare(coord)?.piece) {
+                return coord;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Resurrects a captured piece of the given type and places it on the board.
+     * @param game The game instance.
+     * @param color The color of the piece to resurrect.
+     * @param type The type of the piece to resurrect.
+     * @returns The resurrected piece or null if failed.
+     */
+    public static resurrectPiece(game: IChessGame, color: PieceColor, type: PieceType): Piece | null {
+        // 1. Find the piece in the captured pool (most recently captured of that type)
+        const captured = PactUtils.getCapturedPieces(game, color);
+        const index = [...captured].reverse().findIndex(p => p.type === type);
+
+        if (index === -1) return null;
+        const actualIndex = captured.length - 1 - index;
+        const victim = captured[actualIndex];
+
+        // 2. Find an empty starting square
+        const targetCoord = PactUtils.getEmptyStartingSquare(game, type, color);
+        if (!targetCoord) return null;
+
+        // 3. Remove from captured list
+        game.capturedPieces[color].splice(actualIndex, 1);
+
+        // 4. Place the piece back
+        game.board.placePiece(targetCoord, victim);
+
+        return victim;
+    }
+
+    /**
+     * Resurrects a random piece from the captured pool that matches any of the allowed types.
+     * @param game The game instance.
+     * @param color The color of the piece to resurrect.
+     * @param allowedTypes The allowed piece types.
+     * @returns The resurrected piece or null if none available.
+     */
+    public static resurrectRandomPiece(game: IChessGame, color: PieceColor, allowedTypes: PieceType[]): Piece | null {
+        const captured = PactUtils.getCapturedPieces(game, color);
+        const candidates = captured.filter(p => allowedTypes.includes(p.type));
+
+        if (candidates.length === 0) return null;
+
+        const victim = PactUtils.pickRandom(candidates, 1)[0];
+        const victimIndex = captured.indexOf(victim);
+
+        // Find an empty starting square
+        const targetCoord = PactUtils.getEmptyStartingSquare(game, victim.type, color);
+        if (!targetCoord) return null;
+
+        // Remove from captured list
+        game.capturedPieces[color].splice(victimIndex, 1);
+
+        // Place the piece back
+        game.board.placePiece(targetCoord, victim);
+
+        return victim;
+    }
 }
