@@ -13,6 +13,7 @@ export class VoidJumpBonus extends PactLogic {
         icon: 'swap-vertical-bold',
         targetType: 'square',
         consumesTurn: true,
+        repeatable: true,
         execute: (context: PactContext, params?: { from: Coordinate, to: Coordinate }) => {
             const { game, playerId } = context;
 
@@ -36,7 +37,7 @@ export class VoidJumpBonus extends PactLogic {
             const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
 
             if (victim) {
-                game.emit('pact_effect', {
+                PactUtils.emitPactEffect(game, {
                     pactId: 'ritual_sacrifice', // Using the malus ID here for the toast
                     title: 'pact.toasts.void_jumper.sacrifice.title',
                     description: 'pact.toasts.void_jumper.sacrifice.desc',

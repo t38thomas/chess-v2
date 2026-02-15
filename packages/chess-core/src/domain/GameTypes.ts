@@ -24,5 +24,6 @@ export interface IChessGame {
     enPassantTarget: Coordinate | null;
 
     emit(event: GameEvent, payload?: any): void;
+    undo(): boolean;
     // Methods used by rules/pacts could also be added here if necessary
 }

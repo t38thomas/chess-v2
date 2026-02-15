@@ -19,6 +19,7 @@ import { HawkBonus, HawkMalus } from './definitions/TheHawk';
 import { TimeStopBonus, ParadoxMalus } from './definitions/TheTimekeeper';
 import { PhoenixBonus, PhoenixMalus } from './definitions/ThePhoenix';
 import { VoidJumpBonus, RitualSacrificeMalus } from './definitions/TheVoidJumper';
+import { IllusionistBonus, IllusionistMalus } from './definitions/TheIllusionist';
 
 declare var __DEV__: boolean;
 
@@ -40,7 +41,8 @@ export class PactFactory {
         'snipe', 'short_sighted',
         'flow', 'ebb',
         'high_flyer', 'distant_predator',
-        'rebirth', 'wingless'
+        'rebirth', 'wingless',
+        'displace', 'vanished_illusion'
     ];
 
     public static initialize() {
@@ -128,5 +130,9 @@ export class PactFactory {
         // 19. Il Saltatore del Vuoto (The Void Jumper)
         register(new VoidJumpBonus());
         register(new RitualSacrificeMalus());
+
+        // 20. L'Illusionista (The Illusionist)
+        register(new IllusionistBonus());
+        register(new IllusionistMalus());
     }
 }

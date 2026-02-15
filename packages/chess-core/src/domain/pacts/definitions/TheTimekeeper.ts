@@ -1,6 +1,7 @@
 import { PactLogic, ActiveAbilityConfig, PactContext, RuleModifiers } from '../PactLogic';
 import { GameEvent } from '../../GameTypes';
 import { Piece } from '../../models/Piece';
+import { PactUtils } from '../PactUtils';
 
 export class TimeStopBonus extends PactLogic {
     id = 'time_stop';
@@ -18,7 +19,7 @@ export class TimeStopBonus extends PactLogic {
             // 1. Grant extra turn
             game.extraTurns[playerId] = (game.extraTurns[playerId] || 0) + 1;
 
-            game.emit('pact_effect', {
+            PactUtils.emitPactEffect(game, {
                 pactId: this.id,
                 title: 'pact.toasts.timekeeper.time_stop.title',
                 description: 'pact.toasts.timekeeper.time_stop.desc',
@@ -35,36 +36,28 @@ export class TimeStopBonus extends PactLogic {
 
     private triggerParadox(context: PactContext) {
         const { game, playerId } = context;
-        const board = game.board;
 
-        // Find all squares with friendly pawns
-        const myPawnSquares = board.getAllSquares()
-            .filter(s => s.piece && s.piece.color === playerId && s.piece.type === 'pawn');
+        // Find all squares with friendly pawns using PactUtils
+        const myPawnDetails = PactUtils.findPieces(game, playerId, 'pawn');
+        const myPawnSquares = myPawnDetails.map(d => ({ coordinate: d.coord })); // Adapter for existing structure if needed, or just use coords
 
-        // Select up to 3 random squares
-        const countToRemove = Math.min(myPawnSquares.length, 3);
-        const squaresToRemove: any[] = [];
+        // Select up to 3 random items
+        const countToRemove = Math.min(myPawnDetails.length, 3);
 
-        // Shuffle and pick
-        const shuffled = [...myPawnSquares].sort(() => Math.random() - 0.5);
-        for (let i = 0; i < countToRemove; i++) {
-            squaresToRemove.push(shuffled[i]);
-        }
+        // Use PactUtils.pickRandom
+        const victims = PactUtils.pickRandom(myPawnDetails, countToRemove);
 
-        // Remove pieces from selected squares
-        squaresToRemove.forEach(square => {
-            // we can use removePiece with coordinate
-            if (square && square.coordinate) {
-                board.removePiece(square.coordinate);
-            }
+        // Remove pieces
+        victims.forEach(v => {
+            PactUtils.removePiece(game, v.coord);
         });
 
         if (countToRemove > 0) {
-            game.emit('pact_effect', {
-                pactId: 'paradox', // Associated with the malus ID
+            PactUtils.emitPactEffect(game, {
+                pactId: 'paradox',
                 title: 'pact.toasts.timekeeper.paradox.title',
                 description: 'pact.toasts.timekeeper.paradox.desc',
-                icon: 'nuke', // or 'alert-decagram'
+                icon: 'nuke',
                 type: 'malus'
             });
         }

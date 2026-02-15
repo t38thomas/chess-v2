@@ -1,6 +1,7 @@
 import { PactLogic, ActiveAbilityConfig, PactContext, RuleModifiers } from '../PactLogic';
 import { GameEvent } from '../../GameTypes';
 import { Coordinate } from '../../models/Coordinate';
+import { PactUtils } from '../PactUtils';
 
 export class PhoenixBonus extends PactLogic {
     id = 'rebirth';
@@ -24,25 +25,21 @@ export class PhoenixBonus extends PactLogic {
                 if (game.pactState[stateKey]) return;
 
                 // Find all friendly pawns
-                const myPawns = game.board.getAllSquares()
-                    .filter(s => s.piece && s.piece.color === playerId && s.piece.type === 'pawn')
-                    .map(s => s.coordinate);
+                const myPawnDetails = PactUtils.findPieces(game, playerId, 'pawn');
 
-                if (myPawns.length > 0) {
+                if (myPawnDetails.length > 0) {
                     // Pick a random pawn
-                    const randomIndex = Math.floor(Math.random() * myPawns.length);
-                    const pawnCoord = myPawns[randomIndex];
-                    const square = game.board.getSquare(pawnCoord);
+                    const [victim] = PactUtils.pickRandom(myPawnDetails, 1);
 
-                    if (square && square.piece) {
+                    if (victim) {
                         // Promote to Queen
-                        square.piece.type = 'queen';
+                        PactUtils.promotePiece(game, victim.coord, 'queen');
 
                         // Mark as used
                         game.pactState[stateKey] = true;
 
                         // Notification
-                        game.emit('pact_effect', {
+                        PactUtils.emitPactEffect(game, {
                             pactId: this.id,
                             title: 'pact.toasts.phoenix.rebirth.title',
                             description: 'pact.toasts.phoenix.rebirth.desc',
@@ -64,12 +61,10 @@ export class PhoenixMalus extends PactLogic {
         const { game, playerId } = context;
 
         if (event === 'pact_assigned') {
-            const rooks = game.board.getAllSquares()
-                .filter(s => s.piece && s.piece.color === playerId && s.piece.type === 'rook')
-                .map(s => s.coordinate);
+            const rooks = PactUtils.findPieces(game, playerId, 'rook');
 
-            for (const coord of rooks) {
-                game.board.removePiece(coord);
+            for (const { coord } of rooks) {
+                PactUtils.removePiece(game, coord);
             }
         }
     }

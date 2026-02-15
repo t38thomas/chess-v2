@@ -68,7 +68,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     short_sighted: { id: 'short_sighted', name: 'short_sighted', icon: 'glasses', description: 'desc_short_sighted', ranking: -2, category: 'Movement' },
 
     // --- 11. L'ILLUSIONISTA ---
-    decoy: { id: 'decoy', name: 'decoy', icon: 'magic-staff', description: 'desc_decoy', ranking: 5, category: 'Action' },
+    displace: { id: 'displace', name: 'displace', icon: 'shimmer', description: 'desc_displace', ranking: 5, category: 'Action' },
     vanished_illusion: { id: 'vanished_illusion', name: 'vanished_illusion', icon: 'ghost', description: 'desc_vanished_illusion', ranking: -1, category: 'Board Transform' },
 
     // --- 12. L'ORACOLO ---
@@ -159,7 +159,7 @@ export const PACT_CARDS: Pact[] = [
     { id: 'blind_seer', title: 'title_blind_seer', bonus: PERK_LIBRARY.echolocation, malus: PERK_LIBRARY.darkness, description: 'desc_pact_blind_seer' },
     { id: 'void_jumper', title: 'title_void_jumper', bonus: PERK_LIBRARY.void_jump, malus: PERK_LIBRARY.ritual_sacrifice, description: 'desc_pact_void_jumper' },
     { id: 'ranger', title: 'title_ranger', bonus: PERK_LIBRARY.snipe, malus: PERK_LIBRARY.short_sighted, description: 'desc_pact_ranger' },
-    { id: 'illusionist', title: 'title_illusionist', bonus: PERK_LIBRARY.decoy, malus: PERK_LIBRARY.vanished_illusion, description: 'desc_pact_illusionist' },
+    { id: 'illusionist', title: 'title_illusionist', bonus: PERK_LIBRARY.displace, malus: PERK_LIBRARY.vanished_illusion, description: 'desc_pact_illusionist' },
     { id: 'oracle', title: 'title_oracle', bonus: PERK_LIBRARY.prescience, malus: PERK_LIBRARY.inevitable_fate, description: 'desc_pact_oracle' },
     { id: 'vampire', title: 'title_vampire', bonus: PERK_LIBRARY.life_thirst, malus: PERK_LIBRARY.vampire_curse, description: 'desc_pact_vampire' },
     { id: 'shadow', title: 'title_shadow', bonus: PERK_LIBRARY.stealth, malus: PERK_LIBRARY.blind_light, description: 'desc_pact_shadow' },

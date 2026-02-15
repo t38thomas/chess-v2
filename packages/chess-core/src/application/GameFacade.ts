@@ -319,27 +319,34 @@ export class GameFacade {
         const logic = PactRegistry.getInstance().get(this.activeAbilityId);
         if (!logic?.activeAbility) return;
 
-        let requiredTargets = 0;
-        if (this.activeAbilityId === 'transmutation') requiredTargets = 2;
-        // Add more abilities here if they have different target requirements
+        // Determine required targets: use maxTargets if defined, fallback to targetType or hardcoded logic
+        let requiredTargets = logic.activeAbility.maxTargets ?? 0;
+
+        // Backward compatibility for old hardcoded abilities if maxTargets is not set
+        if (requiredTargets === 0 && logic.activeAbility.targetType !== 'none') {
+            if (this.activeAbilityId === 'transmutation' || this.activeAbilityId === 'void_jump') {
+                requiredTargets = 2;
+            } else {
+                requiredTargets = 1;
+            }
+        }
 
         if (this.pendingTargets.length === requiredTargets) {
             let params: any = {};
-            if (this.activeAbilityId === 'transmutation') {
+            if (requiredTargets === 2) {
                 params = {
                     from: this.pendingTargets[0],
                     to: this.pendingTargets[1]
                 };
+            } else if (requiredTargets === 1) {
+                params = this.pendingTargets[0];
             }
 
             const success = this.game.useAbility(this.activeAbilityId, params);
             if (success) {
                 this.activeAbilityId = null;
                 this.pendingTargets = [];
-            }
-            // If failed, we keep targets so user can adjust? 
-            // Better to clear if it was an invalid selection according to logic
-            if (!success) {
+            } else {
                 this.pendingTargets = [];
             }
             this.notify();

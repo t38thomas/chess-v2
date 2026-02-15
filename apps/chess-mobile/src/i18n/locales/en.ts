@@ -221,6 +221,14 @@ export const en = {
                     desc: 'The teleportation required a life force. Your most advanced piece has been sacrificed!',
                 },
             },
+            illusionist: {
+                displace: {
+                    triggered: 'The piece vanished and reappeared nearby!',
+                },
+                vanished_illusion: {
+                    desc: 'A pawn was just an illusion and has vanished!',
+                }
+            },
         },
     },
     pacts: {
@@ -234,7 +242,7 @@ export const en = {
         blind_seer: { title: 'Blind Seer', description: 'Sight beyond walls but surrounding darkness.' },
         void_jumper: { title: 'Void Jumper', description: 'Impossible mobility at the price of a sacrifice.' },
         ranger: { title: 'The Ranger', description: 'Precise shooting but short-range mobility.' },
-        illusionist: { title: 'The Illusionist', description: 'Defensive deception at the cost of initial resources.' },
+        illusionist: { title: 'The Illusionist', description: 'Deceptive movement and fragile presence.' },
         oracle: { title: 'The Oracle', description: 'Knowledge of the future but inevitable fate.' },
         vampire: { title: 'The Vampire', description: 'Conditional immortality but cursed king.' },
         shadow: { title: 'The Shadow', description: 'Lethal stealth but central disarmament.' },
@@ -267,7 +275,7 @@ export const en = {
         echolocation: { name: 'Echolocation', description: 'Pieces see and attack through walls.' },
         void_jump: { name: 'Void Jump', description: 'Swap the position of any two of your pieces.' },
         snipe: { name: 'Snipe', description: 'Bishops can capture at range 2 without moving.' },
-        decoy: { name: 'Decoy', description: 'Negate a suffered capture (the enemy moves back).' },
+        displace: { name: 'Displace', description: 'Active: Move any piece to a random adjacent empty square.' },
         prescience: { name: 'Prescience', description: 'See enemy moves and threats.' },
         life_thirst: { name: 'Life Thirst', description: 'Capturing the enemy Queen resurrects a minor piece.' },
         stealth: { name: 'Stealth', description: 'Side pawns are invisible until they act.' },

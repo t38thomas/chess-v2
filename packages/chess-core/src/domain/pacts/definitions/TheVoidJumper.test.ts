@@ -129,15 +129,73 @@ describe('The Void Jumper Pact', () => {
             // At 1,2: Pawn1 (was at 0,5)
             // King at 4,6 (Rank 6)
 
-            // Sacrifice check:
-            // Candidates: King(Rank 6), Pawn2(Rank 5), Pawn1(Rank 2)
-            // King is most advanced but excluded.
-            // Pawn2 is next most advanced. It should die.
+            // Verify Sacrifice
+            // Both Pawn1 and Pawn2 are at same rank (Rank 2 and Rank 5 respectively?)
+            // Wait, previously:
+            // Pawn Pos (0,5) -> Pawn 2
+            // Pawn 2 Pos (1,2) -> Pawn 1
+            // Rank 5 is > Rank 2.
+            // So Pawn 2 is clearly most advanced.
+            // Randomness only applies if there are TIES.
+
+            // Let's create a TIE scenario to test randomness.
+            // But for THIS specific test "should NOT sacrifice King", we just need to ensure King is safe.
+            // And the next most advanced (Pawn 2 at Rank 5) is sacrificed.
+            // Since Pawn 1 is at Rank 2, there is NO tie.
+            // So logic remains deterministic here.
 
             expect(game.board.getSquare(kingPos)?.piece?.type).toBe('king'); // King survives
 
             expect(game.board.getSquare(pawnPos)?.piece).toBeNull(); // Pawn 2 (at 0,5) sacrificed
             expect(game.board.getSquare(pawn2Pos)?.piece?.type).toBe('pawn'); // Pawn 1 (at 1,2) safe
+        });
+
+        it('should randomly sacrifice one of the tied most advanced pieces', () => {
+            clearBoard();
+            // Setup 2 pawns at same advanced rank
+            const p1 = new Coordinate(0, 5);
+            const p2 = new Coordinate(1, 5);
+            const safePawn = new Coordinate(0, 2);
+
+            game.board.placePiece(p1, createMockPiece('pawn', 'white', 'p1'));
+            game.board.placePiece(p2, createMockPiece('pawn', 'white', 'p2'));
+            game.board.placePiece(safePawn, createMockPiece('pawn', 'white', 'safe'));
+
+            const context = createContext('white');
+
+            // Trigger ability (dummy swap safePawn with itself or phantom move just to trigger execute logic if possible? 
+            // No, must swap 2 pieces. Swap safePawn and p1.)
+            const result = bonus.activeAbility.execute(context, { from: safePawn, to: p1 });
+
+            expect(result).toBe(true);
+
+            // After swap:
+            // safePawn location (0,2) has p1
+            // p1 location (0,5) has safePawn
+            // p2 location (1,5) has p2
+
+            // Ranks:
+            // At 0,5: safePawn (Rank 5)
+            // At 1,5: p2 (Rank 5)
+            // At 0,2: p1 (Rank 2)
+
+            // Best Rank is 5. Candidates: safePawn (at 0,5) and p2 (at 1,5).
+            // One of them must die.
+
+            const p1Sq = game.board.getSquare(p1); // (0,5) - holds safePawn
+            const p2Sq = game.board.getSquare(p2); // (1,5) - holds p2
+
+            const isP1Sacrificed = !p1Sq?.piece;
+            const isP2Sacrificed = !p2Sq?.piece;
+
+            // Exactly one should be sacrificed
+            expect(isP1Sacrificed || isP2Sacrificed).toBe(true);
+            expect(isP1Sacrificed && isP2Sacrificed).toBe(false);
+
+            // King (if present) or other pieces not involved?
+            // safePawn was formerly at 0,2. now at 0,5.
+            // p1 was formerly at 0,5. now at 0,2.
+            // It works.
         });
 
         it('should fail if trying to swap enemy pieces', () => {

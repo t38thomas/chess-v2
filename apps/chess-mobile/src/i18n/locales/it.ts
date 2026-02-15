@@ -153,6 +153,14 @@ export const it: Translations = {
                     desc: "La colonia non può sopravvivere senza la sua regina!",
                 },
             },
+            illusionist: {
+                displace: {
+                    triggered: 'Il pezzo è svanito e riapparso nelle vicinanze!',
+                },
+                vanished_illusion: {
+                    desc: 'Un pedone era solo un\'illusione ed è svanito!',
+                }
+            },
             spectre: {
                 possession: {
                     title: "Possesso del Pedone",
@@ -236,7 +244,7 @@ export const it: Translations = {
         blind_seer: { title: 'Veggente Cieco', description: 'Vista oltre i muri ma oscurità circostante.' },
         void_jumper: { title: 'Saltatore Dimensionale', description: 'Mobilità impossibile al prezzo di un sacrificio.' },
         ranger: { title: 'L\'Arciere', description: 'Tiro preciso ma mobilità a corto raggio.' },
-        illusionist: { title: 'L\'Illusionista', description: 'Inganno difensivo a costo di risorse iniziali.' },
+        illusionist: { title: 'L\'Illusionista', description: 'Movimento ingannevole e presenza fragile.' },
         oracle: { title: 'L\'Oracolo', description: 'Conoscenza del futuro ma destino ineluttabile.' },
         vampire: { title: 'Il Vampiro', description: 'Immortalità condizionale ma re maledetto.' },
         shadow: { title: 'L\'Ombra', description: 'Furtività letale ma disarmo centrale.' },
@@ -269,7 +277,7 @@ export const it: Translations = {
         echolocation: { name: 'Ecolocalizzazione', description: 'I pezzi vedono e attaccano attraverso i muri.' },
         void_jump: { name: 'Salto del Vuoto', description: 'Scambia la posizione di due tuoi pezzi qualsiasi.' },
         snipe: { name: 'Tiro di Precisione', description: 'Gli Alfieri possono catturare a distanza 2 senza muoversi.' },
-        decoy: { name: 'Esca', description: 'Nega una cattura subita (il nemico torna indietro).' },
+        displace: { name: 'Spostamento', description: 'Attiva: Muovi un pezzo qualsiasi in una casella vuota adiacente casuale.' },
         prescience: { name: 'Prescienza', description: 'Vedi le mosse e le minacce nemiche.' },
         life_thirst: { name: 'Sete di Sangue', description: 'Catturare la Regina nemica resuscita un tuo pezzo minore.' },
         stealth: { name: 'Furtività', description: 'I pedoni laterali sono invisibili finché non agiscono.' },

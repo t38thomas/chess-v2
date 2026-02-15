@@ -1,6 +1,6 @@
 import { IChessGame, GameEvent } from '../GameTypes';
 import { Coordinate } from '../models/Coordinate';
-import { Piece, PieceColor } from '../models/Piece';
+import { Piece, PieceColor, PieceType } from '../models/Piece';
 
 export class PactUtils {
     /**
@@ -65,25 +65,89 @@ export class PactUtils {
 
         if (candidateDetails.length === 0) return null;
 
-        candidateDetails.sort((a, b) => {
-            const yA = a.coord!.y;
-            const yB = b.coord!.y;
+        // Group by rank
+        // White: higher Y is better. Black: lower Y is better.
+        const bestRank = playerId === 'white'
+            ? Math.max(...candidateDetails.map(c => c.coord!.y))
+            : Math.min(...candidateDetails.map(c => c.coord!.y));
 
-            if (playerId === 'white') {
-                if (yA !== yB) return yB - yA; // Descending Y (7 is best)
-            } else {
-                if (yA !== yB) return yA - yB; // Ascending Y (0 is best)
-            }
+        const bestCandidates = candidateDetails.filter(c => c.coord!.y === bestRank);
 
-            // Tie-breaker: random or predictable? 
-            // Let's use x to be deterministic.
-            return a.coord!.x - b.coord!.x;
-        });
-
-        const victim = candidateDetails[0];
+        // Pick random victim from best candidates
+        const randomIndex = Math.floor(Math.random() * bestCandidates.length);
+        const victim = bestCandidates[randomIndex];
 
         game.board.removePiece(victim.coord!);
 
         return victim.piece;
+    }
+    /**
+     * Finds all pieces on the board matching the criteria.
+     * @param game The game instance.
+     * @param playerId The owner of the pieces.
+     * @param type Optional piece type to filter by.
+     * @returns Array of objects containing the piece and its coordinate.
+     */
+    public static findPieces(game: IChessGame, playerId: PieceColor, type?: PieceType): { piece: Piece, coord: Coordinate }[] {
+        return game.board.getAllSquares()
+            .map(s => ({ piece: s.piece, coord: s.coordinate }))
+            .filter((item): item is { piece: Piece, coord: Coordinate } =>
+                item.piece !== null &&
+                item.piece.color === playerId &&
+                (!type || item.piece.type === type)
+            );
+    }
+
+    /**
+     * Picks a random number of items from an array.
+     * @param items The array of items to pick from.
+     * @param count The number of items to pick.
+     * @returns An array of randomly selected items.
+     */
+    public static pickRandom<T>(items: T[], count: number): T[] {
+        if (items.length === 0) return [];
+        const shuffled = [...items].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count);
+    }
+
+    /**
+     * Removes a piece from the board.
+     * @param game The game instance.
+     * @param coord The coordinate of the piece to remove.
+     */
+    public static removePiece(game: IChessGame, coord: Coordinate): void {
+        game.board.removePiece(coord);
+    }
+
+    /**
+     * Promotes a piece at the given coordinate to a new type.
+     * @param game The game instance.
+     * @param coord The coordinate of the piece.
+     * @param newType The new piece type.
+     * @returns True if promotion was successful, false otherwise.
+     */
+    public static promotePiece(game: IChessGame, coord: Coordinate, newType: PieceType): boolean {
+        const square = game.board.getSquare(coord);
+        if (square && square.piece) {
+            square.piece.type = newType;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Emits a pact effect (toast notification).
+     * @param game The game instance.
+     * @param config The effect configuration.
+     */
+    public static emitPactEffect(game: IChessGame, config: {
+        pactId: string;
+        title: string;
+        description: string;
+        icon: string;
+        type: 'bonus' | 'malus';
+        payload?: any;
+    }): void {
+        game.emit('pact_effect', config);
     }
 }

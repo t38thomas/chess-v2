@@ -21,7 +21,8 @@ export interface ActiveAbilityConfig {
     targetType: 'none' | 'square' | 'piece';
     consumesTurn?: boolean;
     repeatable?: boolean;
-    execute: (context: PactContext, target?: any) => boolean;
+    maxTargets?: number;
+    execute: (context: PactContext, params: any) => boolean;
 }
 
 export interface MoveParams {
