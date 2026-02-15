@@ -273,4 +273,59 @@ export class PactUtils {
 
         return victim;
     }
+
+    /**
+     * Gets all pieces adjacent to a given coordinate.
+     * @param game The game instance.
+     * @param coord The coordinate to check around.
+     * @returns Array of pieces and their coordinates.
+     */
+    public static getPiecesAdjacentTo(game: IChessGame, coord: Coordinate): { piece: Piece, coord: Coordinate }[] {
+        const adjacent: { piece: Piece, coord: Coordinate }[] = [];
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue;
+
+                const targetCoord = new Coordinate(coord.x + dx, coord.y + dy);
+                if (targetCoord.isValid()) {
+                    const piece = game.board.getSquare(targetCoord)?.piece;
+                    if (piece) {
+                        adjacent.push({ piece, coord: targetCoord });
+                    }
+                }
+            }
+        }
+        return adjacent;
+    }
+
+    /**
+     * Checks if two coordinates are adjacent (including diagonals).
+     * @param c1 First coordinate.
+     * @param c2 Second coordinate.
+     * @returns True if they are adjacent, false otherwise.
+     */
+    public static isAdjacent(c1: Coordinate, c2: Coordinate): boolean {
+        return Math.abs(c1.x - c2.x) <= 1 && Math.abs(c1.y - c2.y) <= 1 && !c1.equals(c2);
+    }
+
+    /**
+     * Checks if a coordinate represents a black (dark) square.
+     * @param coord The coordinate to check.
+     * @returns True if it's a black square, false if it's white.
+     */
+    public static isBlackSquare(coord: Coordinate): boolean {
+        // In most chess board representations:
+        // (0,0) is black if (x+y) is even or odd depending on the convention.
+        // Standard: a1 (0,0) is black. So x+y being even = black.
+        return (coord.x + coord.y) % 2 === 0;
+    }
+
+    /**
+     * Checks if a coordinate is one of the four center squares (d4, d5, e4, e5).
+     * @param coord The coordinate to check.
+     * @returns True if it's in the center.
+     */
+    public static isCentralSquare(coord: Coordinate): boolean {
+        return coord.x >= 3 && coord.x <= 4 && coord.y >= 3 && coord.y <= 4;
+    }
 }

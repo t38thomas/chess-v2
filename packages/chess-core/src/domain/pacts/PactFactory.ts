@@ -22,6 +22,8 @@ import { VoidJumpBonus, RitualSacrificeMalus } from './definitions/TheVoidJumper
 import { IllusionistBonus, IllusionistMalus } from './definitions/TheIllusionist';
 import { BloodlineBonus, YoungQueenMalus } from './definitions/TheHeir';
 import { LifeThirstBonus, VampireCurseMalus } from './definitions/TheVampire';
+import { VigilanceBonus, AnchoredMalus } from './definitions/TheSentinel';
+import { ArenaBonus, DisarmedMalus } from './definitions/TheGladiator';
 
 declare var __DEV__: boolean;
 
@@ -46,7 +48,8 @@ export class PactFactory {
         'rebirth', 'wingless',
         'displace', 'vanished_illusion',
         'bloodline', 'young_queen',
-        'life_thirst', 'vampire_curse'
+        'life_thirst', 'vampire_curse',
+        'vigilance', 'anchored'
     ];
 
     public static initialize() {
@@ -146,5 +149,13 @@ export class PactFactory {
         // 22. Il Vampiro (The Vampire)
         register(new LifeThirstBonus());
         register(new VampireCurseMalus());
+
+        // 23. La Sentinella (The Sentinel)
+        register(new VigilanceBonus());
+        register(new AnchoredMalus());
+
+        // 24. Il Gladiatore (The Gladiator)
+        register(new ArenaBonus());
+        register(new DisarmedMalus());
     }
 }

@@ -16,8 +16,8 @@ export const Square: React.FC<SquareProps> = ({
 }) => {
     const { colors } = useTheme();
 
-    // Use slate700 (#334155) for dark squares and a light neutral for light squares
-    const backgroundColor = viewModel.color === 'dark' ? '#334155' : '#E2E8F0';
+    // Use #E2E8F0 for dark squares and #334155 for light squares (inverted)
+    const backgroundColor = viewModel.color === 'dark' ? '#E2E8F0' : '#334155';
 
     return (
         <TouchableOpacity
