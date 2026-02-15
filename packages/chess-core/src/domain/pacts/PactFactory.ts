@@ -20,6 +20,7 @@ import { TimeStopBonus, ParadoxMalus } from './definitions/TheTimekeeper';
 import { PhoenixBonus, PhoenixMalus } from './definitions/ThePhoenix';
 import { VoidJumpBonus, RitualSacrificeMalus } from './definitions/TheVoidJumper';
 import { IllusionistBonus, IllusionistMalus } from './definitions/TheIllusionist';
+import { BloodlineBonus, YoungQueenMalus } from './definitions/TheHeir';
 
 declare var __DEV__: boolean;
 
@@ -42,7 +43,8 @@ export class PactFactory {
         'flow', 'ebb',
         'high_flyer', 'distant_predator',
         'rebirth', 'wingless',
-        'displace', 'vanished_illusion'
+        'displace', 'vanished_illusion',
+        'bloodline', 'young_queen'
     ];
 
     public static initialize() {
@@ -134,5 +136,9 @@ export class PactFactory {
         // 20. L'Illusionista (The Illusionist)
         register(new IllusionistBonus());
         register(new IllusionistMalus());
+
+        // 21. L'Erede (The Heir)
+        register(new BloodlineBonus());
+        register(new YoungQueenMalus());
     }
 }

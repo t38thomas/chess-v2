@@ -19,10 +19,6 @@ export class PactUtils {
         const p1 = sq1.piece;
         const p2 = sq2.piece;
 
-        // Even if one is null, we can swap (move to empty square logic if needed, but usually for swaps we expect pieces)
-        // For Void Jumper and Alchemist, we usually swap two existing pieces.
-        // But let's handle nulls gracefully just in case (moving piece to empty square via swap).
-
         game.board.removePiece(coord1);
         game.board.removePiece(coord2);
 
@@ -51,13 +47,6 @@ export class PactUtils {
 
         if (candidates.length === 0) return null;
 
-        // Sort by advancement
-        // White promotes at y=7, Black at y=0.
-        // So for White, higher y is better. For Black, lower y is better.
-
-        // We need coordinates for this. efficient lookup?
-        // simple iteration over board squares is safer to get coords.
-
         const candidateDetails = candidates.map(p => {
             const coord = game.board.getAllSquares().find(s => s.piece === p)?.coordinate;
             return { piece: p, coord };
@@ -81,6 +70,7 @@ export class PactUtils {
 
         return victim.piece;
     }
+
     /**
      * Finds all pieces on the board matching the criteria.
      * @param game The game instance.
@@ -95,6 +85,23 @@ export class PactUtils {
                 item.piece !== null &&
                 item.piece.color === playerId &&
                 (!type || item.piece.type === type)
+            );
+    }
+
+    /**
+     * Finds all pieces on the board matching the criteria (multiple types).
+     * @param game The game instance.
+     * @param playerId The owner of the pieces.
+     * @param types Array of piece types to filter by.
+     * @returns Array of objects containing the piece and its coordinate.
+     */
+    public static findPiecesByTypes(game: IChessGame, playerId: PieceColor, types: PieceType[]): { piece: Piece, coord: Coordinate }[] {
+        return game.board.getAllSquares()
+            .map(s => ({ piece: s.piece, coord: s.coordinate }))
+            .filter((item): item is { piece: Piece, coord: Coordinate } =>
+                item.piece !== null &&
+                item.piece.color === playerId &&
+                types.includes(item.piece.type)
             );
     }
 
@@ -133,6 +140,19 @@ export class PactUtils {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Sets the type of a piece at a coordinate.
+     * @param game The game instance.
+     * @param coord The coordinate.
+     * @param type The new type.
+     */
+    public static setPieceType(game: IChessGame, coord: Coordinate, type: PieceType): void {
+        const square = game.board.getSquare(coord);
+        if (square && square.piece) {
+            square.piece.type = type;
+        }
     }
 
     /**

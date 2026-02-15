@@ -133,6 +133,9 @@ export const it: Translations = {
         selectTargets: 'Seleziona Bersagli',
         abilityActivated: 'Abilità attivata!',
         noMoves: 'Nessuna mossa ancora',
+        activePact: 'Patto Attivo',
+        queen_initial: 'Iniziale (Maledetta)',
+        queen_successor: 'Successore (Attiva)',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Cerca un patto...',
@@ -229,6 +232,16 @@ export const it: Translations = {
                 sacrifice: {
                     title: 'Sacrificio Rituale',
                     desc: 'Il teletrasporto ha richiesto una forza vitale. Il tuo pezzo più avanzato è stato sacrificato!',
+                },
+            },
+            heir: {
+                bloodline: {
+                    title: 'Linea di Sangue!',
+                    desc: 'La Regina è caduta, ma la dinastia continua! Un pezzo minore ha preso il comando.',
+                },
+                young_queen: {
+                    title: 'Regina Giovane!',
+                    desc: 'La Regina è troppo giovane per catturare. Deve aspettare il suo momento.',
                 },
             },
         },

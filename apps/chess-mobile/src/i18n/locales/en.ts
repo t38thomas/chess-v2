@@ -131,6 +131,9 @@ export const en = {
         selectTargets: 'Select Targets',
         abilityActivated: 'Ability activated!',
         noMoves: 'No moves recorded yet',
+        activePact: 'Active Pact',
+        queen_initial: 'Initial (Cursed)',
+        queen_successor: 'Successor (Active)',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Search for a pact...',
@@ -219,6 +222,16 @@ export const en = {
                 sacrifice: {
                     title: 'Ritual Sacrifice',
                     desc: 'The teleportation required a life force. Your most advanced piece has been sacrificed!',
+                },
+            },
+            heir: {
+                bloodline: {
+                    title: 'Bloodline!',
+                    desc: 'The Queen has fallen, but the dynasty continues! A minor piece has taken command.',
+                },
+                young_queen: {
+                    title: 'Young Queen!',
+                    desc: 'The Queen is too young to capture. She must wait for her moment.',
                 },
             },
             illusionist: {
