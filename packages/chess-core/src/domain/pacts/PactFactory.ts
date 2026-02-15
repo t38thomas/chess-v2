@@ -27,6 +27,7 @@ import { ArenaBonus, DisarmedMalus } from './definitions/TheGladiator';
 import { EarthquakeBonus, GigantismMalus } from './definitions/TheTitan';
 import { StealthBonus, BlindLightMalus } from './definitions/TheShadow';
 import { TurretBonus, DesignFlawMalus } from './definitions/TheEngineer';
+import { DiplomaticImmunityBonus, InternalSabotageMalus } from './definitions/TheDiplomat';
 
 declare var __DEV__: boolean;
 
@@ -175,5 +176,9 @@ export class PactFactory {
         // 27. L'Ingegnere (The Engineer)
         register(new TurretBonus());
         register(new DesignFlawMalus());
+
+        // 28. Il Diplomatico (The Diplomat)
+        register(new DiplomaticImmunityBonus());
+        register(new InternalSabotageMalus());
     }
 }

@@ -255,6 +255,16 @@ export const en = {
                     desc: 'Your Queen\'s power pushes adjacent pawns away!',
                 },
             },
+            diplomat: {
+                immunity_lost: {
+                    title: 'Immunity Lost',
+                    desc: 'The Queen has made a capture and lost her diplomatic immunity!',
+                },
+                sabotage_ended: {
+                    title: 'Sabotage Ended',
+                    desc: 'The Queen has shown her strength. Your Knights are now ready for battle!',
+                },
+            },
         },
     },
     pacts: {
@@ -313,7 +323,7 @@ export const en = {
         incorporeal: { name: 'Incorporeal', description: 'Non-pawn pieces move through friendly pawns.' },
         vigilance: { name: 'Vigilance', description: 'Pieces adjacent to the King cannot be captured.' },
         arena: { name: 'Arena', description: 'Pieces on black squares are immune to pawns.' },
-        diplomatic_immunity: { name: 'Immunity', description: 'The Queen cannot be captured until she captures.' },
+        diplomatic_immunity: { name: 'Immunity', description: 'The Queen cannot be captured by Pawns until she captures.' },
         chaos: { name: 'Chaos', description: 'Bishops move like Knights.' },
         earthquake: { name: 'Earthquake', description: 'The Queen pushes away adjacent pawns when moving.' },
         pickpocket: { name: 'Pickpocket', description: 'Pawn adjacent to Rook or Queen blocks it for a turn.' },

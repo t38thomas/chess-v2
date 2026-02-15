@@ -433,4 +433,38 @@ export class PactUtils {
             }
         }
     }
+
+    /**
+     * Checks if a piece is a Queen.
+     */
+    public static isQueen(piece: Piece | null): boolean {
+        return piece?.type === 'queen';
+    }
+
+    /**
+     * Checks if a piece is a Knight.
+     */
+    public static isKnight(piece: Piece | null): boolean {
+        return piece?.type === 'knight';
+    }
+
+    /**
+     * Checks if a piece is a Pawn.
+     */
+    public static isPawn(piece: Piece | null): boolean {
+        return piece?.type === 'pawn';
+    }
+
+    /**
+     * Emits a pact effect (toast notification) using translation keys.
+     */
+    public static notifyPactEffect(game: IChessGame, pactId: string, eventKey: string, type: 'bonus' | 'malus', icon: string): void {
+        game.emit('pact_effect', {
+            pactId,
+            title: `pact.toasts.${pactId}.${eventKey}.title`,
+            description: `pact.toasts.${pactId}.${eventKey}.desc`,
+            icon,
+            type
+        });
+    }
 }

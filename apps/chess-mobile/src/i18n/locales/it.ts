@@ -257,6 +257,16 @@ export const it: Translations = {
                     desc: 'Il potere della tua Regina spinge via i pedoni adiacenti!',
                 },
             },
+            diplomat: {
+                immunity_lost: {
+                    title: 'Immunità Persa',
+                    desc: 'La Regina ha effettuato una cattura e ha perso l\'immunità diplomatica!',
+                },
+                sabotage_ended: {
+                    title: 'Sabotaggio Terminato',
+                    desc: 'La Regina ha mostrato la sua forza. I tuoi Cavalli sono pronti alla battaglia!',
+                },
+            },
         },
     },
     pacts: {
@@ -315,7 +325,7 @@ export const it: Translations = {
         incorporeal: { name: 'Incorporeo', description: 'I pezzi non-pedone attraversano i pedoni amici.' },
         vigilance: { name: 'Vigilanza', description: 'I pezzi adiacenti al Re non possono essere catturati.' },
         arena: { name: 'Arena', description: 'I pezzi sulle caselle nere sono immuni ai pedoni.' },
-        diplomatic_immunity: { name: 'Immunità', description: 'La Regina non può essere catturata finché non cattura.' },
+        diplomatic_immunity: { name: 'Immunità', description: 'La Regina non può essere catturata dai Pedoni finché non effettua una cattura.' },
         chaos: { name: 'Caos', description: 'Gli Alfieri si muovono come i Cavalli.' },
         earthquake: { name: 'Terremoto', description: 'La Regina spinge via i pedoni adiacenti quando muove.' },
         pickpocket: { name: 'Borseggio', description: 'Pedone adiacente a Torre o Regina lo blocca per un turno.' },
