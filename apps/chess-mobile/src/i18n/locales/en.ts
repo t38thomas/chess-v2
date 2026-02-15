@@ -249,6 +249,12 @@ export const en = {
                     desc: 'The fall of the Queen has awakened an old ally!',
                 },
             },
+            titan: {
+                earthquake: {
+                    title: 'Earthquake!',
+                    desc: 'Your Queen\'s power pushes adjacent pawns away!',
+                },
+            },
         },
     },
     pacts: {

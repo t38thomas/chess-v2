@@ -24,6 +24,8 @@ import { BloodlineBonus, YoungQueenMalus } from './definitions/TheHeir';
 import { LifeThirstBonus, VampireCurseMalus } from './definitions/TheVampire';
 import { VigilanceBonus, AnchoredMalus } from './definitions/TheSentinel';
 import { ArenaBonus, DisarmedMalus } from './definitions/TheGladiator';
+import { EarthquakeBonus, GigantismMalus } from './definitions/TheTitan';
+import { StealthBonus, BlindLightMalus } from './definitions/TheShadow';
 
 declare var __DEV__: boolean;
 
@@ -49,7 +51,9 @@ export class PactFactory {
         'displace', 'vanished_illusion',
         'bloodline', 'young_queen',
         'life_thirst', 'vampire_curse',
-        'vigilance', 'anchored'
+        'vigilance', 'anchored',
+        'earthquake', 'gigantism',
+        'stealth', 'blind_light'
     ];
 
     public static initialize() {
@@ -157,5 +161,13 @@ export class PactFactory {
         // 24. Il Gladiatore (The Gladiator)
         register(new ArenaBonus());
         register(new DisarmedMalus());
+
+        // 25. Il Titano (The Titan)
+        register(new EarthquakeBonus());
+        register(new GigantismMalus());
+
+        // 26. L'Ombra (The Shadow)
+        register(new StealthBonus());
+        register(new BlindLightMalus());
     }
 }

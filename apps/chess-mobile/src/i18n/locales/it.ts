@@ -251,6 +251,12 @@ export const it: Translations = {
                     desc: 'La caduta della Regina ha risvegliato un vecchio alleato!',
                 },
             },
+            titan: {
+                earthquake: {
+                    title: 'Terremoto!',
+                    desc: 'Il potere della tua Regina spinge via i pedoni adiacenti!',
+                },
+            },
         },
     },
     pacts: {

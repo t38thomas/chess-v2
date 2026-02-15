@@ -328,4 +328,39 @@ export class PactUtils {
     public static isCentralSquare(coord: Coordinate): boolean {
         return coord.x >= 3 && coord.x <= 4 && coord.y >= 3 && coord.y <= 4;
     }
+
+    /**
+     * Checks if a coordinate is on the edge of the board.
+     * @param coord The coordinate to check.
+     * @returns True if it's on the edge.
+     */
+    public static isEdgeSquare(coord: Coordinate): boolean {
+        return coord.x === 0 || coord.x === 7 || coord.y === 0 || coord.y === 7;
+    }
+
+    /**
+     * Pushes a piece from a coordinate in a given direction.
+     * @param game The game instance.
+     * @param coord The current coordinate of the piece.
+     * @param dx The x direction of the push.
+     * @param dy The y direction of the push.
+     * @returns True if the piece was successfully pushed, false otherwise.
+     */
+    public static pushPiece(game: IChessGame, coord: Coordinate, dx: number, dy: number): boolean {
+        const targetCoord = new Coordinate(coord.x + dx, coord.y + dy);
+
+        if (!targetCoord.isValid()) return false;
+
+        const targetSquare = game.board.getSquare(targetCoord);
+        if (targetSquare && !targetSquare.piece) {
+            const piece = game.board.getSquare(coord)?.piece;
+            if (piece) {
+                game.board.removePiece(coord);
+                game.board.placePiece(targetCoord, piece);
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
