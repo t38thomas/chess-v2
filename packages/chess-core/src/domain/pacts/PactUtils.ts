@@ -1,6 +1,8 @@
 import { IChessGame, GameEvent } from '../GameTypes';
 import { Coordinate } from '../models/Coordinate';
 import { Piece, PieceColor, PieceType } from '../models/Piece';
+import { BoardModel } from '../models/BoardModel';
+import { Move } from '../models/Move';
 
 export class PactUtils {
     /**
@@ -362,5 +364,73 @@ export class PactUtils {
         }
 
         return false;
+    }
+
+    /**
+     * Adds single-step moves in given directions if the squares are empty or contain an enemy piece.
+     * @param board The board model.
+     * @param piece The moving piece.
+     * @param from The starting coordinate.
+     * @param moves The moves array to append to.
+     * @param directions The directions to check.
+     */
+    public static addSingleStepMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], directions: { dx: number, dy: number }[]): void {
+        for (const dir of directions) {
+            const nx = from.x + dir.dx;
+            const ny = from.y + dir.dy;
+
+            if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+                const targetCoord = new Coordinate(nx, ny);
+                const targetSquare = board.getSquare(targetCoord);
+
+                if (targetSquare && (!targetSquare.piece || targetSquare.piece.color !== piece.color)) {
+                    moves.push(new Move(from, targetCoord, piece, targetSquare.piece || undefined));
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes horizontal moves from a moves array.
+     * @param moves The moves array.
+     * @param from The starting coordinate.
+     */
+    public static blockHorizontalMoves(moves: Move[], from: Coordinate): void {
+        for (let i = moves.length - 1; i >= 0; i--) {
+            const m = moves[i];
+            if (m.to.y === from.y && m.to.x !== from.x) {
+                moves.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * Removes vertical moves from a moves array.
+     * @param moves The moves array.
+     * @param from The starting coordinate.
+     */
+    public static blockVerticalMoves(moves: Move[], from: Coordinate): void {
+        for (let i = moves.length - 1; i >= 0; i--) {
+            const m = moves[i];
+            if (m.to.x === from.x && m.to.y !== from.y) {
+                moves.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * Removes diagonal moves from a moves array.
+     * @param moves The moves array.
+     * @param from The starting coordinate.
+     */
+    public static blockDiagonalMoves(moves: Move[], from: Coordinate): void {
+        for (let i = moves.length - 1; i >= 0; i--) {
+            const m = moves[i];
+            const dx = Math.abs(m.to.x - from.x);
+            const dy = Math.abs(m.to.y - from.y);
+            if (dx === dy && dx !== 0) {
+                moves.splice(i, 1);
+            }
+        }
     }
 }
