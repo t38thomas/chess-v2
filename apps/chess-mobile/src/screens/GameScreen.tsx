@@ -256,6 +256,8 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 visible={phase === 'setup'}
                 color={turn}
                 onSelect={(pact) => assignPact(turn, pact)}
+                choicesCount={matchConfig.pactChoicesAtStart}
+                seed={matchConfig.seed}
             />
 
             <PactDetailsModal

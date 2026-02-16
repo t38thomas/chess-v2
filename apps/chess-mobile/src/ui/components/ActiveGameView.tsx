@@ -11,14 +11,14 @@ import { PactDetailsModal } from './PactDetailsModal';
 import { GameSessionLayout } from './GameSessionLayout';
 import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
-import { Pact, PERK_LIBRARY } from 'chess-core';
+import { Pact, PERK_LIBRARY, BoardViewModel } from 'chess-core';
 import { usePactTranslation } from '../hooks/usePactTranslation';
 import { useGameSettings } from '../../context/GameSettingsContext';
 import { useCapturedPieces } from '../hooks/useCapturedPieces';
 import { CapturedPiecesRow } from './CapturedPiecesRow';
 
 interface ActiveGameViewProps {
-    viewModel: any; // Type should be imported from chess-core if available or defined
+    viewModel: BoardViewModel;
     onSquarePress: (x: number, y: number) => void;
     reversed: boolean;
     boardSize: number;
@@ -249,6 +249,8 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 visible={phase === 'setup' && turn === playerColor && !!players.white?.connected && !!players.black?.connected}
                 color={playerColor || 'white'}
                 onSelect={onAssignPact}
+                choicesCount={viewModel.matchConfig?.pactChoicesAtStart}
+                seed={viewModel.matchConfig?.seed}
             />
 
             <PactDetailsModal

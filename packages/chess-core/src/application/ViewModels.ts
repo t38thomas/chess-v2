@@ -1,5 +1,6 @@
 import { PieceType, PieceColor } from '../domain/models/Piece';
 import { GameStatus, GamePhase } from '../domain/GameTypes';
+import { MatchConfig } from '../domain/models/MatchConfig';
 import { Pact } from '../domain/models/Pact';
 
 // Simplified view models for UI - pure data, no methods
@@ -40,6 +41,7 @@ export interface BoardViewModel {
     pendingTargets?: { x: number; y: number }[];
     turnCounters?: Record<PieceColor, TurnCounter[]>;
     capturedPieces: Record<PieceColor, { type: PieceType; color: PieceColor; id: string }[]>;
+    matchConfig?: MatchConfig;
 }
 
 export interface TurnCounter {

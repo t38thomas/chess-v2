@@ -2,14 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { InMemoryMatchStore } from '../infrastructure/InMemoryMatchStore';
 import { Match, createMatch } from '../domain/Match';
 import { Action, GameEngine } from '../domain/GameEngine';
+import { MatchConfig } from 'chess-core';
 
 export class MatchService {
     constructor(private store: InMemoryMatchStore) { }
 
-    async createMatch(variantConfig?: Record<string, unknown>): Promise<Match> {
+    async createMatch(matchConfig?: MatchConfig): Promise<Match> {
         const id = uuidv4();
         const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const match = createMatch(id, joinCode, variantConfig);
+        const match = createMatch(id, joinCode, { matchConfig });
         await this.store.save(match);
         return match;
     }

@@ -4,7 +4,7 @@ import { setupWebSocket } from './transport/ws';
 import { MatchService } from './application/MatchService';
 import { InMemoryMatchStore } from './infrastructure/InMemoryMatchStore';
 
-const PORT = 3000;
+const PORT = 8080;
 
 const server = createHttpServer();
 const wss = new WebSocketServer({ server });

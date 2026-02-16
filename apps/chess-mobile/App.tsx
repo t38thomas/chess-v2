@@ -76,7 +76,6 @@ export default function App() {
             case 'online':
                 return (
                     <OnlineGameScreen
-                        matchConfig={matchConfig!}
                         onNavigateBack={handleNavigateToHome}
                     />
                 );

@@ -1,3 +1,5 @@
+import { MatchConfig } from '../domain/models/MatchConfig';
+
 export type MessageType =
     | 'hello'
     | 'createMatch'
@@ -104,6 +106,7 @@ export interface StateSyncPayload {
         white: { connected: boolean; username?: string };
         black: { connected: boolean; username?: string };
     };
+    matchConfig?: MatchConfig;
 }
 
 export interface MoveAcceptedPayload {

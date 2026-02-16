@@ -155,7 +155,8 @@ export class GameFacade {
             winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined,
             activeAbilityId: this.activeAbilityId,
             pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y })),
-            turnCounters: this.getTurnCounters()
+            turnCounters: this.getTurnCounters(),
+            matchConfig: this.game.matchConfig
         };
     }
 
@@ -492,6 +493,10 @@ export class GameFacade {
             Object.entries(payload.pieceCooldowns).forEach(([id, turn]) => {
                 this.game.pieceCooldowns.set(id, turn as number);
             });
+        }
+
+        if (payload.matchConfig) {
+            this.game.matchConfig = payload.matchConfig;
         }
 
         this.notify();

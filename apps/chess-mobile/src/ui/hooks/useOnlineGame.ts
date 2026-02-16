@@ -71,12 +71,12 @@ export const useOnlineGame = () => {
             setAvailableAbilities(facade.getAvailableAbilities());
             setPlayers({
                 white: {
-                    username: payload.players.white.username || 'White',
-                    connected: !!payload.players.white.connected
+                    username: payload.players?.white?.username || 'White',
+                    connected: !!payload.players?.white?.connected
                 },
                 black: {
-                    username: payload.players.black.username || 'Black',
-                    connected: !!payload.players.black.connected
+                    username: payload.players?.black?.username || 'Black',
+                    connected: !!payload.players?.black?.connected
                 }
             });
         });

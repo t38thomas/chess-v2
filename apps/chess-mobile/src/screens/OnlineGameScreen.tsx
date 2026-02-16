@@ -11,10 +11,9 @@ import { MatchConfig } from 'chess-core';
 
 interface OnlineGameScreenProps {
     onNavigateBack?: () => void;
-    matchConfig: MatchConfig;
 }
 
-export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBack, matchConfig }) => {
+export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBack }) => {
     const {
         isConnected,
         matchId,
@@ -71,9 +70,9 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
             <MatchConfigScreen
                 mode="online"
                 onBack={() => setIsConfiguring(false)}
-                onConfirm={(config) => {
+                onConfirm={async (config) => {
+                    await createMatch(config);
                     setIsConfiguring(false);
-                    createMatch(config);
                 }}
             />
         );

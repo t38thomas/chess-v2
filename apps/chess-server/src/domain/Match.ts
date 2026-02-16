@@ -1,5 +1,5 @@
 import { Player } from './Player';
-import { ChessGame, PieceColor } from 'chess-core';
+import { ChessGame, PieceColor, DEFAULT_MATCH_CONFIG } from 'chess-core';
 
 export interface SerializedGameState {
     status: 'active' | 'finished';
@@ -16,11 +16,6 @@ export interface Match {
 
     game: ChessGame;
 
-    // We can keep a separated state object if needed for serialization or API response 
-    // that doesn't map 1:1 to ChessGame, but ideally we use ChessGame properties.
-    // For now, let's keep it minimal.
-    // state: SerializedGameState; // REMOVED in favor of game.status / game.turn
-
     variantConfig: Record<string, unknown>;
     createdAt: number;
     lastActivity: number;
@@ -28,9 +23,17 @@ export interface Match {
 
 export const MAX_PLAYERS = 2;
 
-export function createMatch(id: string, joinCode: string, variantConfig?: Record<string, unknown>): Match {
-    const game = new ChessGame();
-    // game.reset(); // Initial setup done in constructor
+export function createMatch(id: string, joinCode: string, variantConfig?: any): Match {
+    const config = {
+        ...DEFAULT_MATCH_CONFIG,
+        ...(variantConfig?.matchConfig || {})
+    };
+
+    if (!config.seed) {
+        config.seed = Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    const game = new ChessGame(config);
 
     return {
         id,
@@ -38,7 +41,7 @@ export function createMatch(id: string, joinCode: string, variantConfig?: Record
         players: [],
         spectators: [],
         game,
-        variantConfig: variantConfig || {},
+        variantConfig: { ...variantConfig, matchConfig: config },
         createdAt: Date.now(),
         lastActivity: Date.now(),
     };

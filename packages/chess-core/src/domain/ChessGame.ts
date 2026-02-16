@@ -52,20 +52,33 @@ export class ChessGame implements IChessGame {
     public assignPact(color: PieceColor, pact: Pact) {
         if (this.phase !== 'setup') return;
 
-        // Prevent re-assigning if already has a pact (for local safety)
-        if (this.pacts[color].length > 0) return;
+        const maxPacts = this.matchConfig.activePactsMax;
+
+        // Prevent overflow
+        if (this.pacts[color].length >= maxPacts) return;
 
         this.pacts[color].push(pact);
         this.emit('pact_assigned');
 
-        if (this.pacts.white.length > 0 && this.pacts.black.length > 0) {
+        const whiteReady = this.pacts.white.length >= maxPacts;
+        const blackReady = this.pacts.black.length >= maxPacts;
+
+        if (whiteReady && blackReady) {
             this.phase = 'playing';
             this.turn = 'white'; // Always start game with white's turn
             this.emit('phase_change');
-        } else {
-            // Swap turn so the other player can select their pact
-            this.turn = this.turn === 'white' ? 'black' : 'white';
             this.emit('turn_start', this.turn);
+        } else {
+            // If the current player has more pacts to pick, keep their turn.
+            // Otherwise, swap to the other player.
+            if (this.pacts[color].length < maxPacts) {
+                // Keep turn
+                this.emit('turn_start', this.turn);
+            } else {
+                // Swap turn
+                this.turn = this.turn === 'white' ? 'black' : 'white';
+                this.emit('turn_start', this.turn);
+            }
         }
     }
 

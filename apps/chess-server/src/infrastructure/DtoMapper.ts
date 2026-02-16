@@ -37,11 +37,19 @@ export class DtoMapper {
                     } : null
                 }
             ])),
-            players: match.players.map(p => ({
-                id: p.id,
-                username: p.username,
-                color: p.color
-            }))
+            players: {
+                white: match.players.find(p => p.color === 'white') ? {
+                    id: match.players.find(p => p.color === 'white')!.id,
+                    username: match.players.find(p => p.color === 'white')!.username,
+                    connected: match.players.find(p => p.color === 'white')!.isConnected
+                } : { connected: false },
+                black: match.players.find(p => p.color === 'black') ? {
+                    id: match.players.find(p => p.color === 'black')!.id,
+                    username: match.players.find(p => p.color === 'black')!.username,
+                    connected: match.players.find(p => p.color === 'black')!.isConnected
+                } : { connected: false }
+            },
+            matchConfig: game.matchConfig
         };
     }
 }

@@ -1,7 +1,7 @@
 /** Match configuration for the game. */
 export interface MatchConfig {
     activePactsMax: number; // 1..3
-    pactChoicesAtStart: number; // 0..5
+    pactChoicesAtStart: number; // 1..5
     seed?: string; // For deterministic raffle (optional for local)
 }
 

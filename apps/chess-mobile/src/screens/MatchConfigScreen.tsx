@@ -38,7 +38,7 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
     };
 
     const updatePactChoices = (val: number) => {
-        setConfig(prev => ({ ...prev, pactChoicesAtStart: Math.max(0, Math.min(5, val)) }));
+        setConfig(prev => ({ ...prev, pactChoicesAtStart: Math.max(1, Math.min(5, val)) }));
     };
 
     const Stepper = ({ value, onIncrement, onDecrement, min, max, label }: {

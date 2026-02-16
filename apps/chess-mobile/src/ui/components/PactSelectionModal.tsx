@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Pact, PACT_CARDS } from 'chess-core';
-import { PieceColor } from 'chess-core';
+import { Pact, PACT_CARDS, PieceColor, PactDraftService } from 'chess-core';
 import Animated, {
     FadeIn,
     FadeInDown,
@@ -34,12 +33,16 @@ interface PactSelectionModalProps {
     visible: boolean;
     color: PieceColor;
     onSelect: (pact: Pact) => void;
+    choicesCount?: number;
+    seed?: string;
 }
 
 export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
     visible,
     color,
-    onSelect
+    onSelect,
+    choicesCount = 3,
+    seed
 }) => {
     const [options, setOptions] = useState<Pact[]>([]);
     const [searchText, setSearchText] = useState('');
@@ -63,12 +66,12 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                 });
                 setOptions(filtered);
             } else {
-                // Pick 3 random pacts for the current player
-                const shuffled = [...PACT_CARDS].sort(() => 0.5 - Math.random());
-                setOptions(shuffled.slice(0, 3));
+                // Use the configured number of choices
+                const choices = PactDraftService.generateChoices(choicesCount, seed ? `${seed}-${color}` : undefined);
+                setOptions(choices);
             }
         }
-    }, [visible, color, searchText, translatePact]);
+    }, [visible, color, searchText, translatePact, choicesCount, seed]);
 
     if (!visible) return null;
 
