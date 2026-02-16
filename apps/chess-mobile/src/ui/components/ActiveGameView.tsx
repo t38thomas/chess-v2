@@ -129,22 +129,36 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
             {/* Active Pacts */}
             {(pacts.white.length > 0 || pacts.black.length > 0) && (
                 <Card variant="flat" padding="sm" style={{ backgroundColor: colors.surfaceHighlight }}>
-                    <Text variant="caption" color="secondary" style={{ marginBottom: 4 }}>{t('game.activePacts')}</Text>
-                    <View style={styles.pactsList}>
-                        {[...pacts.white, ...pacts.black].map((pact, idx) => {
-                            const translated = translatePact(pact);
-                            return (
-                                <TouchableOpacity
-                                    key={idx}
-                                    style={styles.pactBadge}
-                                    onPress={() => setSelectedPact(pact)}
-                                >
-                                    <Icon name={pact.bonus.icon as any} size={14} color={colors.primary} />
-                                    <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
+                    <Text variant="caption" color="secondary" style={{ marginBottom: 8 }}>{t('game.activePacts')}</Text>
+
+                    {[
+                        { color: playerColor, label: t('game.yourPacts'), pactItems: pacts[playerColor] },
+                        { color: playerColor === 'white' ? 'black' : 'white', label: t('game.opponentPacts'), pactItems: pacts[playerColor === 'white' ? 'black' : 'white'] }
+                    ].map((section, sIdx) => {
+                        if (section.pactItems.length === 0) return null;
+                        return (
+                            <View key={sIdx} style={{ marginBottom: sIdx === 0 ? 8 : 0 }}>
+                                <Text variant="caption" bold color={section.color === playerColor ? "primary" : "secondary"} style={{ fontSize: 9, marginBottom: 4 }}>
+                                    {section.label}
+                                </Text>
+                                <View style={styles.pactsList}>
+                                    {section.pactItems.map((pact, idx) => {
+                                        const translated = translatePact(pact);
+                                        return (
+                                            <TouchableOpacity
+                                                key={idx}
+                                                style={styles.pactBadge}
+                                                onPress={() => setSelectedPact(pact)}
+                                            >
+                                                <Icon name={pact.bonus.icon as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        );
+                    })}
                 </Card>
             )}
 

@@ -135,6 +135,8 @@ export const en = {
         playOnlineDescription: 'Challenge players from around the world',
         leaveMatch: 'Leave Match',
         yourColor: 'Your Color',
+        yourPacts: 'Your Pacts',
+        opponentPacts: 'Opponent\'s Pacts',
         waitingForWhite: 'Waiting for White...',
         waitingForBlack: 'Waiting for Black...',
         stalemateMessage: 'Game ended in a stalemate. Neither side wins.',

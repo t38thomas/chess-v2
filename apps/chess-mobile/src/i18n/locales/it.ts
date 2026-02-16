@@ -137,6 +137,8 @@ export const it: Translations = {
         playOnlineDescription: 'Sfida giocatori da tutto il mondo',
         leaveMatch: 'Lascia Partita',
         yourColor: 'Il Tuo Colore',
+        yourPacts: 'I Tuoi Patti',
+        opponentPacts: 'Patti dell\'Avversario',
         waitingForWhite: 'In attesa del Bianco...',
         waitingForBlack: 'In attesa del Nero...',
         stalemateMessage: 'La partita è terminata in stallo. Nessun vincitore.',
