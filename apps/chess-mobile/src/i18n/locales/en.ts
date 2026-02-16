@@ -63,6 +63,29 @@ export const en = {
         copyInvite: 'Copy Invite Link',
         copied: 'Copied to clipboard',
     },
+    matchConfig: {
+        title: 'Match Configuration',
+        activePactsMax: {
+            label: 'Maximum Active Pacts',
+        },
+        pactChoicesAtStart: {
+            label: 'Initial Pact Choices',
+            auto: 'Automatic pact assignment.',
+            manual: 'Choose your pacts at the start.',
+        },
+        summary: {
+            auto: 'You will start with {count} randomly assigned pacts.',
+            choice: 'Select from {choices} pacts, up to {max} active.',
+        },
+        help: {
+            title: 'How do Pacts work?',
+            desc: 'Every pact consists of a Bonus (power-up) and a Malus (penalty). Choose wisely!',
+        }
+    },
+    cta: {
+        startLocal: 'Start Local Game',
+        createRoom: 'Create Online Room',
+    },
     game: {
         yourTurn: 'Your Turn',
         opponentTurn: "{player}'s Turn",
@@ -119,6 +142,8 @@ export const en = {
         gameOver: 'Game Over',
         draw: 'Draw',
         rematch: 'Rematch',
+        piecesLost: 'Lost Pieces',
+        piecesCaptured: 'Captured Pieces',
     },
     pact: {
         title: 'Forge Your Pact',
@@ -252,7 +277,13 @@ export const en = {
             titan: {
                 earthquake: {
                     title: 'Earthquake!',
-                    desc: 'Your Queen\'s power pushes adjacent pawns away!',
+                    desc: 'Your Queen\'s power pushes away adjacent pawns!',
+                },
+            },
+            oracle: {
+                punishment: {
+                    title: 'Inevitable Fate',
+                    desc: 'You ignored a capture opportunity and fate claimed your piece!',
                 },
             },
             diplomat: {
@@ -281,7 +312,7 @@ export const en = {
         illusionist: { title: 'The Illusionist', description: 'Deceptive movement and fragile presence.' },
         oracle: { title: 'The Oracle', description: 'Knowledge of the future but inevitable fate.' },
         vampire: { title: 'The Vampire', description: 'Conditional immortality but cursed king.' },
-        shadow: { title: 'The Shadow', description: 'Lethal stealth but central disarmament.' },
+        shadow: { title: 'The Shadow', description: 'Perimeter immunity from afar, but central disarmament.' },
         swarm: { title: 'The Swarm', description: 'Infinite numbers but the Queen is everything.' },
         phoenix: { title: 'The Phoenix', description: 'Royal rebirth but start without rooks.' },
         alchemist: { title: 'The Alchemist', description: 'Swap matter at will, but every capture comes with a price.' },
@@ -296,8 +327,9 @@ export const en = {
         thief: { title: 'The Thief', description: 'Quick hands but wanted by the law.' },
         engineer: { title: 'The Engineer', description: 'Defensive turrets with design flaws.' },
         hawk: { title: 'The Hawk', description: 'Predator of the skies but blind up close.' },
-        heir: { title: 'The Heir', description: 'Assured dynasty but inexperienced ruler.' },
-        timekeeper: { title: 'The Timekeeper', description: 'Control time at the price of paradoxes.' },
+        heir: { title: 'The Heir', description: 'Dynasty secured but inexperienced ruler.' },
+        timekeeper: { title: 'The Timekeeper', description: 'Control over time at the cost of paradoxes.' },
+
     },
     perks: {
         /* BONUS */
@@ -312,9 +344,10 @@ export const en = {
         void_jump: { name: 'Void Jump', description: 'Swap the position of any two of your pieces.' },
         snipe: { name: 'Snipe', description: 'Bishops can capture at range 2 without moving.' },
         displace: { name: 'Displace', description: 'Active: Move any piece to a random adjacent empty square.' },
-        prescience: { name: 'Prescience', description: 'See enemy moves and threats.' },
+        prescience: { name: 'Prescience', description: 'See enemy moves and threats highlighted on the board.' },
         life_thirst: { name: 'Life Thirst', description: 'Capturing the enemy Queen resurrects a minor piece.' },
         stealth: { name: 'Stealth', description: 'Side pawns are invisible until they act.' },
+        shadow_cloak: { name: 'Shadow Cloak', description: 'Pieces on the perimeter are immune to capture from non-adjacent enemies.' },
         hydra: { name: 'Hydra', description: 'When a pawn dies, a new one appears in the backlines.' },
         rebirth: { name: 'Rebirth', description: 'If you lose the Queen, a pawn becomes Queen. (Single use)' },
         transmutation: { name: 'Transmutation', description: 'Swap the position of any two of your pieces (except the King).' },
@@ -330,9 +363,9 @@ export const en = {
         turret: { name: 'Turret', description: 'Rooks also attack diagonally (1 square).' },
         high_flyer: { name: 'High Flyer', description: 'Bishops can jump over friendly pieces.' },
         bloodline: { name: 'Bloodline', description: 'If the Queen dies, a minor piece becomes Queen.' },
-        time_stop: { name: 'Time Stop', description: 'The opponent skips a turn.' },
+        time_stop: { name: 'Time Stop', description: 'Opponent skips a turn.' },
 
-        /* MALUSES */
+        /* MALUS */
         ascension_cost: { name: 'Ascension Cost', description: 'Promoting costs a turn (enemy moves twice).' },
         cut_supplies: { name: 'Cut Supplies', description: 'Pawns cannot promote to Queen.' },
         heavy_armor: { name: 'Heavy Armor', description: 'Knights cannot jump over their own pawns.' },
@@ -340,7 +373,7 @@ export const en = {
         defenseless: { name: 'Defenseless', description: 'The King can never castle.' },
         reload: { name: 'Reload', description: 'A Rook that captures skips the next turn.' },
         ebb: { name: 'Ebb', description: 'Pawns cannot capture diagonally.' },
-        darkness: { name: 'Darkness', description: 'See only squares where you can move.' },
+        darkness: { name: 'Darkness', description: 'All your pieces have a maximum movement range of 3 squares.' },
         ritual_sacrifice: { name: 'Ritual Sacrifice', description: 'Teleportation kills your most advanced piece.' },
         short_sighted: { name: 'Short Sighted', description: 'Bishops cannot move more than 4 squares.' },
         vanished_illusion: { name: 'Vanished Illusion', description: 'Start with one less pawn.' },
@@ -361,8 +394,9 @@ export const en = {
         wanted: { name: 'Wanted', description: 'Pawns cannot promote.' },
         design_flaw: { name: 'Design Flaw', description: 'Rooks cannot move horizontally.' },
         distant_predator: { name: 'Distant Predator', description: 'Bishops cannot capture at range 1.' },
-        young_queen: { name: 'Young Queen', description: 'The initial Queen cannot capture.' },
+        young_queen: { name: 'Young Queen', description: 'The starting Queen cannot capture.' },
         paradox: { name: 'Paradox', description: 'Lose 3 random pawns after Time Stop.' },
+
     },
     errors: {
         generic: 'Something went wrong',

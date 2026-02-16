@@ -65,6 +65,29 @@ export const it: Translations = {
         copyInvite: 'Copia Link Invito',
         copied: 'Copiato negli appunti',
     },
+    matchConfig: {
+        title: 'Configura Partita',
+        activePactsMax: {
+            label: 'Numero Massimo Patti Attivi',
+        },
+        pactChoicesAtStart: {
+            label: 'Patti Iniziali Disponibili',
+            auto: 'Assegnazione automatica dei patti.',
+            manual: 'Scegli i tuoi patti a inizio partita.',
+        },
+        summary: {
+            auto: 'Inizierai con {count} patti assegnati casualmente.',
+            choice: 'Sceglierai tra {choices} patti fino a un massimo di {max} attivi.',
+        },
+        help: {
+            title: 'Come funzionano i Patti?',
+            desc: 'Ogni patto include un Bonus (potenziamento) e un Malus (penalità). Scegli saggiamente!',
+        }
+    },
+    cta: {
+        startLocal: 'Inizia Partita Locale',
+        createRoom: 'Crea Stanza Online',
+    },
     game: {
         yourTurn: 'Tocca a te',
         opponentTurn: "Turno di {player}",
@@ -121,6 +144,8 @@ export const it: Translations = {
         gameOver: 'Partita Terminata',
         draw: 'Patta',
         rematch: 'Rivincita',
+        piecesLost: 'Pezzi Persi',
+        piecesCaptured: 'Pezzi Catturati',
     },
     pact: {
         title: 'Forgia il tuo Patto',
@@ -257,6 +282,12 @@ export const it: Translations = {
                     desc: 'Il potere della tua Regina spinge via i pedoni adiacenti!',
                 },
             },
+            oracle: {
+                punishment: {
+                    title: 'Destino Ineluttabile',
+                    desc: 'Hai ignorato un\'opportunità di cattura e il destino ha reclamato il tuo pezzo!',
+                },
+            },
             diplomat: {
                 immunity_lost: {
                     title: 'Immunità Persa',
@@ -283,7 +314,7 @@ export const it: Translations = {
         illusionist: { title: 'L\'Illusionista', description: 'Movimento ingannevole e presenza fragile.' },
         oracle: { title: 'L\'Oracolo', description: 'Conoscenza del futuro ma destino ineluttabile.' },
         vampire: { title: 'Il Vampiro', description: 'Immortalità condizionale ma re maledetto.' },
-        shadow: { title: 'L\'Ombra', description: 'Furtività letale ma disarmo centrale.' },
+        shadow: { title: 'L\'Ombra', description: 'Immunità sul perimetro dai colpi distanti, ma disarmo centrale.' },
         swarm: { title: 'Lo Sciame', description: 'Numeri infiniti ma la Regina è tutto.' },
         phoenix: { title: 'La Fenice', description: 'Rinascita reale ma inizio senza torri.' },
         alchemist: { title: 'L\'Alchimista', description: 'Scambia la materia a piacimento, ma ogni cattura ha un prezzo.' },
@@ -300,6 +331,7 @@ export const it: Translations = {
         hawk: { title: 'Il Falco', description: 'Predatore dei cieli ma cieco da vicino.' },
         heir: { title: 'L\'Erede', description: 'Dinastia assicurata ma regnante inesperto.' },
         timekeeper: { title: 'Il Cronocrate', description: 'Controllo del tempo al prezzo di paradossi.' },
+
     },
     perks: {
         /* BONUS */
@@ -317,6 +349,7 @@ export const it: Translations = {
         prescience: { name: 'Prescienza', description: 'Vedi le mosse e le minacce nemiche.' },
         life_thirst: { name: 'Sete di Sangue', description: 'Catturare la Regina nemica resuscita un tuo pezzo minore.' },
         stealth: { name: 'Furtività', description: 'I pedoni laterali sono invisibili finché non agiscono.' },
+        shadow_cloak: { name: 'Mantello d\'Ombra', description: 'I pezzi sul perimetro sono immuni alla cattura da nemici non adiacenti.' },
         hydra: { name: 'Idra', description: 'Quando un pedone muore, ne appare uno nuovo nelle retrovie.' },
         rebirth: { name: 'Rinascita', description: 'Se perdi la Regina, un pedone diventa Regina. (Una sola volta)' },
         transmutation: { name: 'Trasmutazione', description: 'Scambia la posizione di due tuoi pezzi amici (eccetto il Re).' },
@@ -334,6 +367,7 @@ export const it: Translations = {
         bloodline: { name: 'Linea di Sangue', description: 'Se la Regina muore, un pezzo minore diventa Regina.' },
         time_stop: { name: 'Time Stop', description: 'L\'avversario salta un turno.' },
 
+
         /* MALUS */
         ascension_cost: { name: 'Costo di Ascensione', description: 'Promuovere costa un turno (il nemico muove due volte).' },
         cut_supplies: { name: 'Rifornimenti Tagliati', description: 'I pedoni non possono promuovere a Regina.' },
@@ -342,7 +376,7 @@ export const it: Translations = {
         defenseless: { name: 'Senza Difesa', description: 'Il Re non può mai arroccare.' },
         reload: { name: 'Ricarica', description: 'Una Torre che cattura salta il prossimo turno.' },
         ebb: { name: 'Riflusso', description: 'I pedoni non possono catturare in diagonale.' },
-        darkness: { name: 'Oscurità', description: 'Vedi solo le caselle dove puoi muovere.' },
+        darkness: { name: 'Oscurità', description: 'Tutti i tuoi pezzi hanno una portata di movimento massima di 3 caselle.' },
         ritual_sacrifice: { name: 'Sacrificio Rituale', description: 'Il teletrasporto uccide il tuo pezzo più avanzato.' },
         short_sighted: { name: 'Miopia', description: 'Gli Alfieri non possono muovere più di 4 caselle.' },
         vanished_illusion: { name: 'Illusione Svanita', description: 'Inizi con un pedone in meno.' },
@@ -365,6 +399,7 @@ export const it: Translations = {
         distant_predator: { name: 'Predatore Distante', description: 'Gli Alfieri non possono catturare a distanza 1.' },
         young_queen: { name: 'Regina Giovane', description: 'La Regina iniziale non può catturare.' },
         paradox: { name: 'Paradosso', description: 'Perdi 3 pedoni casuali dopo il Time Stop.' },
+
     },
     errors: {
         generic: 'Qualcosa è andato storto',

@@ -3,6 +3,8 @@ import { Coordinate } from '../models/Coordinate';
 import { Piece, PieceColor, PieceType } from '../models/Piece';
 import { BoardModel } from '../models/BoardModel';
 import { Move } from '../models/Move';
+import { MoveGenerator } from '../rules/MoveGenerator';
+import { CheckDetector } from '../rules/CheckDetector';
 
 export class PactUtils {
     /**
@@ -466,5 +468,135 @@ export class PactUtils {
             icon,
             type
         });
+    }
+    /**
+     * Checks if a square is attacked by any piece of the attackerColor.
+     * @param game The game instance.
+     * @param square The coordinate to check.
+     * @param attackerColor The color of the attacking player.
+     * @returns True if the square is attacked.
+     */
+    public static isSquareAttacked(game: IChessGame, square: Coordinate, attackerColor: PieceColor): boolean {
+        // We can reuse CheckDetector logic or similar
+        // Ideally, we want to know if any piece of attackerColor can move to 'square' 
+        // effectively capturing whatever is there (or just hitting the empty square).
+
+        // However, CheckDetector usually checks if KING is attacked.
+        // We need a more general check.
+
+        // Fix: If square contains a piece of attackerColor (e.g. checking if a Black piece is defended by other Black pieces), 
+        // we must temporarily remove said piece to see if others cover the square.
+        // This is crucial for "Is piece defended?" checks.
+
+        const targetSquare = game.board.getSquare(square);
+        const originalPiece = targetSquare?.piece;
+        const needsRemoval = originalPiece && originalPiece.color === attackerColor;
+
+        if (needsRemoval) {
+            game.board.removePiece(square);
+        }
+
+        try {
+            const attackerPieces = PactUtils.findPieces(game, attackerColor);
+            const playerPacts = game.pacts[attackerColor].map(p => [p.bonus, p.malus]).flat();
+
+            for (const { piece, coord } of attackerPieces) {
+                // SPECIAL HANDLING FOR PAWNS
+                // Pawns move forward but capture diagonally. 
+                // "Attacking" a square means threatening to capture on it.
+                if (piece.type === 'pawn') {
+                    const direction = piece.color === 'white' ? 1 : -1;
+                    const attackY = coord.y + direction;
+
+                    // Check diagonals
+                    const leftAttack = new Coordinate(coord.x - 1, attackY);
+                    const rightAttack = new Coordinate(coord.x + 1, attackY);
+
+                    if (leftAttack.equals(square) || rightAttack.equals(square)) {
+                        return true;
+                    }
+                    // Explicitly do NOT use MoveGenerator for pawns
+                } else {
+                    // For all other pieces, use MoveGenerator
+                    // Optimization: Get pseudo moves for each piece and see if 'square' is a target
+                    // This might be expensive if called frequently for all squares.
+                    const moves = MoveGenerator.getPseudoLegalMoves(
+                        game.board,
+                        piece,
+                        coord,
+                        game.enPassantTarget,
+                        playerPacts,
+                        game.perkUsage[attackerColor],
+                        game
+                    );
+
+                    // SPECIAL HANDLING FOR KING
+                    // King attacks only adjacent squares. Castling moves (dist > 1) are not attacks.
+                    if (piece.type === 'king') {
+                        if (moves.some(m => m.to.equals(square) && Math.abs(m.to.x - coord.x) <= 1)) {
+                            return true;
+                        }
+                    } else {
+                        if (moves.some(m => m.to.equals(square))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } finally {
+            if (needsRemoval && originalPiece) {
+                game.board.placePiece(square, originalPiece);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a player has any opportunity to capture an undefended enemy piece.
+     * @param game The game instance.
+     * @param color The player color to check.
+     * @returns Array of IDs of pieces that have at least one move capturing an undefended piece.
+     */
+    public static getCaptureOpportunities(game: IChessGame, color: PieceColor, onlyUndefended: boolean = true): string[] {
+        const myPieces = PactUtils.findPieces(game, color);
+        const opponentColor = color === 'white' ? 'black' : 'white';
+        const playerPacts = game.pacts[color].map(p => [p.bonus, p.malus]).flat();
+
+        const capablePieceIds = new Set<string>();
+
+        for (const { piece, coord } of myPieces) {
+            const moves = MoveGenerator.getPseudoLegalMoves(
+                game.board,
+                piece,
+                coord,
+                game.enPassantTarget,
+                playerPacts,
+                game.perkUsage[color],
+                game
+            );
+
+            // Filter only legal moves (checks)
+            const legalMoves = moves.filter(m =>
+                !CheckDetector.wouldLeaveKingInCheck(game.board, m.from, m.to, color, [], false, game)
+            );
+
+            for (const move of legalMoves) {
+                if (move.capturedPiece) {
+                    if (!onlyUndefended) {
+                        capablePieceIds.add(piece.id);
+                        break;
+                    }
+
+                    const isDefended = PactUtils.isSquareAttacked(game, move.to, opponentColor);
+                    if (!isDefended) {
+                        capablePieceIds.add(piece.id);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return Array.from(capablePieceIds);
     }
 }

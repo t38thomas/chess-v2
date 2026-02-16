@@ -1,14 +1,15 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { LayoutAnimation } from 'react-native';
-import { GameFacade, BoardViewModel } from 'chess-core';
+import { GameFacade, BoardViewModel, MatchConfig } from 'chess-core';
 import { useSoundContext } from '../context/SoundContext';
 
-export const useGame = () => {
+export const useGame = (matchConfig?: MatchConfig) => {
     const { playGameEvent } = useSoundContext();
 
     // Initialize Facade once (lazy init) with game event handler
     const [facade] = useState(() => new GameFacade(
+        matchConfig,
         undefined, // onMove callback
         (event) => playGameEvent(event as any) // onGameEvent callback for sounds
     ));
@@ -36,11 +37,11 @@ export const useGame = () => {
         facade.handleSquarePress(x, y);
     }, [facade]);
 
-    const resetGame = useCallback(() => {
+    const resetGame = useCallback((newConfig?: MatchConfig) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        facade.reset();
+        facade.reset(newConfig || matchConfig);
         setReversed(false);
-    }, [facade]);
+    }, [facade, matchConfig]);
 
     const toggleOrientation = useCallback(() => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

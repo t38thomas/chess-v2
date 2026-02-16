@@ -24,13 +24,15 @@ export const Square: React.FC<SquareProps> = ({
             style={[
                 styles.container,
                 { width: size, height: size, backgroundColor },
-                viewModel.isSelected && styles.selected,
-                viewModel.isLastMove && styles.lastMove,
-                !!viewModel.targetIndex && styles.targetSquare,
             ]}
             onPress={onPress}
             activeOpacity={0.8}
         >
+            {viewModel.isSelected && <View style={[StyleSheet.absoluteFill, styles.selected]} />}
+            {viewModel.isLastMove && <View style={[StyleSheet.absoluteFill, styles.lastMove]} />}
+            {viewModel.isAttacked && <View style={[StyleSheet.absoluteFill, styles.attacked]} />}
+            {!!viewModel.targetIndex && <View style={[StyleSheet.absoluteFill, styles.targetSquare]} />}
+
             {viewModel.isValidTarget && <View style={styles.validTargetMarker} />}
             {viewModel.targetIndex && (
                 <View style={styles.targetBadge}>
@@ -52,6 +54,9 @@ const styles = StyleSheet.create({
     },
     lastMove: {
         backgroundColor: 'rgba(16, 185, 129, 0.25)', // lighter emerald for last move
+    },
+    attacked: {
+        backgroundColor: 'rgba(239, 68, 68, 0.4)', // red-500 with opacity
     },
     validTargetMarker: {
         position: 'absolute',

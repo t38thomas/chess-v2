@@ -8,6 +8,8 @@ import { CheckDetector } from '../domain/rules/CheckDetector';
 import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
 import { Pact } from '../domain/models/Pact';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
+import { PactUtils } from '../domain/pacts/PactUtils';
+import { MatchConfig, DEFAULT_MATCH_CONFIG } from '../domain/models/MatchConfig';
 
 export class GameFacade {
     private game: ChessGame;
@@ -22,10 +24,11 @@ export class GameFacade {
     private gameEventListeners: ((event: GameEvent, payload?: any) => void)[] = [];
 
     constructor(
+        private matchConfig: MatchConfig = DEFAULT_MATCH_CONFIG,
         private onMove?: (move: Move) => void,
         private onEvent?: (event: GameEvent, payload?: any) => void
     ) {
-        this.game = new ChessGame();
+        this.game = new ChessGame(matchConfig);
         this.game.subscribe((event, payload) => {
             console.log('[GameFacade] Forwarding event:', event, payload);
             if (this.onEvent) this.onEvent(event, payload);
@@ -47,8 +50,52 @@ export class GameFacade {
 
         const color = this.game.turn;
         const playerPacts = this.game.pacts[color].map(p => [p.bonus, p.malus]).flat();
+        const opponentColor = color === 'white' ? 'black' : 'white';
+        const opponentPacts = this.game.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
+
         const whiteInCheck = this.game.isInCheck('white');
         const blackInCheck = this.game.isInCheck('black');
+
+        // Oracle Prescience Check
+        const hasPrescience = playerPacts.some(p => p.id === 'prescience');
+        const attackedSquares = new Set<string>();
+
+        if (hasPrescience) {
+            const opponentPieces = PactUtils.findPieces(this.game, opponentColor);
+            for (const { piece, coord } of opponentPieces) {
+                // SPECIAL HANDLING FOR PAWNS
+                if (piece.type === 'pawn') {
+                    const direction = piece.color === 'white' ? 1 : -1;
+                    const attackY = coord.y + direction;
+
+                    const leftAttack = new Coordinate(coord.x - 1, attackY);
+                    const rightAttack = new Coordinate(coord.x + 1, attackY);
+
+                    if (leftAttack.isValid()) attackedSquares.add(leftAttack.toString());
+                    if (rightAttack.isValid()) attackedSquares.add(rightAttack.toString());
+                    continue;
+                }
+
+                // General moves for others
+                const moves = MoveGenerator.getPseudoLegalMoves(
+                    this.game.board,
+                    piece,
+                    coord,
+                    this.game.enPassantTarget,
+                    opponentPacts,
+                    this.game.perkUsage[opponentColor],
+                    this.game
+                );
+
+                for (const move of moves) {
+                    // SPECIAL HANDLING FOR KING: Filter out castling
+                    if (piece.type === 'king') {
+                        if (Math.abs(move.to.x - coord.x) > 1) continue;
+                    }
+                    attackedSquares.add(move.to.toString());
+                }
+            }
+        }
 
         allSquares.forEach(sq => {
             const coord = sq.coordinate;
@@ -77,6 +124,7 @@ export class GameFacade {
                 isValidTarget,
                 isLastMove,
                 isCheck,
+                isAttacked: attackedSquares.has(coord.toString()),
                 targetIndex: this.pendingTargets.findIndex(c => c.equals(coord)) !== -1
                     ? this.pendingTargets.findIndex(c => c.equals(coord)) + 1
                     : null
@@ -95,6 +143,10 @@ export class GameFacade {
             history: [], // Placeholder
             phase: this.game.phase,
             pacts: this.game.pacts,
+            capturedPieces: {
+                white: this.game.capturedPieces.white.map(p => ({ type: p.type, color: p.color, id: p.id })),
+                black: this.game.capturedPieces.black.map(p => ({ type: p.type, color: p.color, id: p.id }))
+            },
             pendingPromotion: this.pendingPromotionMove ? {
                 x: this.pendingPromotionMove.to.x,
                 y: this.pendingPromotionMove.to.y,
@@ -376,8 +428,9 @@ export class GameFacade {
         this.listeners.forEach(l => l());
     }
 
-    public reset() {
-        this.game.reset();
+    public reset(config?: MatchConfig) {
+        if (config) this.matchConfig = config;
+        this.game.reset(this.matchConfig);
         this.lastMove = null;
         this.deselect();
         this.notify();

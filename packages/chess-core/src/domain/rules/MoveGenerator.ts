@@ -179,8 +179,15 @@ export class MoveGenerator {
                 } else {
                     if (target.piece.color !== piece.color) {
                         this.addCapture(board, x, y, piece, moves, from, perks, game);
-                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, perks)) {
-                        // Keep going if we can move through friendlies
+                        // Echolocation: Continue after capture/enemy
+                        if (RuleEngine.hasEcholocation(piece, perks)) {
+                            x += dx;
+                            y += dy;
+                            range++;
+                            continue;
+                        }
+                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, perks) || RuleEngine.hasEcholocation(piece, perks)) {
+                        // Keep going if we can move through friendlies OR have echolocation
                         x += dx;
                         y += dy;
                         range++;

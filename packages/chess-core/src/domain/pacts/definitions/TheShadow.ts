@@ -2,21 +2,28 @@ import { PactLogic, RuleModifiers } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
 /**
- * Stealth Bonus: Lateral pawns (files a, b, g, h) are immune to capture
- * as long as they haven't moved from their starting position.
+ * Shadow Cloak Bonus: Pieces on the perimeter are immune to capture from non-adjacent enemies.
  */
-export class StealthBonus extends PactLogic {
-    id = 'stealth';
+export class ShadowCloakBonus extends PactLogic {
+    id = 'shadow_cloak';
 
     getRuleModifiers(): RuleModifiers {
         return {
             canBeCaptured: (game, attacker, victim, to, from) => {
-                if (victim.type === 'pawn' && !victim.hasMoved) {
-                    const isLateralFile = to.x === 0 || to.x === 1 || to.x === 6 || to.x === 7;
-                    if (isLateralFile) {
-                        return false; // Immune
+                const isPerimeter = to.x === 0 || to.x === 7 || to.y === 0 || to.y === 7;
+
+                if (isPerimeter) {
+                    // Calculate distance using Chebyshev distance (max of dx, dy)
+                    // If distance > 1, it's a ranged attack
+                    const dx = Math.abs(from.x - to.x);
+                    const dy = Math.abs(from.y - to.y);
+                    const distance = Math.max(dx, dy);
+
+                    if (distance > 1) {
+                        return false; // Immune to ranged attacks
                     }
                 }
+
                 return true;
             }
         };

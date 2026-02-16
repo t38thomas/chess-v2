@@ -46,6 +46,7 @@ export interface RuleModifiers {
     canSidewaysMove?: (piece: Piece) => boolean;
     canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece) => boolean;
     canMoveLikeKnight?: (pieceType: PieceType) => boolean;
+    hasEcholocation?: (piece: Piece) => boolean;
     canMovePiece?: (game: IChessGame, from: Coordinate, board?: BoardModel) => boolean;
 
     // Promotion overrides

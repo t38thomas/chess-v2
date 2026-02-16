@@ -7,6 +7,7 @@ export * from './domain/rules/MoveGenerator';
 export * from './domain/rules/CheckDetector';
 export * from './domain/GameTypes';
 export * from './domain/ChessGame';
+export * from './domain/models/MatchConfig';
 export * from './application/GameFacade';
 export * from './application/ViewModels';
 export * from './types/protocol';

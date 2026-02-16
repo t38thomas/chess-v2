@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { GameFacade, BoardViewModel } from 'chess-core';
+import { GameFacade, BoardViewModel, MatchConfig, DEFAULT_MATCH_CONFIG } from 'chess-core';
 import { ChessClient } from '../../infrastructure/ChessClient';
 import {
     StateSyncPayload, MatchJoinedPayload, MatchCreatedPayload
@@ -23,14 +23,18 @@ export const useOnlineGame = () => {
     const [client] = useState(() => new ChessClient(SERVER_URL));
 
     // We need facade to know about client's move handling and game events
-    const [facade] = useState(() => new GameFacade((move) => {
-        client.makeMove(move.from, move.to, move.promotion).catch((err: any) => {
-            console.error("Move rejected by server", err);
-        });
-    }, (event) => {
-        // Handle game events for sounds/vibrations
-        playGameEvent(event as SoundEvent);
-    }));
+    const [facade] = useState(() => new GameFacade(
+        DEFAULT_MATCH_CONFIG,
+        (move) => {
+            client.makeMove(move.from, move.to, move.promotion).catch((err: any) => {
+                console.error("Move rejected by server", err);
+            });
+        },
+        (event) => {
+            // Handle game events for sounds/vibrations
+            playGameEvent(event as any);
+        }
+    ));
 
     const [viewModel, setViewModel] = useState<BoardViewModel>(facade.getViewModel());
     const [isConnected, setIsConnected] = useState(false);
@@ -111,9 +115,9 @@ export const useOnlineGame = () => {
         facade.handleSquarePress(x, y);
     }, [facade]);
 
-    const createMatch = async () => {
+    const createMatch = async (config?: MatchConfig) => {
         try {
-            const payload = await client.createMatch();
+            const payload = await client.createMatch(config);
             setMatchId(payload.matchId);
             setJoinCode(payload.joinCode);
             setPlayerColor('white');

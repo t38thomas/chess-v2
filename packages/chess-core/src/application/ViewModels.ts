@@ -16,6 +16,7 @@ export interface SquareViewModel {
     isValidTarget: boolean;
     isLastMove: boolean;
     isCheck: boolean; // King in check
+    isAttacked: boolean; // Square is attacked (for Oracle pact)
     targetIndex?: number | null; // For multi-target abilities
 }
 
@@ -38,6 +39,7 @@ export interface BoardViewModel {
     activeAbilityId?: string | null;
     pendingTargets?: { x: number; y: number }[];
     turnCounters?: Record<PieceColor, TurnCounter[]>;
+    capturedPieces: Record<PieceColor, { type: PieceType; color: PieceColor; id: string }[]>;
 }
 
 export interface TurnCounter {

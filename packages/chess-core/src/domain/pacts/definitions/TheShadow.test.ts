@@ -1,63 +1,66 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { StealthBonus, BlindLightMalus } from './TheShadow';
+import { ShadowCloakBonus, BlindLightMalus } from './TheShadow';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 
 describe('The Shadow', () => {
     let game: ChessGame;
-    let stealthBonus: StealthBonus;
+    let shadowCloakBonus: ShadowCloakBonus;
     let blindLightMalus: BlindLightMalus;
 
     beforeEach(() => {
         game = new ChessGame();
-        stealthBonus = new StealthBonus();
+        shadowCloakBonus = new ShadowCloakBonus();
         blindLightMalus = new BlindLightMalus();
     });
 
-    describe('Stealth (Bonus)', () => {
-        it('should prevent capture of a lateral pawn that has not moved', () => {
-            const modifiers = stealthBonus.getRuleModifiers();
+    describe('Shadow Cloak (Bonus)', () => {
+        it('should prevent capture of a perimeter piece by a remote attacker', () => {
+            const modifiers = shadowCloakBonus.getRuleModifiers();
             const canBeCaptured = modifiers.canBeCaptured!;
 
-            const attacker = new Piece('rook', 'black', 'b-r');
+            // Attacker at H8 (7, 7) - Remote
+            const attacker = new Piece('queen', 'black', 'b-q');
+            const from = new Coordinate(7, 7);
 
-            // White Pawn at A2 (0, 1), hasn't moved
-            const victim = new Piece('pawn', 'white', 'w-p1');
-            victim.hasMoved = false;
-            const pos = new Coordinate(0, 1);
+            // Victim at A1 (0, 0) - Perimeter
+            const victim = new Piece('rook', 'white', 'w-r');
+            const pos = new Coordinate(0, 0);
 
-            const result = canBeCaptured(game, attacker, victim, pos, new Coordinate(0, 5));
+            const result = canBeCaptured(game, attacker, victim, pos, from);
             expect(result).toBe(false);
         });
 
-        it('should allow capture of a lateral pawn that has moved', () => {
-            const modifiers = stealthBonus.getRuleModifiers();
+        it('should allow capture of a perimeter piece by an adjacent attacker', () => {
+            const modifiers = shadowCloakBonus.getRuleModifiers();
             const canBeCaptured = modifiers.canBeCaptured!;
 
-            const attacker = new Piece('rook', 'black', 'b-r');
+            // Attacker at B2 (1, 1) - Adjacent to A1 (0, 0)
+            const attacker = new Piece('pawn', 'black', 'b-p');
+            const from = new Coordinate(1, 1);
 
-            // White Pawn at A3 (0, 2), has moved
-            const victim = new Piece('pawn', 'white', 'w-p1');
-            victim.hasMoved = true;
-            const pos = new Coordinate(0, 2);
+            // Victim at A1 (0, 0) - Perimeter
+            const victim = new Piece('rook', 'white', 'w-r');
+            const pos = new Coordinate(0, 0);
 
-            const result = canBeCaptured(game, attacker, victim, pos, new Coordinate(0, 5));
+            const result = canBeCaptured(game, attacker, victim, pos, from);
             expect(result).toBe(true);
         });
 
-        it('should allow capture of a non-lateral pawn that has not moved', () => {
-            const modifiers = stealthBonus.getRuleModifiers();
+        it('should allow capture of a non-perimeter piece by a remote attacker', () => {
+            const modifiers = shadowCloakBonus.getRuleModifiers();
             const canBeCaptured = modifiers.canBeCaptured!;
 
+            // Attacker at C8 (2, 7) - Remote
             const attacker = new Piece('rook', 'black', 'b-r');
+            const from = new Coordinate(2, 7);
 
-            // White Pawn at D2 (3, 1), hasn't moved
-            const victim = new Piece('pawn', 'white', 'w-p1');
-            victim.hasMoved = false;
-            const pos = new Coordinate(3, 1);
+            // Victim at C3 (2, 2) - Not Perimeter
+            const victim = new Piece('pawn', 'white', 'w-p');
+            const pos = new Coordinate(2, 2);
 
-            const result = canBeCaptured(game, attacker, victim, pos, new Coordinate(3, 5));
+            const result = canBeCaptured(game, attacker, victim, pos, from);
             expect(result).toBe(true);
         });
     });

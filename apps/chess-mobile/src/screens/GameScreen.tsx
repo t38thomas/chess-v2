@@ -19,12 +19,16 @@ import { usePactTranslation } from '../ui/hooks/usePactTranslation';
 import { PactTurnCounter } from '../ui/components/PactTurnCounter';
 import { useToast } from '../context/ToastContext';
 import { useGameSettings } from '../context/GameSettingsContext';
+import { useCapturedPieces } from '../ui/hooks/useCapturedPieces';
+import { CapturedPiecesRow } from '../ui/components/CapturedPiecesRow';
 
 interface GameScreenProps {
     onNavigateBack?: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
+import { MatchConfig } from 'chess-core';
+
+export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }> = ({ onNavigateBack, matchConfig }) => {
     const {
         viewModel,
         turn,
@@ -48,7 +52,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
         status,
         winner,
         subscribeToGameEvents
-    } = useGame();
+    } = useGame(matchConfig);
 
 
     const [selectedPact, setSelectedPact] = useState<Pact | null>(null);
@@ -58,8 +62,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
     const boardSize = useBoardSize();
     const { showToast } = useToast();
     const { rotatePieces } = useGameSettings();
+    const capturedPieces = useCapturedPieces(viewModel);
 
     const invertPieces = rotatePieces && turn === 'black';
+
 
     // Subscribe to game events (e.g. malus effects)
     useEffect(() => {
@@ -212,13 +218,29 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onNavigateBack }) => {
                 title={t('game.localGame')}
                 onBack={onNavigateBack}
                 board={
-                    <BoardView
-                        viewModel={viewModel}
-                        onSquarePress={handleSquarePress}
-                        reversed={reversed}
-                        invertPieces={invertPieces}
-                        size={boardSize}
-                    />
+                    <View style={{ width: boardSize }}>
+                        <CapturedPiecesRow
+                            pieces={capturedPieces.topRow.pieces}
+                            advantage={capturedPieces.topRow.advantageBadge}
+                            label={t(capturedPieces.topRow.labelKey as any)}
+                            pieceColor="white"
+                            style={{ marginBottom: spacing[2] }}
+                        />
+                        <BoardView
+                            viewModel={viewModel}
+                            onSquarePress={handleSquarePress}
+                            reversed={reversed}
+                            invertPieces={invertPieces}
+                            size={boardSize}
+                        />
+                        <CapturedPiecesRow
+                            pieces={capturedPieces.bottomRow.pieces}
+                            advantage={capturedPieces.bottomRow.advantageBadge}
+                            label={t(capturedPieces.bottomRow.labelKey as any)}
+                            pieceColor="black"
+                            style={{ marginTop: spacing[2] }}
+                        />
+                    </View>
                 }
                 panel={gameInfoContent}
             />

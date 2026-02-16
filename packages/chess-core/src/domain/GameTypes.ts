@@ -3,12 +3,14 @@ import { Piece, PieceColor, PieceType } from './models/Piece';
 import { Move } from './models/Move';
 import { Pact } from './models/Pact';
 import { Coordinate } from './models/Coordinate';
+import { MatchConfig } from './models/MatchConfig';
 
 export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw';
 export type GamePhase = 'setup' | 'playing' | 'game_over';
 export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start' | 'pact_effect';
 
 export interface IChessGame {
+    matchConfig: MatchConfig;
     board: BoardModel;
     turn: PieceColor;
     history: Move[];

@@ -25,9 +25,11 @@ import { LifeThirstBonus, VampireCurseMalus } from './definitions/TheVampire';
 import { VigilanceBonus, AnchoredMalus } from './definitions/TheSentinel';
 import { ArenaBonus, DisarmedMalus } from './definitions/TheGladiator';
 import { EarthquakeBonus, GigantismMalus } from './definitions/TheTitan';
-import { StealthBonus, BlindLightMalus } from './definitions/TheShadow';
+import { ShadowCloakBonus, BlindLightMalus } from './definitions/TheShadow';
 import { TurretBonus, DesignFlawMalus } from './definitions/TheEngineer';
 import { DiplomaticImmunityBonus, InternalSabotageMalus } from './definitions/TheDiplomat';
+import { OracleBonus, OracleMalus } from './definitions/TheOracle';
+import { BlindSeerBonus, BlindSeerMalus } from './definitions/TheBlindSeer';
 
 declare var __DEV__: boolean;
 
@@ -55,8 +57,10 @@ export class PactFactory {
         'life_thirst', 'vampire_curse',
         'vigilance', 'anchored',
         'earthquake', 'gigantism',
-        'stealth', 'blind_light',
-        'turret', 'design_flaw'
+        'shadow_cloak', 'blind_light',
+        'turret', 'design_flaw',
+        'prescience', 'inevitable_fate',
+        'echolocation', 'darkness'
     ];
 
     public static initialize() {
@@ -170,7 +174,7 @@ export class PactFactory {
         register(new GigantismMalus());
 
         // 26. L'Ombra (The Shadow)
-        register(new StealthBonus());
+        register(new ShadowCloakBonus());
         register(new BlindLightMalus());
 
         // 27. L'Ingegnere (The Engineer)
@@ -180,5 +184,13 @@ export class PactFactory {
         // 28. Il Diplomatico (The Diplomat)
         register(new DiplomaticImmunityBonus());
         register(new InternalSabotageMalus());
+
+        // 29. L'Oracolo (The Oracle)
+        register(new OracleBonus());
+        register(new OracleMalus());
+
+        // 30. Il Veggente Cieco (The Blind Seer)
+        register(new BlindSeerBonus());
+        register(new BlindSeerMalus());
     }
 }

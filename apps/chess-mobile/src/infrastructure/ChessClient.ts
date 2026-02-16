@@ -1,6 +1,7 @@
 import {
     Envelope, ServerEnvelope, MessageType, ServerMessageType,
-    MatchCreatedPayload, MatchJoinedPayload, MoveAcceptedPayload
+    MatchCreatedPayload, MatchJoinedPayload, MoveAcceptedPayload,
+    MatchConfig
 } from 'chess-core';
 
 type MessageHandler<T = any> = (payload: T) => void;
@@ -98,8 +99,8 @@ export class ChessClient {
         };
     }
 
-    async createMatch(config?: any): Promise<MatchCreatedPayload> {
-        return this.request<MatchCreatedPayload>('createMatch', { variantConfig: config });
+    async createMatch(config?: MatchConfig): Promise<MatchCreatedPayload> {
+        return this.request<MatchCreatedPayload>('createMatch', { matchConfig: config });
     }
 
     async joinMatch(joinCode: string): Promise<MatchJoinedPayload> {

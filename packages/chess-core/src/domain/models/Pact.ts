@@ -80,7 +80,7 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     vampire_curse: { id: 'vampire_curse', name: 'vampire_curse', icon: 'cross', description: 'desc_vampire_curse', ranking: -5, category: 'King Safety' },
 
     // --- 14. L'OMBRA ---
-    stealth: { id: 'stealth', name: 'stealth', icon: 'incognito', description: 'desc_stealth', ranking: 4, category: 'Visibility' },
+    shadow_cloak: { id: 'shadow_cloak', name: 'shadow_cloak', icon: 'incognito', description: 'desc_shadow_cloak', ranking: 4, category: 'Capture Rules' },
     blind_light: { id: 'blind_light', name: 'blind_light', icon: 'spotlight', description: 'desc_blind_light', ranking: -3, category: 'Capture Rules' },
 
     // --- 15. LO SCIAME ---
@@ -162,7 +162,7 @@ export const PACT_CARDS: Pact[] = [
     { id: 'illusionist', title: 'title_illusionist', bonus: PERK_LIBRARY.displace, malus: PERK_LIBRARY.vanished_illusion, description: 'desc_pact_illusionist' },
     { id: 'oracle', title: 'title_oracle', bonus: PERK_LIBRARY.prescience, malus: PERK_LIBRARY.inevitable_fate, description: 'desc_pact_oracle' },
     { id: 'vampire', title: 'title_vampire', bonus: PERK_LIBRARY.life_thirst, malus: PERK_LIBRARY.vampire_curse, description: 'desc_pact_vampire' },
-    { id: 'shadow', title: 'title_shadow', bonus: PERK_LIBRARY.stealth, malus: PERK_LIBRARY.blind_light, description: 'desc_pact_shadow' },
+    { id: 'shadow', title: 'title_shadow', bonus: PERK_LIBRARY.shadow_cloak, malus: PERK_LIBRARY.blind_light, description: 'desc_pact_shadow' },
     { id: 'swarm', title: 'title_swarm', bonus: PERK_LIBRARY.hydra, malus: PERK_LIBRARY.hive_queen, description: 'desc_pact_swarm' },
     { id: 'phoenix', title: 'title_phoenix', bonus: PERK_LIBRARY.rebirth, malus: PERK_LIBRARY.wingless, description: 'desc_pact_phoenix' },
     { id: 'alchemist', title: 'title_alchemist', bonus: PERK_LIBRARY.transmutation, malus: PERK_LIBRARY.volatile_reagents, description: 'desc_pact_alchemist' },

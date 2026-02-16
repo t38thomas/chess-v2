@@ -129,6 +129,14 @@ export class RuleEngine {
         });
     }
 
+    public static hasEcholocation(piece: Piece, perks: Perk[]): boolean {
+        const registry = PactRegistry.getInstance();
+        return perks.some(p => {
+            const pactLogic = registry.get(p.id);
+            return pactLogic?.getRuleModifiers()?.hasEcholocation?.(piece);
+        });
+    }
+
     // --- CAPTURE RULES ---
 
     public static canCapture(game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {

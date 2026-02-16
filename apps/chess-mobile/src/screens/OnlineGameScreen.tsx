@@ -5,12 +5,16 @@ import * as Clipboard from 'expo-clipboard';
 import { LobbyView } from '../ui/components/LobbyView';
 import { WaitingView } from '../ui/components/WaitingView';
 import { ActiveGameView } from '../ui/components/ActiveGameView';
+import { MatchConfigScreen } from './MatchConfigScreen';
+
+import { MatchConfig } from 'chess-core';
 
 interface OnlineGameScreenProps {
     onNavigateBack?: () => void;
+    matchConfig: MatchConfig;
 }
 
-export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBack }) => {
+export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBack, matchConfig }) => {
     const {
         isConnected,
         matchId,
@@ -36,6 +40,7 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
     } = useOnlineGame();
 
     const [joinCodeInput, setJoinCodeInput] = useState('');
+    const [isConfiguring, setIsConfiguring] = useState(false);
     const boardSize = useBoardSize();
 
     const handleJoinMatch = () => {
@@ -60,6 +65,20 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
         if (onNavigateBack) onNavigateBack();
     };
 
+    // CONFIGURATION SCREEN - Triggered when "Create Match" is clicked
+    if (isConfiguring) {
+        return (
+            <MatchConfigScreen
+                mode="online"
+                onBack={() => setIsConfiguring(false)}
+                onConfirm={(config) => {
+                    setIsConfiguring(false);
+                    createMatch(config);
+                }}
+            />
+        );
+    }
+
     // LOBBY SCREEN - If no match exists yet
     if (!matchId) {
         return (
@@ -67,7 +86,7 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
                 isConnected={isConnected}
                 joinCodeInput={joinCodeInput}
                 onJoinCodeChange={(text) => setJoinCodeInput(text.toUpperCase())}
-                onCreateMatch={createMatch}
+                onCreateMatch={() => setIsConfiguring(true)}
                 onJoinMatch={handleJoinMatch}
                 onBack={onNavigateBack}
             />

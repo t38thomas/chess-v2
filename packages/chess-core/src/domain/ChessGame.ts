@@ -10,8 +10,10 @@ import { Pact } from './models/Pact';
 import { PactRegistry } from './pacts/PactRegistry';
 
 import { IChessGame, GameEvent, GameStatus, GamePhase } from './GameTypes';
+import { MatchConfig, DEFAULT_MATCH_CONFIG } from './models/MatchConfig';
 
 export class ChessGame implements IChessGame {
+    public matchConfig: MatchConfig;
     public readonly board: BoardModel;
     public turn: PieceColor;
     public history: Move[];
@@ -28,8 +30,9 @@ export class ChessGame implements IChessGame {
     public lastMovedPiecePos: Coordinate | null = null;
     public enPassantTarget: Coordinate | null; // Square vulnerable to en passant
     private listeners: ((event: GameEvent, payload?: any) => void)[] = [];
-    constructor() {
+    constructor(config: MatchConfig = DEFAULT_MATCH_CONFIG) {
         PactFactory.initialize();
+        this.matchConfig = config;
         this.board = new BoardModel();
         this.board.setupStandardGame();
         this.turn = 'white';
@@ -124,11 +127,29 @@ export class ChessGame implements IChessGame {
             this.pacts[color].forEach(pact => {
                 // Check bonus
                 let logic = registry.get(pact.bonus.id);
-                if (logic) logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.bonus.id });
+                if (logic) {
+                    logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.bonus.id });
+                    if (event === 'turn_start' && payload === color) {
+                        try {
+                            logic.onTurnStart({ game: this, playerId: color, pactId: pact.bonus.id });
+                        } catch (e) {
+                            console.error(`Error in pact ${pact.bonus.id} onTurnStart:`, e);
+                        }
+                    }
+                }
 
                 // Check malus
                 logic = registry.get(pact.malus.id);
-                if (logic) logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.malus.id });
+                if (logic) {
+                    logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.malus.id });
+                    if (event === 'turn_start' && payload === color) {
+                        try {
+                            logic.onTurnStart({ game: this, playerId: color, pactId: pact.malus.id });
+                        } catch (e) {
+                            console.error(`Error in pact ${pact.malus.id} onTurnStart:`, e);
+                        }
+                    }
+                }
             });
         });
     }
@@ -308,6 +329,36 @@ export class ChessGame implements IChessGame {
         }
     }
 
+    public getLegalMoves(from: Coordinate): Move[] {
+        const square = this.board.getSquare(from);
+        if (!square || !square.piece) return [];
+
+        const piece = square.piece;
+        const playerPacts = this.pacts[piece.color].map(p => [p.bonus, p.malus]).flat();
+
+        // Check if piece can move (Slug Move, Heavy Crown)
+        if (!RuleEngine.canMovePiece(this, from, playerPacts)) {
+            return [];
+        }
+
+        const pseudoMoves = MoveGenerator.getPseudoLegalMoves(
+            this.board,
+            piece,
+            from,
+            this.enPassantTarget,
+            playerPacts,
+            this.perkUsage[piece.color],
+            this
+        );
+
+        const opponentColor = piece.color === 'white' ? 'black' : 'white';
+        const opponentPacts = this.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
+
+        return pseudoMoves.filter(m =>
+            !CheckDetector.wouldLeaveKingInCheck(this.board, m.from, m.to, piece.color, opponentPacts, m.isSwap, this)
+        );
+    }
+
     private hasAnyLegalMoves(color: PieceColor): boolean {
         const allSquares = this.board.getAllSquares();
         const playerPacts = this.pacts[color].map(p => [p.bonus, p.malus]).flat();
@@ -344,7 +395,8 @@ export class ChessGame implements IChessGame {
         return CheckDetector.isKingInCheck(this.board, color, opponentPacts, this);
     }
 
-    public reset() {
+    public reset(config?: MatchConfig) {
+        if (config) this.matchConfig = config;
         this.board.setupStandardGame();
         this.turn = 'white';
         this.history = [];

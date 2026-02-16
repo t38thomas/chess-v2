@@ -14,6 +14,8 @@ import { useTranslation } from '../../i18n';
 import { Pact, PERK_LIBRARY } from 'chess-core';
 import { usePactTranslation } from '../hooks/usePactTranslation';
 import { useGameSettings } from '../../context/GameSettingsContext';
+import { useCapturedPieces } from '../hooks/useCapturedPieces';
+import { CapturedPiecesRow } from './CapturedPiecesRow';
 
 interface ActiveGameViewProps {
     viewModel: any; // Type should be imported from chess-core if available or defined
@@ -62,6 +64,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const { translatePact } = usePactTranslation();
     const { rotatePieces } = useGameSettings();
     const [selectedPact, setSelectedPact] = useState<Pact | null>(null);
+    const capturedPieces = useCapturedPieces(viewModel);
 
     const invertPieces = rotatePieces && turn === 'black';
 
@@ -208,13 +211,29 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 title={t('game.onlineChess')}
                 onBack={onLeaveMatch}
                 board={
-                    <BoardView
-                        viewModel={viewModel}
-                        onSquarePress={onSquarePress}
-                        reversed={reversed}
-                        invertPieces={invertPieces}
-                        size={boardSize}
-                    />
+                    <View style={{ width: boardSize }}>
+                        <CapturedPiecesRow
+                            pieces={capturedPieces.topRow.pieces}
+                            advantage={capturedPieces.topRow.advantageBadge}
+                            label={t(capturedPieces.topRow.labelKey as any)}
+                            pieceColor={playerColor === 'white' ? 'black' : 'white'}
+                            style={{ marginBottom: spacing[2] }}
+                        />
+                        <BoardView
+                            viewModel={viewModel}
+                            onSquarePress={onSquarePress}
+                            reversed={reversed}
+                            invertPieces={invertPieces}
+                            size={boardSize}
+                        />
+                        <CapturedPiecesRow
+                            pieces={capturedPieces.bottomRow.pieces}
+                            advantage={capturedPieces.bottomRow.advantageBadge}
+                            label={t(capturedPieces.bottomRow.labelKey as any)}
+                            pieceColor={playerColor}
+                            style={{ marginTop: spacing[2] }}
+                        />
+                    </View>
                 }
                 panel={gameInfoContent}
             />
@@ -313,3 +332,4 @@ const styles = StyleSheet.create({
         gap: 8,
     },
 });
+
