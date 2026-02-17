@@ -142,7 +142,7 @@ export class RuleEngine {
         for (const perk of perks) {
             const pactLogic = registry.get(perk.id);
             const modifier = pactLogic?.getRuleModifiers()?.canCapture;
-            if (modifier && modifier(game, attacker, victim, to, from) === false) return false;
+            if (modifier && modifier(game, attacker, victim, to, from, board) === false) return false;
         }
 
         // Check if victim has a pact that prevents it from being captured
@@ -151,7 +151,7 @@ export class RuleEngine {
             for (const perk of victimPacts) {
                 const pactLogic = registry.get(perk.id);
                 const modifier = pactLogic?.getRuleModifiers()?.canBeCaptured;
-                if (modifier && modifier(game, attacker, victim, to, from) === false) return false;
+                if (modifier && modifier(game, attacker, victim, to, from, board) === false) return false;
             }
         }
 

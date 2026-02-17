@@ -55,7 +55,7 @@ export interface RuleModifiers {
 
 
     // Capture overrides
-    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
+    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel) => boolean;
 
     // King Safety
     canCastleWhileMoved?: (piece: Piece) => boolean;
@@ -67,7 +67,7 @@ export interface RuleModifiers {
     onExecuteMove?: (game: IChessGame, move: Move) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate) => boolean;
+    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel) => boolean;
     isImmuneToCheckmate?: (game: IChessGame) => boolean;
 }
 

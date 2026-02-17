@@ -82,8 +82,9 @@ export class PactUtils {
      * @param type Optional piece type to filter by.
      * @returns Array of objects containing the piece and its coordinate.
      */
-    public static findPieces(game: IChessGame, playerId: PieceColor, type?: PieceType): { piece: Piece, coord: Coordinate }[] {
-        return game.board.getAllSquares()
+    public static findPieces(game: IChessGame, playerId: PieceColor, type?: PieceType, board?: BoardModel): { piece: Piece, coord: Coordinate }[] {
+        const effectiveBoard = board || game.board;
+        return effectiveBoard.getAllSquares()
             .map(s => ({ piece: s.piece, coord: s.coordinate }))
             .filter((item): item is { piece: Piece, coord: Coordinate } =>
                 item.piece !== null &&
@@ -99,8 +100,9 @@ export class PactUtils {
      * @param types Array of piece types to filter by.
      * @returns Array of objects containing the piece and its coordinate.
      */
-    public static findPiecesByTypes(game: IChessGame, playerId: PieceColor, types: PieceType[]): { piece: Piece, coord: Coordinate }[] {
-        return game.board.getAllSquares()
+    public static findPiecesByTypes(game: IChessGame, playerId: PieceColor, types: PieceType[], board?: BoardModel): { piece: Piece, coord: Coordinate }[] {
+        const effectiveBoard = board || game.board;
+        return effectiveBoard.getAllSquares()
             .map(s => ({ piece: s.piece, coord: s.coordinate }))
             .filter((item): item is { piece: Piece, coord: Coordinate } =>
                 item.piece !== null &&
@@ -284,7 +286,8 @@ export class PactUtils {
      * @param coord The coordinate to check around.
      * @returns Array of pieces and their coordinates.
      */
-    public static getPiecesAdjacentTo(game: IChessGame, coord: Coordinate): { piece: Piece, coord: Coordinate }[] {
+    public static getPiecesAdjacentTo(game: IChessGame, coord: Coordinate, board?: BoardModel): { piece: Piece, coord: Coordinate }[] {
+        const effectiveBoard = board || game.board;
         const adjacent: { piece: Piece, coord: Coordinate }[] = [];
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
@@ -292,7 +295,7 @@ export class PactUtils {
 
                 const targetCoord = new Coordinate(coord.x + dx, coord.y + dy);
                 if (targetCoord.isValid()) {
-                    const piece = game.board.getSquare(targetCoord)?.piece;
+                    const piece = effectiveBoard.getSquare(targetCoord)?.piece;
                     if (piece) {
                         adjacent.push({ piece, coord: targetCoord });
                     }

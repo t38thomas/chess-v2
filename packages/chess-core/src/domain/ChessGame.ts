@@ -314,6 +314,9 @@ export class ChessGame implements IChessGame {
         }
         this.lastMovedPiecePos = to;
 
+        // Turn Economy via RuleEngine
+        this.turn = RuleEngine.getNextTurn(this, this.turn, eventType, playerPacts);
+
         this.updateGameStatus();
 
         // Check for specific end-game or status events
@@ -323,9 +326,6 @@ export class ChessGame implements IChessGame {
         else if (this.isInCheck(this.turn)) eventType = 'check';
 
         this.emit(eventType, move);
-
-        // Turn Economy via RuleEngine
-        this.turn = RuleEngine.getNextTurn(this, this.turn, eventType, playerPacts);
 
         // Central Cooldown Management: Decrement cooldowns for the player who is about to start their turn
         // We do this AFTER the move event so that passive effects triggered by the move (like Pickpocket) 
@@ -378,12 +378,12 @@ export class ChessGame implements IChessGame {
         // Ideally we added 'board_rotated' to GameEvent but I didn't edit GameEvent string union yet.
         // Let's double check GameTypes.
 
-        // Update Game Status (checkmate etc)
-        this.updateGameStatus();
-
         // Turn Economy
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
         this.turn = RuleEngine.getNextTurn(this, this.turn, 'move', playerPacts);
+
+        // Update Game Status (checkmate etc)
+        this.updateGameStatus();
 
         // Cooldowns
         const pieces = this.board.getAllSquares().map(s => s.piece).filter(p => p !== null);
@@ -410,8 +410,10 @@ export class ChessGame implements IChessGame {
         const isInCheck = CheckDetector.isKingInCheck(this.board, this.turn, opponentPacts, this);
 
         if (!hasLegalMoves) {
+            this.phase = 'game_over';
             if (isInCheck) {
                 this.status = 'checkmate';
+                this.winner = this.turn === 'white' ? 'black' : 'white';
             } else {
                 this.status = 'stalemate';
             }

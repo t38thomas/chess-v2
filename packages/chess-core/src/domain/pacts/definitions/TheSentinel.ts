@@ -10,11 +10,11 @@ export class VigilanceBonus extends PactLogic {
 
     getRuleModifiers(): RuleModifiers {
         return {
-            canBeCaptured: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate): boolean => {
+            canBeCaptured: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel): boolean => {
                 if (!game) return true;
 
-                // Find the victim's King
-                const kingInfo = PactUtils.findPieces(game, victim.color, 'king')[0];
+                // Find the victim's King on the effective board
+                const kingInfo = PactUtils.findPieces(game, victim.color, 'king', board)[0];
                 if (!kingInfo) return true;
 
                 // If victim is adjacent to its King, it cannot be captured
@@ -40,7 +40,7 @@ export class AnchoredMalus extends PactLogic {
 
                 if (piece?.type === 'king') {
                     // King cannot move if he has ANY adjacent piece (friendly or enemy)
-                    const adjacentPieces = PactUtils.getPiecesAdjacentTo(game, from);
+                    const adjacentPieces = PactUtils.getPiecesAdjacentTo(game, from, effectiveBoard);
                     if (adjacentPieces.length > 0) {
                         return false;
                     }

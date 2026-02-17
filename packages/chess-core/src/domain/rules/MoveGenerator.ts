@@ -56,7 +56,7 @@ export class MoveGenerator {
                 const bishopFixedDistances = RuleEngine.getFixedDistances(piece, perks);
 
                 if (bishopFixedDistances) {
-                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances);
+                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances, perks, game);
                 } else {
                     this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, perks, game);
                 }
@@ -71,14 +71,14 @@ export class MoveGenerator {
                 break;
             case 'knight':
                 const knightDirs = perks.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
-                this.addSteppingMoves(board, from, knightDirs, piece, moves);
+                this.addSteppingMoves(board, from, knightDirs, piece, moves, perks, game);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, perks, game);
 
                 if (RuleEngine.canMoveLikeKnight(piece.type, perks, perkUsage)) {
-                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves);
+                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, perks, game);
                 }
 
                 // Super Pawn / Prince logic: if type is something else (or we just check if it should move like king)
@@ -86,8 +86,8 @@ export class MoveGenerator {
                 break;
             default:
                 // Handle custom pieces like "Prince" from Super Pawn
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, perks, game);
                 break;
         }
 
@@ -280,10 +280,19 @@ export class MoveGenerator {
             const diagR = new Coordinate(x + right.dx + forward.dx, y + right.dy + forward.dy);
 
             if (enPassantTarget.equals(diagL)) {
-                moves.push(new Move(from, diagL, piece, null, false, true));
+                // The captured pawn is at the same X as diagL but same Y as from
+                const victimCoord = new Coordinate(diagL.x, from.y);
+                const victim = board.getSquare(victimCoord)?.piece;
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagL, from, board, perks)) {
+                    moves.push(new Move(from, diagL, piece, null, false, true));
+                }
             }
             if (enPassantTarget.equals(diagR)) {
-                moves.push(new Move(from, diagR, piece, null, false, true));
+                const victimCoord = new Coordinate(diagR.x, from.y);
+                const victim = board.getSquare(victimCoord)?.piece;
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagR, from, board, perks)) {
+                    moves.push(new Move(from, diagR, piece, null, false, true));
+                }
             }
         }
     }
@@ -352,7 +361,9 @@ export class MoveGenerator {
         dirs: number[][],
         piece: Piece,
         moves: Move[],
-        distances: number[]
+        distances: number[],
+        perks: Perk[] = [],
+        game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -371,8 +382,12 @@ export class MoveGenerator {
                                 break;
                             }
                         }
-                        if (isPathClear && (!target.piece || target.piece.color !== piece.color)) {
-                            moves.push(new Move(from, coord, piece, target.piece || null));
+                        if (isPathClear) {
+                            if (!target.piece) {
+                                moves.push(new Move(from, coord, piece, null));
+                            } else if (target.piece.color !== piece.color) {
+                                this.addCapture(board, x, y, piece, moves, from, perks, game);
+                            }
                         }
                     }
                 }
@@ -385,7 +400,9 @@ export class MoveGenerator {
         from: Coordinate,
         dirs: number[][],
         piece: Piece,
-        moves: Move[]
+        moves: Move[],
+        perks: Perk[] = [],
+        game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -395,8 +412,10 @@ export class MoveGenerator {
                 const coord = new Coordinate(x, y);
                 const target = board.getSquare(coord);
                 if (target) {
-                    if (!target.piece || target.piece.color !== piece.color) {
-                        moves.push(new Move(from, coord, piece, target.piece || null));
+                    if (!target.piece) {
+                        moves.push(new Move(from, coord, piece, null));
+                    } else if (target.piece.color !== piece.color) {
+                        this.addCapture(board, x, y, piece, moves, from, perks, game);
                     }
                 }
             }
@@ -503,10 +522,10 @@ export class MoveGenerator {
                 this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, perks);
                 break;
             case 'knight':
-                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves);
+                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, perks);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves);
+                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, perks);
                 break;
         }
 
