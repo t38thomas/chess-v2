@@ -42,7 +42,45 @@ describe('The Changeling Pact', () => {
 
             // Check if activeMimics has entry
             const mimics = game.pactState.mimicry_activeMimics;
-            expect(mimics.has(whitePawn.id)).toBe(true);
+            expect(mimics[whitePawn.id]).toBeDefined();
+        });
+
+        it('should allow pawn to move like the specific mimicked piece (e.g. Bishop)', () => {
+            board.clear();
+            const whitePawn = new Piece('pawn', 'white', 'white-pawn-0');
+            const blackBishop = new Piece('bishop', 'black', 'black-bishop-0');
+            const start = new Coordinate(3, 3);
+            const captureTarget = new Coordinate(4, 4);
+
+            board.placePiece(start, whitePawn);
+            board.placePiece(captureTarget, blackBishop);
+
+            const move = new Move(start, captureTarget, whitePawn, blackBishop, false, false, false, false);
+
+            game.turn = 'white';
+            const modifiers = bonus.getRuleModifiers();
+            if (modifiers.onExecuteMove) {
+                modifiers.onExecuteMove(game, move);
+            }
+
+            // Verify it mimicked a BISHOP specifically
+            const mimics = game.pactState.mimicry_activeMimics;
+            expect(mimics[whitePawn.id].type).toBe('bishop');
+
+            const moves: Move[] = [];
+            if (modifiers.onGetPseudoMoves) {
+                modifiers.onGetPseudoMoves({
+                    board,
+                    piece: whitePawn,
+                    from: captureTarget, // Piece is now at captureTarget
+                    moves,
+                    game
+                });
+            }
+
+            // Should have bishop moves (diagonal)
+            const diagonalMove = moves.find(m => m.to.x === 6 && m.to.y === 6);
+            expect(diagonalMove).toBeDefined();
         });
 
         it('should allow pawn to move like the mimicked piece (e.g. Rook)', () => {
@@ -52,11 +90,11 @@ describe('The Changeling Pact', () => {
             board.placePiece(start, whitePawn);
 
             // Force set mimicry to Rook
-            if (!game.pactState.mimicry_activeMimics) game.pactState.mimicry_activeMimics = new Map();
-            game.pactState.mimicry_activeMimics.set(whitePawn.id, {
+            if (!game.pactState.mimicry_activeMimics) game.pactState.mimicry_activeMimics = {};
+            game.pactState.mimicry_activeMimics[whitePawn.id] = {
                 type: 'rook',
                 expiresAtTurn: 100
-            });
+            };
 
             const modifiers = bonus.getRuleModifiers();
             const moves: Move[] = [];

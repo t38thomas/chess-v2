@@ -221,6 +221,10 @@ export const en = {
                 },
             },
             changeling: {
+                mimicry: {
+                    title: 'Mimicry!',
+                    desc: 'Your pawn has assumed the movement of the victim!',
+                },
                 demotion: {
                     title: 'Unstable Identity',
                     desc: 'A piece has lost its form and become a pawn!',

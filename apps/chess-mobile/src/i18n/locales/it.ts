@@ -231,6 +231,10 @@ export const it: Translations = {
                 },
             },
             changeling: {
+                mimicry: {
+                    title: 'Mimica!',
+                    desc: 'Il tuo pedone ha assunto il movimento della vittima!',
+                },
                 demotion: {
                     title: "Identità Instabile",
                     desc: "Un pezzo ha perso la sua forma ed è diventato un pedone!",

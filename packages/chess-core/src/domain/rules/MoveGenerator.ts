@@ -212,34 +212,17 @@ export class MoveGenerator {
         }
 
         // Override startY logic for check
-        const canDoubleMove = !piece.hasMoved && onStartRank;
+        // RuleEngine.canPawnDoubleMove expects (piece, y, startY, perks)
+        // We use our orientation-aware 'onStartRank' logic to determine if we are at startY.
+        const canDoubleMove = RuleEngine.canPawnDoubleMove(piece, onStartRank ? 1 : 0, 1, perks);
 
         const to = new Coordinate(x + forward.dx, y + forward.dy);
 
         // Forward 1
         if (this.isEmpty(board, to.x, to.y)) {
-            // No Retreat check (concept specific to board side?)
-            // "no_retreat" pact usually forbids moving "backwards" to own base.
-            // With rotation, "backwards" changes.
-            // Let's assume standard No Retreat logic applies to 'y' or update it?
-            // For now, let's keep it simple or disable no_retreat constraint if rotated (users can exploit).
-            // Or assume no_retreat checks 'distance to promotion line'.
-            // Let's skip complex no_retreat adaptation for now as it's a Pact.
-
             moves.push(new Move(from, to, piece));
 
             // Double move
-            // Use RuleEngine check but force-feed our calculated condition?
-            // RuleEngine.canPawnDoubleMove uses y, startY.
-            // We'll bypass it slightly or rely on it returning true if we pass correct params?
-            // Actually RuleEngine checks for 'agile_pawns' perk mainly or other mods.
-            // We should respect perks.
-            // If we manually checked `canDoubleMove`, we might miss perks blocking it?
-            // Let's assume `RuleEngine.canPawnDoubleMove` returns true for standard conditions if we mocked startY=y.
-            // Simplify: Check perks for 'heavy_cavalry' etc. directly?
-            // Let's just trust `canDoubleMove` (local var) AND `this.isEmpty(doubleTarget)`.
-            // We should still call RuleEngine to check for 'active' blockers?
-
             if (canDoubleMove && this.isEmpty(board, x + forward.dx * 2, y + forward.dy * 2)) {
                 moves.push(new Move(from, new Coordinate(x + forward.dx * 2, y + forward.dy * 2), piece));
             }

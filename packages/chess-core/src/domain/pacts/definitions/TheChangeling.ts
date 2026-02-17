@@ -7,11 +7,11 @@ import { MoveGenerator } from '../../rules/MoveGenerator';
 export class ChangelingBonus extends PactLogic {
     id = 'mimicry';
 
-    private getMimics(context: { game: any }): Map<string, { type: PieceType, expiresAtTurn: number }> {
-        if (!context.game || !context.game.pactState) return new Map();
+    private getMimics(context: { game: any }): Record<string, { type: PieceType, expiresAtTurn: number }> {
+        if (!context.game || !context.game.pactState) return {};
 
         if (!context.game.pactState.mimicry_activeMimics) {
-            context.game.pactState.mimicry_activeMimics = new Map();
+            context.game.pactState.mimicry_activeMimics = {};
         }
         return context.game.pactState.mimicry_activeMimics;
     }
@@ -20,7 +20,7 @@ export class ChangelingBonus extends PactLogic {
         return {
             onGetPseudoMoves: (params: MoveParams) => {
                 const mimics = this.getMimics({ game: params.game });
-                const mimicData = mimics.get(params.piece.id);
+                const mimicData = mimics[params.piece.id];
                 if (mimicData) {
                     // Create a phantom piece with the mimicked type
                     const phantomPiece = params.piece.clone();
@@ -58,13 +58,20 @@ export class ChangelingBonus extends PactLogic {
             onExecuteMove: (game, move) => {
                 // If it's a pawn capture, trigger mimicry
                 if (move.piece.type === 'pawn' && move.capturedPiece) {
-                    const possibleTypes: PieceType[] = ['rook', 'knight', 'bishop', 'queen', 'king'];
-                    const randomType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
+                    const victimType = move.capturedPiece.type;
 
                     const mimics = this.getMimics({ game });
-                    mimics.set(move.piece.id, {
-                        type: randomType,
-                        expiresAtTurn: game.totalTurns + 2
+                    mimics[move.piece.id] = {
+                        type: victimType,
+                        expiresAtTurn: game.totalTurns + 1 // Next turn only
+                    };
+
+                    game.emit('pact_effect', {
+                        pactId: this.id,
+                        title: 'pact.toasts.changeling.mimicry.title',
+                        description: 'pact.toasts.changeling.mimicry.desc',
+                        icon: 'cached', // Symbolizing change/mimicry
+                        type: 'bonus'
                     });
                 }
             }
@@ -75,9 +82,9 @@ export class ChangelingBonus extends PactLogic {
         if (event === 'turn_start') {
             const mimics = this.getMimics(context);
             // Clean up expired mimics
-            for (const [id, data] of mimics.entries()) {
-                if (context.game.totalTurns > data.expiresAtTurn) {
-                    mimics.delete(id);
+            for (const id in mimics) {
+                if (context.game.totalTurns > mimics[id].expiresAtTurn) {
+                    delete mimics[id];
                 }
             }
         }

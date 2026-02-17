@@ -18,12 +18,10 @@ export class RuleEngine {
             const pactLogic = registry.get(perk.id);
             const modifier = pactLogic?.getRuleModifiers()?.canDoubleMove;
             if (modifier) {
-                // If a pact defines a modifier, it takes precedence (or acts as a filter)
-                // For canDoubleMove, usually if one says NO, it's NO. If one says YES, does it override NO?
-                // The interface returns boolean. Let's assume authoritative override for now,
-                // or we need a specific policy (AND vs OR).
-                // Existing logic suggested replacement.
+                // If a pact defines a modifier, it takes precedence
                 allowed = modifier(piece, y, startY);
+                // If any pact expressly forbids it, we stop and return false
+                if (!allowed) return false;
             }
         }
         return allowed;
