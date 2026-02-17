@@ -19,7 +19,7 @@ export class GameFacade {
     private listeners: (() => void)[] = [];
     private playerColor?: PieceColor;
     private pendingPromotionMove: Move | null = null;
-    private activeAbilityId: string | null = null;
+    private _activeAbilityId: string | null = null;
     private pendingTargets: Coordinate[] = [];
     private gameEventListeners: ((event: GameEvent, payload?: any) => void)[] = [];
 
@@ -153,10 +153,11 @@ export class GameFacade {
                 color: this.pendingPromotionMove.piece.color
             } : null,
             winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined,
-            activeAbilityId: this.activeAbilityId,
+            activeAbilityId: this._activeAbilityId,
             pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y })),
             turnCounters: this.getTurnCounters(),
-            matchConfig: this.game.matchConfig
+            matchConfig: this.game.matchConfig,
+            orientation: this.game.orientation
         };
     }
 
@@ -337,7 +338,7 @@ export class GameFacade {
 
         if (logic?.activeAbility && logic.activeAbility.targetType !== 'none' && !params) {
             // Enter targeting mode
-            this.activeAbilityId = id;
+            this._activeAbilityId = id;
             this.pendingTargets = [];
             this.deselect(); // Clear piece selection
             this.notify();
@@ -346,7 +347,7 @@ export class GameFacade {
 
         const success = this.game.useAbility(id, params);
         if (success) {
-            this.activeAbilityId = null;
+            this._activeAbilityId = null;
             this.pendingTargets = [];
             this.notify();
         }
@@ -354,7 +355,7 @@ export class GameFacade {
     }
 
     private handleAbilityTargetPress(x: number, y: number) {
-        if (!this.activeAbilityId) return;
+        if (!this._activeAbilityId) return;
 
         const coord = new Coordinate(x, y);
 
@@ -369,7 +370,7 @@ export class GameFacade {
         this.pendingTargets.push(coord);
 
         // Check if we have enough targets
-        const logic = PactRegistry.getInstance().get(this.activeAbilityId);
+        const logic = PactRegistry.getInstance().get(this._activeAbilityId);
         if (!logic?.activeAbility) return;
 
         // Determine required targets: use maxTargets if defined, fallback to targetType or hardcoded logic
@@ -377,7 +378,7 @@ export class GameFacade {
 
         // Backward compatibility for old hardcoded abilities if maxTargets is not set
         if (requiredTargets === 0 && logic.activeAbility.targetType !== 'none') {
-            if (this.activeAbilityId === 'transmutation' || this.activeAbilityId === 'void_jump') {
+            if (this._activeAbilityId === 'transmutation' || this._activeAbilityId === 'void_jump') {
                 requiredTargets = 2;
             } else {
                 requiredTargets = 1;
@@ -395,9 +396,9 @@ export class GameFacade {
                 params = this.pendingTargets[0];
             }
 
-            const success = this.game.useAbility(this.activeAbilityId, params);
+            const success = this.game.useAbility(this._activeAbilityId, params);
             if (success) {
-                this.activeAbilityId = null;
+                this._activeAbilityId = null;
                 this.pendingTargets = [];
             } else {
                 this.pendingTargets = [];
@@ -409,8 +410,33 @@ export class GameFacade {
     }
 
     public cancelAbility() {
-        this.activeAbilityId = null;
+        this._activeAbilityId = null;
         this.pendingTargets = [];
+        this.notify();
+    }
+
+    public get activeAbilityId(): string | null {
+        return this._activeAbilityId;
+    }
+
+    public get orientation(): number {
+        return this.game.orientation;
+    }
+
+    public rotateBoard(): boolean {
+        // In Local Match: Directly call game.rotateBoard
+        // In Online Match: This should be handled by Engine/Server, but Facade usually wraps local game logic.
+        // For now, allow local execution.
+        const result = this.game.rotateBoard();
+        if (result) {
+            this.notify();
+        }
+        return result;
+    }
+
+    public resign() {
+        if (this.game.phase !== 'playing') return;
+        this.game.resign(this.game.turn);
         this.notify();
     }
 
@@ -497,6 +523,10 @@ export class GameFacade {
 
         if (payload.matchConfig) {
             this.game.matchConfig = payload.matchConfig;
+        }
+
+        if (payload.orientation !== undefined) {
+            this.game.orientation = payload.orientation;
         }
 
         this.notify();

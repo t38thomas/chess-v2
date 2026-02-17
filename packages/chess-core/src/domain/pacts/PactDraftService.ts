@@ -5,10 +5,10 @@ export class PactDraftService {
      * Generates a list of pact choices based on the number requested and a seed.
      * If no seed is provided, it uses Math.random().
      */
-    public static generateChoices(count: number, seed?: string): Pact[] {
+    public static generateChoices(count: number, seed?: string, excludeIds: string[] = []): Pact[] {
         if (count <= 0) return [];
 
-        const available = [...PACT_CARDS];
+        const available = PACT_CARDS.filter(p => !excludeIds.includes(p.id));
         const result: Pact[] = [];
         const rng = this.createRNG(seed);
 
@@ -23,8 +23,8 @@ export class PactDraftService {
     /**
      * Automatically assigns pacts to a player.
      */
-    public static autoAssign(count: number, seed?: string): Pact[] {
-        return this.generateChoices(count, seed);
+    public static autoAssign(count: number, seed?: string, excludeIds: string[] = []): Pact[] {
+        return this.generateChoices(count, seed, excludeIds);
     }
 
     /**

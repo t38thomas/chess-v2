@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Platform, Switch } from 'react-native';
 import { Text } from '../ui/components/Text';
 import { Icon } from '../ui/components/Icon';
 import { IconButton } from '../ui/components/IconButton';
@@ -39,6 +39,10 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
 
     const updatePactChoices = (val: number) => {
         setConfig(prev => ({ ...prev, pactChoicesAtStart: Math.max(1, Math.min(5, val)) }));
+    };
+
+    const toggleRotation = (val: boolean) => {
+        setConfig(prev => ({ ...prev, enableTurnRotate90: val }));
     };
 
     const Stepper = ({ value, onIncrement, onDecrement, min, max, label }: {
@@ -133,6 +137,23 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                             onIncrement={() => updatePactChoices(config.pactChoicesAtStart + 1)}
                             onDecrement={() => updatePactChoices(config.pactChoicesAtStart - 1)}
                         />
+
+                        <View style={{ height: spacing[8] }} />
+
+                        <View style={[styles.switchRow, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+                            <View style={{ flex: 1 }}>
+                                <Text variant="body" bold>{t('matchConfig.enableTurnRotate90.label' as any)}</Text>
+                                <Text variant="caption" color="secondary" style={{ marginTop: 4 }}>
+                                    {t('matchConfig.enableTurnRotate90.desc' as any)}
+                                </Text>
+                            </View>
+                            <Switch
+                                value={config.enableTurnRotate90 || false}
+                                onValueChange={toggleRotation}
+                                trackColor={{ false: colors.border, true: colors.primary }}
+                                thumbColor={Platform.OS === 'android' ? colors.surface : ''}
+                            />
+                        </View>
 
                         <View style={styles.explanationBox}>
                             <Text variant="body" color="secondary" style={{ textAlign: 'center', fontStyle: 'italic' }}>
@@ -257,5 +278,12 @@ const styles = StyleSheet.create({
     },
     desktopHelp: {
         width: 300,
+    },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
     }
 });

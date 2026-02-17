@@ -28,7 +28,7 @@ describe('The Timekeeper', () => {
         };
 
         // Mock execute if needed, but we are testing the class providing execute
-        const result = timeStop.activeAbility!.execute(context);
+        const result = timeStop.activeAbility!.execute(context, {});
 
         expect(result).toBe(true);
         expect(game.extraTurns['white']).toBe(initialExtraTurns + 1);
@@ -53,7 +53,7 @@ describe('The Timekeeper', () => {
             pactId: 'time_stop'
         };
 
-        timeStop.activeAbility!.execute(context);
+        timeStop.activeAbility!.execute(context, {});
 
         // Should have 1 pawn left (4 - 3 = 1)
         whitePawns = game.board.getAllSquares()
@@ -77,7 +77,7 @@ describe('The Timekeeper', () => {
             pactId: 'time_stop'
         };
 
-        timeStop.activeAbility!.execute(context);
+        timeStop.activeAbility!.execute(context, {});
 
         // Should have 0 pawns left
         whitePawns = game.board.getAllSquares()

@@ -36,12 +36,21 @@ export const GameEndModal: React.FC<GameEndModalProps> = ({
         if (status === 'draw') {
             return t('game.draw');
         }
+        if (status === 'resignation') {
+            // return t('game.resignation'); // Ensure we have this key or use a generic one
+            return t('game.gameOver'); // Check translation keys
+        }
         return t('game.gameOver');
     };
 
     const getMessage = () => {
-        if (status === 'checkmate' && winner) {
+        if ((status === 'checkmate' || status === 'resignation') && winner) {
             const winnerName = winner === 'white' ? t('common.white') : t('common.black');
+            if (status === 'resignation') {
+                // return t('game.resignationMessage', { winner: winnerName });
+                // Fallback if no specific key
+                return `${winnerName} ${t('game.wonByResignation')}`;
+            }
             return t('game.winnerMessage', { winner: winnerName });
         }
         if (status === 'stalemate') {
@@ -52,6 +61,7 @@ export const GameEndModal: React.FC<GameEndModalProps> = ({
 
     const getIcon = () => {
         if (status === 'checkmate') return 'trophy';
+        if (status === 'resignation') return 'flag';
         return 'handshake';
     };
 

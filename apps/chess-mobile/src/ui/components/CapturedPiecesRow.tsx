@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { PieceCount } from '../viewmodels/CapturedPiecesViewModel';
-import { PieceMini } from './PieceMini';
-import { MaterialAdvantageBadge } from './MaterialAdvantageBadge';
 import { PieceColor } from 'chess-core';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { PieceCount } from '../viewmodels/CapturedPiecesViewModel';
+import { MaterialAdvantageBadge } from './MaterialAdvantageBadge';
+import { PieceMini } from './PieceMini';
 
-import { Text } from './Text';
 import { useTheme } from '../theme';
+import { Text } from './Text';
 
 interface CapturedPiecesRowProps {
     pieces: PieceCount[];
@@ -29,7 +29,7 @@ export const CapturedPiecesRow: React.FC<CapturedPiecesRowProps> = ({
     const { colors, spacing } = useTheme();
 
     return (
-        <View style={[styles.container, style, { minHeight }]}>
+        <View style={[styles.container, { backgroundColor: colors.boardDark }, style, { minHeight }]}>
             {label && (
                 <Text variant="caption" color="secondary" style={styles.label}>
                     {label}
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingRight: 12,
+        padding: 14
     }
 });

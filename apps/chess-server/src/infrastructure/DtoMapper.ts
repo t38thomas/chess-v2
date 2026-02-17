@@ -49,7 +49,8 @@ export class DtoMapper {
                     connected: match.players.find(p => p.color === 'black')!.isConnected
                 } : { connected: false }
             },
-            matchConfig: game.matchConfig
+            matchConfig: game.matchConfig,
+            orientation: game.orientation
         };
     }
 }

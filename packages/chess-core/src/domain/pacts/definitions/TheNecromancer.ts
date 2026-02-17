@@ -13,7 +13,7 @@ export class NecromancerBonus extends PactLogic {
         icon: 'refresh',
         maxUses: 1,
         targetType: 'none',
-        execute: (context: PactContext) => {
+        execute: (context: PactContext, params: any) => {
             const { game, playerId } = context;
 
             // Find last captured piece belonging to playerId

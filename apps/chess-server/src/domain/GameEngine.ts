@@ -1,4 +1,4 @@
-import { Coordinate, PieceType, PACT_CARDS } from 'chess-core';
+import { Coordinate, PieceType, PACT_CARDS, ChessGame } from 'chess-core';
 import { Match } from './Match';
 
 export interface MakeMovePayload {
@@ -32,7 +32,12 @@ export interface UseAbilityAction {
     playerId: string;
 }
 
-export type Action = MakeMoveAction | ResignAction | AssignPactAction | UseAbilityAction;
+export interface RotateBoardAction {
+    type: 'rotateBoard';
+    playerId: string;
+}
+
+export type Action = MakeMoveAction | ResignAction | AssignPactAction | UseAbilityAction | RotateBoardAction;
 
 export interface GameEngineResult {
     events: string[];
@@ -47,9 +52,23 @@ export class GameEngine {
                 return this.handleAssignPact(match, action.payload.pactId, action.playerId);
             case 'useAbility':
                 return this.handleUseAbility(match, action.payload, action.playerId);
+            case 'rotateBoard':
+                return this.handleRotateBoard(match, action.playerId);
             case 'resign':
-                throw new Error("Resign not implemented in engine yet");
+                return this.handleResign(match, action.playerId);
         }
+    }
+
+    private static handleResign(match: Match, playerId: string): GameEngineResult {
+        const { game } = match;
+        const player = match.players.find(p => p.id === playerId);
+        if (!player) throw new Error("Player not in match");
+
+        game.resign(player.color as any); // cast if needed, but match.players should have color
+
+        return {
+            events: ['resignation', 'game_over']
+        };
     }
 
     private static handleAssignPact(match: Match, pactId: string, playerId: string): GameEngineResult {
@@ -106,6 +125,30 @@ export class GameEngine {
 
         return {
             events: ['abilityActivated']
+        };
+    }
+
+    private static handleRotateBoard(match: Match, playerId: string): GameEngineResult {
+        const { game } = match;
+        const player = match.players.find(p => p.id === playerId);
+        if (!player) throw new Error("Player not in match");
+        if (player.color !== game.turn) throw new Error("Not your turn");
+
+        if (!game.matchConfig.enableTurnRotate90) {
+            throw new Error("Turn rotation not enabled in this match");
+        }
+
+        console.log('DEBUG: game object keys:', Object.keys(game));
+        console.log('DEBUG: game instance of ChessGame:', game instanceof ChessGame);
+        console.log('DEBUG: rotateBoard type:', typeof (game as any).rotateBoard);
+        const success = game.rotateBoard();
+        if (!success) {
+            // Could strictly be "Game rejected it" (e.g. causes check?)
+            throw new Error("Illegal rotation");
+        }
+
+        return {
+            events: ['boardRotated', 'turnChanged'] // 'turnChanged' implicit in stateSync but adding explicit event helps
         };
     }
 }

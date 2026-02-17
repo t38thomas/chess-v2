@@ -66,8 +66,11 @@ export const useOnlineGame = () => {
 
         // Listeners
         const unsubState = client.on('stateSync', (payload: StateSyncPayload) => {
+            console.log('[useOnlineGame] Received stateSync, orientation:', payload.orientation);
             facade.syncState(payload);
-            setViewModel(facade.getViewModel());
+            const newVm = facade.getViewModel();
+            console.log('[useOnlineGame] New ViewModel orientation:', newVm.orientation);
+            setViewModel(newVm);
             setAvailableAbilities(facade.getAvailableAbilities());
             setPlayers({
                 white: {
@@ -170,6 +173,25 @@ export const useOnlineGame = () => {
         });
     }, [client]);
 
+    const rotateBoard = useCallback(async () => {
+        try {
+            await client.rotateBoard();
+            // Optimistic update?
+            // The server will send a stateSync or boardRotated event.
+            // For now, wait for server.
+        } catch (e) {
+            console.error("Failed to rotate board", e);
+        }
+    }, [client]);
+
+    const resign = useCallback(async () => {
+        try {
+            await client.resign();
+        } catch (e) {
+            console.error("Failed to resign online", e);
+        }
+    }, [client]);
+
     return {
         isConnected,
         matchId,
@@ -182,6 +204,8 @@ export const useOnlineGame = () => {
         createMatch,
         joinMatch,
         toggleOrientation,
+        rotateBoard,
+        resign,
         username,
         updateUsername,
         players,
@@ -193,6 +217,7 @@ export const useOnlineGame = () => {
         availableAbilities,
         phase: viewModel.phase,
         pacts: viewModel.pacts,
+        orientation: viewModel.orientation || 0,
         leaveMatch: async () => {
             setMatchId(null);
             setJoinCode(null);

@@ -5,9 +5,9 @@ import { Pact } from './models/Pact';
 import { Coordinate } from './models/Coordinate';
 import { MatchConfig } from './models/MatchConfig';
 
-export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw';
+export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw' | 'resignation';
 export type GamePhase = 'setup' | 'playing' | 'game_over';
-export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start' | 'pact_effect';
+export type GameEvent = 'move' | 'capture' | 'check' | 'checkmate' | 'stalemate' | 'draw' | 'castle' | 'promotion' | 'phase_change' | 'pact_assigned' | 'ability_activated' | 'turn_start' | 'pact_effect' | 'board_rotated';
 
 export interface IChessGame {
     matchConfig: MatchConfig;
@@ -25,8 +25,10 @@ export interface IChessGame {
     extraTurns: Record<PieceColor, number>;
     kingMoves: Record<PieceColor, number>;
     enPassantTarget: Coordinate | null;
+    orientation: number; // 0, 1, 2, 3 (clockwise rotations)
 
     emit(event: GameEvent, payload?: any): void;
     undo(): boolean;
+    rotateBoard(): boolean;
     // Methods used by rules/pacts could also be added here if necessary
 }

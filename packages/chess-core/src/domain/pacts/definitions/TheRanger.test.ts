@@ -109,7 +109,7 @@ describe('The Ranger Pact', () => {
 
             // Activate Snipe ability
             const context = { game, playerId: 'white' as const, pactId: 'snipe' };
-            bonus.activeAbility.execute(context);
+            bonus.activeAbility.execute(context, {});
             expect(game.pactState['ranger_snipe_active_white']).toBe(true);
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);

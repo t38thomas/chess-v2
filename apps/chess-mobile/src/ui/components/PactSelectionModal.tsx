@@ -35,6 +35,8 @@ interface PactSelectionModalProps {
     onSelect: (pact: Pact) => void;
     choicesCount?: number;
     seed?: string;
+    excludeIds?: string[];
+    roundIndex?: number;
 }
 
 export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
@@ -42,7 +44,9 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
     color,
     onSelect,
     choicesCount = 3,
-    seed
+    seed,
+    excludeIds = [],
+    roundIndex = 0
 }) => {
     const [options, setOptions] = useState<Pact[]>([]);
     const [searchText, setSearchText] = useState('');
@@ -67,11 +71,15 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                 setOptions(filtered);
             } else {
                 // Use the configured number of choices
-                const choices = PactDraftService.generateChoices(choicesCount, seed ? `${seed}-${color}` : undefined);
+                const choices = PactDraftService.generateChoices(
+                    choicesCount,
+                    seed ? `${seed}-${color}-${roundIndex}` : undefined,
+                    excludeIds
+                );
                 setOptions(choices);
             }
         }
-    }, [visible, color, searchText, translatePact, choicesCount, seed]);
+    }, [visible, color, searchText, translatePact, choicesCount, seed, roundIndex, excludeIds]);
 
     if (!visible) return null;
 

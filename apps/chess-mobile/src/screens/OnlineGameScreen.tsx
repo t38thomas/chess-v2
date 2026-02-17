@@ -35,7 +35,10 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
         pacts,
         leaveMatch,
         useAbility,
-        availableAbilities
+        availableAbilities,
+        rotateBoard,
+        orientation,
+        resign
     } = useOnlineGame();
 
     const [joinCodeInput, setJoinCodeInput] = useState('');
@@ -121,10 +124,13 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
             pendingPromotion={pendingPromotion}
             availableAbilities={availableAbilities}
             onRotate={toggleOrientation}
+            onRotateBoard={rotateBoard}
+            orientation={orientation}
             onLeaveMatch={handleBack}
             onUseAbility={useAbility}
             onCompletePromotion={completePromotion}
             onAssignPact={assignPact}
+            onResign={players[playerColor || 'white']?.connected ? resign : undefined}
         />
     );
 };

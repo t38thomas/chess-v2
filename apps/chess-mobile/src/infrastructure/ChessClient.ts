@@ -119,6 +119,14 @@ export class ChessClient {
         return this.request<void>('useAbility', { abilityId, params });
     }
 
+    async rotateBoard(): Promise<void> {
+        return this.request<void>('rotateBoard', {});
+    }
+
+    async resign(): Promise<void> {
+        return this.request<void>('resign', {});
+    }
+
     private send<T>(type: MessageType, payload: T, requestId?: string) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const envelope: Envelope<T> = { type, payload, requestId };

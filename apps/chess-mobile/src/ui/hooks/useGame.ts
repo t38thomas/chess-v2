@@ -48,14 +48,15 @@ export const useGame = (matchConfig?: MatchConfig) => {
         setReversed(prev => !prev);
     }, []);
 
-    const handleUndo = useCallback(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        facade.undo();
-    }, [facade]);
+
 
     const handleJumpToMove = useCallback((index: number) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         facade.jumpToMove(index);
+    }, [facade]);
+
+    const handleResign = useCallback(() => {
+        facade.resign();
     }, [facade]);
 
     // Derived state
@@ -83,7 +84,7 @@ export const useGame = (matchConfig?: MatchConfig) => {
         reversed,
         handleSquarePress,
         resetGame,
-        undo: handleUndo,
+
         jumpToMove: handleJumpToMove,
         toggleOrientation,
         completePromotion,
@@ -99,5 +100,13 @@ export const useGame = (matchConfig?: MatchConfig) => {
         activeAbilityId: viewModel.activeAbilityId,
         pendingTargets: viewModel.pendingTargets,
         subscribeToGameEvents: useCallback((listener: (event: any, payload?: any) => void) => facade.subscribeToGameEvents(listener), [facade]),
+        orientation: facade.orientation,
+        rotateBoard: useCallback(() => {
+            facade.rotateBoard();
+            // Force update UI since rotation might not trigger board model change directly if not subscribed?
+            // Facade should emit change or we should get new ViewModel.
+            // setViewModel(facade.getViewModel()); // Should be handled by subscription
+        }, [facade]),
+        resign: handleResign
     };
 }

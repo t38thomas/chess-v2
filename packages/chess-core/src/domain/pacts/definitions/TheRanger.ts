@@ -15,7 +15,7 @@ export class RangerBonus extends PactLogic {
         icon: 'crosshairs',
         targetType: 'none' as const,
         repeatable: true,
-        execute: (context: PactContext) => {
+        execute: (context: PactContext, params: any) => {
             const state = context.game.pactState;
             const key = `ranger_snipe_active_${context.playerId}`;
             state[key] = !state[key];

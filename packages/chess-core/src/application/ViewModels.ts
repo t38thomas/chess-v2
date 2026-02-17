@@ -40,6 +40,7 @@ export interface BoardViewModel {
     activeAbilityId?: string | null;
     pendingTargets?: { x: number; y: number }[];
     turnCounters?: Record<PieceColor, TurnCounter[]>;
+    orientation?: number;
     capturedPieces: Record<PieceColor, { type: PieceType; color: PieceColor; id: string }[]>;
     matchConfig?: MatchConfig;
 }

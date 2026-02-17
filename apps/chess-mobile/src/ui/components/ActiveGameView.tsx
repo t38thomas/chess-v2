@@ -33,11 +33,14 @@ interface ActiveGameViewProps {
     phase: string;
     pendingPromotion: any;
     availableAbilities: string[];
-    onRotate: () => void;
+    onRotate: () => void; // Camera rotation (local)
+    onRotateBoard?: () => void; // Game action
+    orientation?: number; // Game state
     onLeaveMatch: () => void;
     onUseAbility: (abilityId: string) => void;
     onCompletePromotion: (piece: string) => void;
     onAssignPact: (pact: Pact) => void;
+    onResign?: () => void;
 }
 
 export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
@@ -54,10 +57,13 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     pendingPromotion,
     availableAbilities,
     onRotate,
+    onRotateBoard,
+    orientation = 0,
     onLeaveMatch,
     onUseAbility,
     onCompletePromotion,
     onAssignPact,
+    onResign
 }) => {
     const { spacing, colors } = useTheme();
     const { t } = useTranslation();
@@ -208,6 +214,16 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                     onPress={onRotate}
                     fullWidth
                 />
+                {onRotateBoard && viewModel.matchConfig?.enableTurnRotate90 && (
+                    <Button
+                        label={t('game.rotateBoard' as any)}
+                        onPress={onRotateBoard}
+                        variant="secondary"
+                        icon="rotate-right"
+                        disabled={phase !== 'playing' || (turn !== playerColor)}
+                        fullWidth
+                    />
+                )}
                 <Button
                     label={t('game.leaveMatch')}
                     variant="destructive"
@@ -215,6 +231,16 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                     onPress={onLeaveMatch}
                     fullWidth
                 />
+                {onResign && (
+                    <Button
+                        label={t('game.resign')}
+                        variant="destructive"
+                        icon="flag"
+                        onPress={onResign}
+                        fullWidth
+                        style={{ marginTop: 12 }}
+                    />
+                )}
             </View>
         </View>
     );
@@ -229,7 +255,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         <CapturedPiecesRow
                             pieces={capturedPieces.topRow.pieces}
                             advantage={capturedPieces.topRow.advantageBadge}
-                            label={t(capturedPieces.topRow.labelKey as any)}
+                            // label={t(capturedPieces.topRow.labelKey as any)}
                             pieceColor={playerColor === 'white' ? 'black' : 'white'}
                             style={{ marginBottom: spacing[2] }}
                         />
@@ -239,11 +265,12 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                             reversed={reversed}
                             invertPieces={invertPieces}
                             size={boardSize}
+                            orientation={orientation}
                         />
                         <CapturedPiecesRow
                             pieces={capturedPieces.bottomRow.pieces}
                             advantage={capturedPieces.bottomRow.advantageBadge}
-                            label={t(capturedPieces.bottomRow.labelKey as any)}
+                            // label={t(capturedPieces.bottomRow.labelKey as any)}
                             pieceColor={playerColor}
                             style={{ marginTop: spacing[2] }}
                         />
@@ -265,6 +292,8 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 onSelect={onAssignPact}
                 choicesCount={viewModel.matchConfig?.pactChoicesAtStart}
                 seed={viewModel.matchConfig?.seed}
+                roundIndex={viewModel.matchConfig?.activePactsMax ? (viewModel.matchConfig.activePactsMax > 1 ? pacts[playerColor].length : 0) : 0}
+                excludeIds={pacts[playerColor].map(p => p.id)}
             />
 
             <PactDetailsModal

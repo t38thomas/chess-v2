@@ -6,6 +6,7 @@ import { Text } from '../ui/components/Text';
 import { Button } from '../ui/components/Button';
 import { Card } from '../ui/components/Card';
 import { Icon } from '../ui/components/Icon';
+import { IconButton } from '../ui/components/IconButton';
 import { PromotionModal } from '../ui/components/PromotionModal';
 import { PactSelectionModal } from '../ui/components/PactSelectionModal';
 import { PactDetailsModal } from '../ui/components/PactDetailsModal';
@@ -35,7 +36,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
         history,
         handleSquarePress,
         resetGame,
-        undo,
         jumpToMove,
         toggleOrientation,
         reversed,
@@ -51,7 +51,10 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
         cancelAbility,
         status,
         winner,
-        subscribeToGameEvents
+        subscribeToGameEvents,
+        orientation,
+        rotateBoard,
+        resign
     } = useGame(matchConfig);
 
 
@@ -118,22 +121,36 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             {/* Active Pacts */}
             {(pacts.white.length > 0 || pacts.black.length > 0) && (
                 <Card variant="flat" padding="sm" style={{ backgroundColor: colors.surfaceHighlight }}>
-                    <Text variant="caption" color="secondary" style={{ marginBottom: 4 }}>{t('game.activePacts')}</Text>
-                    <View style={styles.pactsList}>
-                        {[...pacts.white, ...pacts.black].map((pact, idx) => {
-                            const translated = translatePact(pact);
-                            return (
-                                <TouchableOpacity
-                                    key={idx}
-                                    style={styles.pactBadge}
-                                    onPress={() => setSelectedPact(pact)}
-                                >
-                                    <Icon name={pact.bonus.icon as any} size={14} color={colors.primary} />
-                                    <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
+                    <Text variant="caption" color="secondary" style={{ marginBottom: 8 }}>{t('game.activePacts')}</Text>
+
+                    {[
+                        { color: turn, label: t('game.yourPacts'), pactItems: pacts[turn] },
+                        { color: turn === 'white' ? 'black' : 'white', label: t('game.opponentPacts'), pactItems: pacts[turn === 'white' ? 'black' : 'white'] }
+                    ].map((section, sIdx) => {
+                        if (section.pactItems.length === 0) return null;
+                        return (
+                            <View key={sIdx} style={{ marginBottom: sIdx === 0 ? 8 : 0 }}>
+                                <Text variant="caption" bold color={section.color === turn ? "primary" : "secondary"} style={{ fontSize: 9, marginBottom: 4 }}>
+                                    {section.label}
+                                </Text>
+                                <View style={styles.pactsList}>
+                                    {section.pactItems.map((pact, idx) => {
+                                        const translated = translatePact(pact);
+                                        return (
+                                            <TouchableOpacity
+                                                key={idx}
+                                                style={styles.pactBadge}
+                                                onPress={() => setSelectedPact(pact)}
+                                            >
+                                                <Icon name={pact.bonus.icon as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        );
+                    })}
                 </Card>
             )}
 
@@ -184,30 +201,21 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
 
             {/* Controls */}
             <View style={styles.controlsContainer}>
-                <View style={styles.buttonRow}>
+                {matchConfig.enableTurnRotate90 && (
                     <Button
-                        label={t('game.undo')}
-                        variant="ghost"
-                        icon="undo"
-                        disabled={history.length === 0}
-                        onPress={undo}
-                        style={{ flex: 1 }}
-                    />
-                    <Button
-                        label={t('game.rotate')}
+                        label={t('game.rotateBoard' as any)}
+                        onPress={rotateBoard}
                         variant="secondary"
-                        icon="rotate-3d-variant"
-                        onPress={toggleOrientation}
-                        style={{ flex: 1 }}
+                        icon="rotate-right"
+                        disabled={phase !== 'playing' || status !== 'active'}
+                        style={{ marginBottom: spacing[2] }}
                     />
+                )}
+                <View style={styles.buttonRow}>
+                    <IconButton icon="flag" onPress={() => resign()} />
+                    <IconButton icon="rotate-3d-variant" onPress={toggleOrientation} />
+                    <IconButton icon="restart" onPress={resetGame} />
                 </View>
-                <Button
-                    label={t('game.newGame')}
-                    variant="destructive"
-                    icon="restart"
-                    onPress={resetGame}
-                    fullWidth
-                />
             </View>
         </View>
     );
@@ -222,7 +230,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                         <CapturedPiecesRow
                             pieces={capturedPieces.topRow.pieces}
                             advantage={capturedPieces.topRow.advantageBadge}
-                            label={t(capturedPieces.topRow.labelKey as any)}
+                            // label={t(capturedPieces.topRow.labelKey as any)}
                             pieceColor="white"
                             style={{ marginBottom: spacing[2] }}
                         />
@@ -232,11 +240,12 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                             reversed={reversed}
                             invertPieces={invertPieces}
                             size={boardSize}
+                            orientation={orientation}
                         />
                         <CapturedPiecesRow
                             pieces={capturedPieces.bottomRow.pieces}
                             advantage={capturedPieces.bottomRow.advantageBadge}
-                            label={t(capturedPieces.bottomRow.labelKey as any)}
+                            // label={t(capturedPieces.bottomRow.labelKey as any)}
                             pieceColor="black"
                             style={{ marginTop: spacing[2] }}
                         />
@@ -258,6 +267,8 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 onSelect={(pact) => assignPact(turn, pact)}
                 choicesCount={matchConfig.pactChoicesAtStart}
                 seed={matchConfig.seed}
+                roundIndex={matchConfig.activePactsMax > 1 ? pacts[turn].length : 0}
+                excludeIds={pacts[turn].map(p => p.id)}
             />
 
             <PactDetailsModal

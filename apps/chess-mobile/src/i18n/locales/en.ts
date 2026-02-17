@@ -80,6 +80,10 @@ export const en = {
         help: {
             title: 'How do Pacts work?',
             desc: 'Every pact consists of a Bonus (power-up) and a Malus (penalty). Choose wisely!',
+        },
+        enableTurnRotate90: {
+            label: 'Enable Board Rotation',
+            desc: 'Players can spend a turn to rotate the board 90 degrees.',
         }
     },
     cta: {
@@ -91,6 +95,8 @@ export const en = {
         opponentTurn: "{player}'s Turn",
         rotateBoard: 'Rotate Board',
         resign: 'Resign',
+        wonByResignation: 'won by resignation',
+        resignation: 'Resignation',
         offerDraw: 'Offer Draw',
         drawAccepted: 'Draw Accepted',
         check: 'Check',
@@ -103,7 +109,7 @@ export const en = {
         activePacts: 'ACTIVE PACTS',
         moveHistory: 'Move History',
         noMoves: 'No moves played',
-        undo: 'Undo',
+
         rotate: 'Rotate',
         newGame: 'New Game',
         localGame: 'Local Game',

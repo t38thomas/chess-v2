@@ -31,7 +31,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 1));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' });
+            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 1))?.piece?.id).toBe('white-pawn-0');
@@ -48,7 +48,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 0));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' });
+            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 0))?.piece?.id).toBe('white-rook-0');
@@ -65,7 +65,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(7, 0));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' });
+            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(7, 0))?.piece?.id).toBe('white-rook-7');

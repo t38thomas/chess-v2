@@ -83,7 +83,9 @@ export function setupWebSocket(wss: WebSocketServer, matchService: MatchService)
 
                     case 'makeMove':
                     case 'assignPact':
-                    case 'useAbility': {
+                    case 'useAbility':
+                    case 'rotateBoard':
+                    case 'resign': {
                         if (!currentMatchId || !currentPlayerId) {
                             throw new Error("Not joined to a match");
                         }

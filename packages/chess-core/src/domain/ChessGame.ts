@@ -18,6 +18,7 @@ export class ChessGame implements IChessGame {
     public turn: PieceColor;
     public history: Move[];
     public status: GameStatus;
+    public winner?: PieceColor; // Added winner property
     public phase: GamePhase;
     public readonly pacts: Record<PieceColor, Pact[]> = { white: [], black: [] };
     public readonly perkUsage: Record<PieceColor, Set<string>> = { white: new Set(), black: new Set() };
@@ -29,6 +30,7 @@ export class ChessGame implements IChessGame {
     public kingMoves: Record<PieceColor, number> = { white: 0, black: 0 };
     public lastMovedPiecePos: Coordinate | null = null;
     public enPassantTarget: Coordinate | null; // Square vulnerable to en passant
+    public orientation: number = 0; // 0, 1, 2, 3 (clockwise)
     private listeners: ((event: GameEvent, payload?: any) => void)[] = [];
     constructor(config: MatchConfig = DEFAULT_MATCH_CONFIG) {
         PactFactory.initialize();
@@ -46,7 +48,9 @@ export class ChessGame implements IChessGame {
         this.perkUsage.white.clear();
         this.perkUsage.black.clear();
         this.capturedPieces.white = [];
+        this.capturedPieces.white = [];
         this.capturedPieces.black = [];
+        this.orientation = 0;
     }
 
     public assignPact(color: PieceColor, pact: Pact) {
@@ -81,6 +85,24 @@ export class ChessGame implements IChessGame {
             }
         }
     }
+
+    public resign(player: PieceColor) {
+        if (this.status !== 'active' || this.phase !== 'playing') return;
+
+        this.status = 'resignation';
+        this.winner = player === 'white' ? 'black' : 'white';
+        this.emit('checkmate'); // Emit checkmate to trigger game end flows for now, or add specific event?
+        // Actually, let's keep it clean.
+        // We probably need a 'game_over' event or just rely on status change if UI subscribes to move/generic events.
+        // But 'emit' expects GameEvent. 'checkmate' or generic 'move' might not be enough.
+        // Let's add 'resignation' to GameEvent in GameTypes.ts as well? 
+        // For now, let's emit 'checkmate' as it usually signals game end, OR just rely on the UI checking status.
+        // But better:
+        this.phase = 'game_over';
+        this.emit('checkmate'); // Using checkmate as proxy for "game ended with a winner" for listeners that might not know about resignation yet.
+    }
+
+
 
     public useAbility(abilityId: string, params?: any): boolean {
         if (this.phase !== 'playing') return false;
@@ -322,6 +344,61 @@ export class ChessGame implements IChessGame {
         return true;
     }
 
+    public rotateBoard(): boolean {
+        if (!this.matchConfig.enableTurnRotate90) return false;
+        if (this.phase !== 'playing') return false;
+
+        // Apply rotation
+        const previousOrientation = this.orientation;
+        this.orientation = (this.orientation + 1) % 4;
+
+        // Verify if rotation leaves King in check (which is allowed if it removes an existing check,
+        // but wait: User said "La rotazione può essere usata anche se sei sotto scacco: se ruotando lo scacco scompare, è una action legale.")
+        // Implicitly: If you are NOT in check, and rotate, and end up IN check, is it legal?
+        // Usually NO. You cannot make a move that puts you in check.
+
+        if (this.isInCheck(this.turn)) {
+            // Revert
+            this.orientation = previousOrientation;
+            return false;
+        }
+
+        // Action successful
+        this.totalTurns++;
+        this.emit('move'); // Reuse 'move' generic or add 'board_rotated'?
+        // 'move' implies a piece moved. Let's send a generic State update or specific event?
+        // GameEvent has 'move', 'phase_change', etc.
+        // Let's rely on 'turn_start' mainly, but payload might be needed.
+        // Easiest: emit('move', { type: 'rotate' }) mockup?
+        // Better: Add 'board_rotated' to GameEvent? 
+        // Types TS allows string, but let's stick to existing or just emit change.
+
+        // Use 'pact_effect' as a generic "something happened" or just rely on state sync?
+        // Ideally we added 'board_rotated' to GameEvent but I didn't edit GameEvent string union yet.
+        // Let's double check GameTypes.
+
+        // Update Game Status (checkmate etc)
+        this.updateGameStatus();
+
+        // Turn Economy
+        const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
+        this.turn = RuleEngine.getNextTurn(this, this.turn, 'move', playerPacts);
+
+        // Cooldowns
+        const pieces = this.board.getAllSquares().map(s => s.piece).filter(p => p !== null);
+        pieces.forEach(p => {
+            if (p && p.color === this.turn) {
+                const cd = this.pieceCooldowns.get(p.id) || 0;
+                if (cd > 0) {
+                    this.pieceCooldowns.set(p.id, cd - 1);
+                }
+            }
+        });
+
+        this.emit('turn_start', this.turn);
+        return true;
+    }
+
     private updateGameStatus(): void {
         // Fix for Swarm Malus: Do not overwrite if already Checkmate/GameOver by a Pact
         if (this.status === 'checkmate' || this.phase === 'game_over') return;
@@ -426,6 +503,8 @@ export class ChessGame implements IChessGame {
         this.perkUsage.black.clear();
         this.capturedPieces.white = [];
         this.capturedPieces.black = [];
+        this.capturedPieces.black = [];
+        this.orientation = 0;
     }
 
     public jumpToMove(index: number): boolean {

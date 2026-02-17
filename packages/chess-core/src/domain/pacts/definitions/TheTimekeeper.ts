@@ -13,7 +13,7 @@ export class TimeStopBonus extends PactLogic {
         icon: 'clock-fast',
         maxUses: 1,
         targetType: 'none',
-        execute: (context: PactContext) => {
+        execute: (context: PactContext, params: any) => {
             const { game, playerId } = context;
 
             // 1. Grant extra turn

@@ -82,6 +82,10 @@ export const it: Translations = {
         help: {
             title: 'Come funzionano i Patti?',
             desc: 'Ogni patto include un Bonus (potenziamento) e un Malus (penalità). Scegli saggiamente!',
+        },
+        enableTurnRotate90: {
+            label: 'Abilita Rotazione Scacchiera',
+            desc: 'I giocatori possono spendere un turno per ruotare la scacchiera di 90 gradi.',
         }
     },
     cta: {
@@ -93,6 +97,8 @@ export const it: Translations = {
         opponentTurn: "Turno di {player}",
         rotateBoard: 'Ruota Scacchiera',
         resign: 'Abbandona',
+        wonByResignation: 'ha vinto per abbandono',
+        resignation: 'Resa',
         offerDraw: 'Offri Patta',
         drawAccepted: 'Patta Accettata',
         check: 'Scacco',
@@ -105,7 +111,7 @@ export const it: Translations = {
         activePacts: 'PATTI ATTIVI',
         moveHistory: 'Cronologia Mosse',
         noMoves: 'Nessuna mossa giocata',
-        undo: 'Annulla',
+
         rotate: 'Ruota',
         newGame: 'Nuova Partita',
         localGame: 'Partita Locale',

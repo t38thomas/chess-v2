@@ -12,7 +12,7 @@ interface PieceMiniProps {
     size?: number;
 }
 
-export const PieceMini: React.FC<PieceMiniProps> = ({ kind, count, color, size = 20 }) => {
+export const PieceMini: React.FC<PieceMiniProps> = ({ kind, count, color, size = 30 }) => {
     const { colors } = useTheme();
 
     return (

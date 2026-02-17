@@ -107,6 +107,7 @@ export interface StateSyncPayload {
         black: { connected: boolean; username?: string };
     };
     matchConfig?: MatchConfig;
+    orientation?: number;
 }
 
 export interface MoveAcceptedPayload {

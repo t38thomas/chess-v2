@@ -12,7 +12,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/context/ToastContext';
 import { ToastContainer } from './src/ui/components/ToastContainer';
 import { GameSettingsProvider } from './src/context/GameSettingsContext';
-import { MatchConfigScreen } from 'src/screens/MatchConfigScreen';
+import { MatchConfigScreen } from './src/screens/MatchConfigScreen';
 
 type Screen = 'home' | 'matchConfig' | 'local' | 'online';
 
