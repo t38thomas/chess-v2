@@ -107,6 +107,7 @@ export const en = {
         moves_other: '{count} Moves',
         turnLabel: 'TURN',
         activePacts: 'ACTIVE PACTS',
+        sharedCounters: 'GLOBAL INDICATORS',
         moveHistory: 'Move History',
         noMoves: 'No moves played',
 
@@ -165,18 +166,25 @@ export const en = {
         abilityActivated: 'Ability activated!',
         noMoves: 'No moves recorded yet',
         activePact: 'Active Pact',
-        queen_initial: 'Initial (Cursed)',
+        queen_initial: "Queen's Political Immunity",
         queen_successor: 'Successor (Active)',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Search for a pact...',
         gotIt: 'Got It',
+        Active: 'Active',
+        Protected: 'Protected',
         unstable_identity_progress: "Turns without capture",
         reloading: "Reloading",
         volatile_reagents_cooldown: "Cooling down",
         stunned_label: "Stunned Piece",
         pickpocket_stun_label: "Enemies Stunned",
         snipe_ready: "Snipe Ready",
+        orientation_label: 'Compass',
+        north: 'NORTH',
+        south: 'SOUTH',
+        east: 'EAST',
+        west: 'WEST',
         toasts: {
             swarm: {
                 spawn: {
@@ -413,6 +421,7 @@ export const en = {
         moveIllegal: 'Illegal Move',
         notYourTurn: 'Not your turn',
         matchEnded: 'Match has ended',
+        rotationTooEarly: 'Both players must move at least once before rotating the board'
     },
     status: {
         online: 'Online',

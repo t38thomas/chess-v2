@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, useWindowDimensions, Animated, ScrollView, TouchableOpacity, } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, ScrollView, TouchableOpacity, } from 'react-native';
 import { useGame } from '../ui/hooks/useGame';
 import { BoardView } from '../ui/components/BoardView';
 import { Text } from '../ui/components/Text';
@@ -28,6 +28,7 @@ interface GameScreenProps {
 }
 
 import { MatchConfig } from 'chess-core';
+import Animated, { useAnimatedStyle, useSharedValue, useDerivedValue, withSequence, withTiming, interpolate } from 'react-native-reanimated';
 
 export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }> = ({ onNavigateBack, matchConfig }) => {
     const {
@@ -37,8 +38,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
         handleSquarePress,
         resetGame,
         jumpToMove,
-        toggleOrientation,
-        reversed,
         isCheck,
         pendingPromotion,
         completePromotion,
@@ -69,6 +68,61 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
 
     const invertPieces = rotatePieces && turn === 'black';
 
+    // Animation Shared Values
+    const rotationProgress = useSharedValue(0);
+    const rotationRandomAngle = useSharedValue(0);
+
+    useEffect(() => {
+        // Generate a random angle between -15 and 15 degrees
+        rotationRandomAngle.value = (Math.random() * 30) - 15;
+
+        // Sequence: 0 -> 1 -> 0
+        // Duration matched to simulate board rotation duration
+        rotationProgress.value = withSequence(
+            withTiming(1, { duration: 300 }),
+            withTiming(0, { duration: 300 })
+        );
+    }, [orientation]);
+
+    // Derived Values as requested
+    const scale = useDerivedValue(() => {
+        return interpolate(rotationProgress.value, [0, 1], [1, 0.6]);
+    });
+
+    const topTranslateY = useDerivedValue(() => {
+        return interpolate(rotationProgress.value, [0, 1], [0, -30]);
+    });
+
+    const bottomTranslateY = useDerivedValue(() => {
+        return interpolate(rotationProgress.value, [0, 1], [0, 30]);
+    });
+
+    const rotate = useDerivedValue(() => {
+        return interpolate(rotationProgress.value, [0, 1], [0, rotationRandomAngle.value]);
+    });
+
+    const topBarStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateY: topTranslateY.value },
+                { scale: scale.value },
+                // { rotate: `${rotate.value}deg` }
+            ],
+            zIndex: 1, // Ensure it floats above/below if needed
+        };
+    });
+
+    const bottomBarStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateY: bottomTranslateY.value },
+                { scale: scale.value },
+                // { rotate: `${rotate.value}deg` }
+            ],
+            zIndex: 1,
+        };
+    });
+
 
     // Subscribe to game events (e.g. malus effects)
     useEffect(() => {
@@ -85,7 +139,19 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             }
         });
         return unsubscribe;
-    }, [subscribeToGameEvents, showToast]);
+    }, [subscribeToGameEvents, showToast, t]);
+
+    const handleRotateBoardAction = () => {
+        if (viewModel.totalTurns < 2) {
+            showToast({
+                title: t('errors.rotationTooEarly' as any),
+                type: 'warning',
+                icon: 'alert-circle-outline'
+            });
+            return;
+        }
+        rotateBoard();
+    };
 
 
     const gameInfoContent = (
@@ -191,11 +257,10 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 </View>
             )}
 
-            {/* Pact Turn Counters */}
             {viewModel.turnCounters && (
                 <PactTurnCounter
                     turnCounters={viewModel.turnCounters}
-                    bottomColor={reversed ? 'black' : 'white'}
+                    bottomColor="white"
                 />
             )}
 
@@ -204,7 +269,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 {matchConfig.enableTurnRotate90 && (
                     <Button
                         label={t('game.rotateBoard' as any)}
-                        onPress={rotateBoard}
+                        onPress={handleRotateBoardAction}
                         variant="secondary"
                         icon="rotate-right"
                         disabled={phase !== 'playing' || status !== 'active'}
@@ -213,7 +278,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 )}
                 <View style={styles.buttonRow}>
                     <IconButton icon="flag" onPress={() => resign()} />
-                    <IconButton icon="rotate-3d-variant" onPress={toggleOrientation} />
                     <IconButton icon="restart" onPress={resetGame} />
                 </View>
             </View>
@@ -227,28 +291,30 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 onBack={onNavigateBack}
                 board={
                     <View style={{ width: boardSize }}>
-                        <CapturedPiecesRow
-                            pieces={capturedPieces.topRow.pieces}
-                            advantage={capturedPieces.topRow.advantageBadge}
-                            // label={t(capturedPieces.topRow.labelKey as any)}
-                            pieceColor="white"
-                            style={{ marginBottom: spacing[2] }}
-                        />
+                        <Animated.View style={[topBarStyle, { marginBottom: spacing[2] }]}>
+                            <CapturedPiecesRow
+                                pieces={capturedPieces.topRow.pieces}
+                                advantage={capturedPieces.topRow.advantageBadge}
+                                // label={t(capturedPieces.topRow.labelKey as any)}
+                                pieceColor="white"
+                            />
+                        </Animated.View>
                         <BoardView
                             viewModel={viewModel}
                             onSquarePress={handleSquarePress}
-                            reversed={reversed}
+                            reversed={false}
                             invertPieces={invertPieces}
                             size={boardSize}
                             orientation={orientation}
                         />
-                        <CapturedPiecesRow
-                            pieces={capturedPieces.bottomRow.pieces}
-                            advantage={capturedPieces.bottomRow.advantageBadge}
-                            // label={t(capturedPieces.bottomRow.labelKey as any)}
-                            pieceColor="black"
-                            style={{ marginTop: spacing[2] }}
-                        />
+                        <Animated.View style={[bottomBarStyle, { marginTop: spacing[2] }]}>
+                            <CapturedPiecesRow
+                                pieces={capturedPieces.bottomRow.pieces}
+                                advantage={capturedPieces.bottomRow.advantageBadge}
+                                // label={t(capturedPieces.bottomRow.labelKey as any)}
+                                pieceColor="black"
+                            />
+                        </Animated.View>
                     </View>
                 }
                 panel={gameInfoContent}

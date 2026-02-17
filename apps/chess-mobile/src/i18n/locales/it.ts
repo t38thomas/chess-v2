@@ -109,6 +109,7 @@ export const it: Translations = {
         moves_other: '{count} Mosse',
         turnLabel: 'TURNO',
         activePacts: 'PATTI ATTIVI',
+        sharedCounters: 'INDICATORI GLOBALI',
         moveHistory: 'Cronologia Mosse',
         noMoves: 'Nessuna mossa giocata',
 
@@ -167,18 +168,25 @@ export const it: Translations = {
         abilityActivated: 'Abilità attivata!',
         noMoves: 'Nessuna mossa ancora',
         activePact: 'Patto Attivo',
-        queen_initial: 'Iniziale (Maledetta)',
+        queen_initial: 'Immunità politica della regina',
         queen_successor: 'Successore (Attiva)',
         bonusPrefix: 'BONUS: {name}',
         malusPrefix: 'MALUS: {name}',
         searchPlaceholder: 'Cerca un patto...',
         gotIt: 'Ho Capito',
+        Active: 'Attivo',
+        Protected: 'Protetto',
         unstable_identity_progress: "Turni senza cattura",
         reloading: "Ricarica",
         volatile_reagents_cooldown: "Raffreddamento",
         stunned_label: "Pezzo Stordito",
         pickpocket_stun_label: "Nemici Storditi",
         snipe_ready: "Snipe Pronto",
+        orientation_label: "Bussola",
+        north: "NORD",
+        south: "SUD",
+        east: "EST",
+        west: "OVEST",
         toasts: {
             swarm: {
                 spawn: {
@@ -416,6 +424,7 @@ export const it: Translations = {
         moveIllegal: 'Mossa Illegale',
         notYourTurn: 'Non è il tuo turno',
         matchEnded: 'Partita terminata',
+        rotationTooEarly: 'Entrambi i giocatori devono muovere almeno una volta prima di ruotare la scacchiera'
     },
     status: {
         online: 'Online',

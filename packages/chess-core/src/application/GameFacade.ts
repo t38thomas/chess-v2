@@ -157,12 +157,31 @@ export class GameFacade {
             pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y })),
             turnCounters: this.getTurnCounters(),
             matchConfig: this.game.matchConfig,
-            orientation: this.game.orientation
+            orientation: this.game.orientation,
+            totalTurns: this.game.totalTurns
         };
     }
 
-    private getTurnCounters(): Record<PieceColor, TurnCounter[]> {
-        const counters: Record<PieceColor, TurnCounter[]> = { white: [], black: [] };
+    private getTurnCounters(): Record<PieceColor | 'both', TurnCounter[]> {
+        const counters: Record<PieceColor | 'both', TurnCounter[]> = { white: [], black: [], both: [] };
+
+        // 0. Board Orientation Counter (Compass)
+        // We show it for both players if enabled
+        if (this.game.matchConfig.enableTurnRotate90) {
+            const directions = ['north', 'east', 'south', 'west'];
+            const icons = ['arrow-up', 'arrow-right', 'arrow-down', 'arrow-left'];
+            const orientation = this.game.orientation % 4;
+
+            counters.both.push({
+                id: 'board_orientation',
+                label: 'orientation_label',
+                value: orientation,
+                pactId: 'compass', // Virtual pact ID
+                type: 'counter',
+                subLabel: directions[orientation],
+                maxValue: 3
+            });
+        }
 
         ['white', 'black'].forEach(c => {
             const color = c as PieceColor;

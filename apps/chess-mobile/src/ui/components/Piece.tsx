@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { StyleSheet, TextStyle, Platform, View } from 'react-native';
+import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PieceType, PieceColor } from 'chess-core';
 import { useTheme } from '../theme';
@@ -10,9 +11,10 @@ interface PieceProps {
     color: PieceColor;
     size: number;
     reversed?: boolean;
+    boardRotation?: Readonly<Animated.SharedValue<number>>;
 }
 
-export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = false }) => {
+export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = false, boardRotation }) => {
     const { colors, shadows } = useTheme();
 
     const getIconName = (): keyof typeof MaterialCommunityIcons.glyphMap => {
@@ -48,15 +50,26 @@ export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = fals
         }
     };
 
+    const animatedPieceStyle = useAnimatedStyle(() => {
+        // We negate the board rotation to keep pieces upright relative to the screen,
+        // but we still respect the 'reversed' prop for individual piece flipping (e.g. for local face-to-face play).
+        const baseRotation = boardRotation ? -boardRotation.value : 0;
+        const extraFlip = reversed ? 180 : 0;
+
+        return {
+            transform: [{ rotate: `${baseRotation + extraFlip}deg` }]
+        };
+    });
+
     return (
-        <View style={reversed ? styles.reversed : undefined}>
+        <Animated.View style={animatedPieceStyle}>
             <MaterialCommunityIcons
                 name={getIconName()}
                 size={size * 0.8} // Occupy 80% of the square
                 color={getPieceColor()}
                 style={getStyle()}
             />
-        </View>
+        </Animated.View>
     );
 };
 

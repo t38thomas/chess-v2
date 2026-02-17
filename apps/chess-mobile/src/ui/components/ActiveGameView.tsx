@@ -16,6 +16,7 @@ import { usePactTranslation } from '../hooks/usePactTranslation';
 import { useGameSettings } from '../../context/GameSettingsContext';
 import { useCapturedPieces } from '../hooks/useCapturedPieces';
 import { CapturedPiecesRow } from './CapturedPiecesRow';
+import { useToast } from '../../context/ToastContext';
 
 interface ActiveGameViewProps {
     viewModel: BoardViewModel;
@@ -33,7 +34,6 @@ interface ActiveGameViewProps {
     phase: string;
     pendingPromotion: any;
     availableAbilities: string[];
-    onRotate: () => void; // Camera rotation (local)
     onRotateBoard?: () => void; // Game action
     orientation?: number; // Game state
     onLeaveMatch: () => void;
@@ -56,7 +56,6 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     phase,
     pendingPromotion,
     availableAbilities,
-    onRotate,
     onRotateBoard,
     orientation = 0,
     onLeaveMatch,
@@ -71,6 +70,19 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const { rotatePieces } = useGameSettings();
     const [selectedPact, setSelectedPact] = useState<Pact | null>(null);
     const capturedPieces = useCapturedPieces(viewModel);
+    const { showToast } = useToast();
+
+    const handleRotateBoard = () => {
+        if (viewModel.totalTurns < 2) {
+            showToast({
+                title: t('errors.rotationTooEarly' as any),
+                type: 'warning',
+                icon: 'alert-circle-outline'
+            });
+            return;
+        }
+        onRotateBoard?.();
+    };
 
     const invertPieces = rotatePieces && turn === 'black';
 
@@ -205,19 +217,11 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 </View>
             </Card>
 
-            {/* Controls */}
             <View style={styles.controlsContainer}>
-                <Button
-                    label={t('game.rotate')}
-                    variant="secondary"
-                    icon="rotate-3d-variant"
-                    onPress={onRotate}
-                    fullWidth
-                />
                 {onRotateBoard && viewModel.matchConfig?.enableTurnRotate90 && (
                     <Button
                         label={t('game.rotateBoard' as any)}
-                        onPress={onRotateBoard}
+                        onPress={handleRotateBoard}
                         variant="secondary"
                         icon="rotate-right"
                         disabled={phase !== 'playing' || (turn !== playerColor)}

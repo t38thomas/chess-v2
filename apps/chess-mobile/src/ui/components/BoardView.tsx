@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue, useDerivedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { BoardViewModel } from 'chess-core';
+import { BOARD_ROTATION_SPRING_CONFIG, BOARD_SCALE_SPRING_CONFIG } from '../constants/Animations';
 import { Square } from './Square';
 import { Piece } from './Piece';
 
@@ -24,37 +25,46 @@ export const BoardView: React.FC<BoardViewProps> = ({
     size,
     orientation = 0
 }) => {
-    // Rotation Animation
-    const rotation = useSharedValue(0);
+    const prevOrientation = React.useRef(orientation);
+    const rotationOffset = useSharedValue(0);
 
     useEffect(() => {
-        // Base rotation from 'reversed' (standard black view) is 180.
-        // 'orientation' adds 90deg steps.
-        // If reversed is true, we start at 180.
-        // Orientation adds to that?
-        // Let's keep them separate.
-        // Actually 'reversed' rotates 180.
-        // 'orientation' rotates 90 * orientation.
-        // Total rotation = (reversed ? 180 : 0) + (orientation * 90).
-        // OR: orientation overrides reversed?
-        // Usually 'reversed' is for "I am Black".
-        // If I am Black, I see Board rotated 180.
-        // If I use "Turn Rotate", I rotate +90.
-        // So 180 + 90 = 270.
-        // So they sum up.
-        // BUT 'reversed' uses style transform directly in existing code!
-        // I should disable the static style transform and use animated one.
+        // Calculate the difference between orientations to maintain continuity
+        // Domain logic is (current + 1) % 4
+        let diff = orientation - prevOrientation.current;
 
-        // INVERTED LOGIC: User requested orientation 1 and 3 inverted.
-        // Orientation 1 (90 CW Logic) should be displayed as -90 (CCW) rotation 
-        // to maintain "Forward is Up" perception.
-        let targetRotation = (reversed ? 180 : 0) - (orientation * 90);
-        rotation.value = withSpring(targetRotation, { damping: 15, stiffness: 100 });
-    }, [reversed, orientation, rotation]);
+        // Handle the wrap-around (3 -> 0 should be +1, 0 -> 3 should be -1)
+        if (diff === -3) diff = 1;
+        if (diff === 3) diff = -1;
+
+        rotationOffset.value += diff * 90;
+        prevOrientation.current = orientation;
+    }, [orientation]);
+
+    // Reactive Rotation Animation
+    const rotation = useDerivedValue(() => {
+        const baseRotation = (reversed ? 180 : 0);
+        // orientation-driven rotation is now cumulative via rotationOffset
+        const targetRotation = baseRotation - rotationOffset.value;
+        return withSpring(targetRotation, BOARD_ROTATION_SPRING_CONFIG);
+    });
+
+    const boardScale = useSharedValue(1);
+
+    useEffect(() => {
+        // Pulse scale down whenever board rotates
+        boardScale.value = withSequence(
+            withTiming(0.7),
+            withTiming(1)
+        );
+    }, [orientation, reversed]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
-            transform: [{ rotate: `${rotation.value}deg` }]
+            transform: [
+                { rotate: `${rotation.value}deg` },
+                { scale: boardScale.value }
+            ]
         };
     });
 
@@ -81,6 +91,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
                                 color={squareVM.piece.color}
                                 size={squareSize * 0.8}
                                 reversed={invertPieces ? !reversed : reversed}
+                                boardRotation={rotation}
                             />
                         )}
                     </Square>

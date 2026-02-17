@@ -203,7 +203,6 @@ export const useOnlineGame = () => {
         handleSquarePress,
         createMatch,
         joinMatch,
-        toggleOrientation,
         rotateBoard,
         resign,
         username,

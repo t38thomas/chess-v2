@@ -347,6 +347,7 @@ export class ChessGame implements IChessGame {
     public rotateBoard(): boolean {
         if (!this.matchConfig.enableTurnRotate90) return false;
         if (this.phase !== 'playing') return false;
+        if (this.totalTurns < 2) return false;
 
         // Apply rotation
         const previousOrientation = this.orientation;

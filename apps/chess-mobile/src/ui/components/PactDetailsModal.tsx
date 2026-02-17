@@ -54,7 +54,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                         {/* Bonus Section */}
                         <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: colors.primary + '08', borderColor: colors.primary + '30' }]}>
                             <View style={styles.perkHeader}>
-                                <Icon name="plus-circle" size={20} color={colors.primary} />
+                                <Icon name={pact?.bonus.icon ?? "plus-circle"} size={20} color={colors.primary} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.primary }}>
                                     {t('pact.bonusPrefix' as any, { name: displayedPact.bonus.name })}
                                 </Text>
@@ -69,7 +69,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                         {/* Malus Section */}
                         <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: colors.danger + '08', borderColor: colors.danger + '30' }]}>
                             <View style={styles.perkHeader}>
-                                <Icon name="minus-circle" size={20} color={colors.danger} />
+                                <Icon name={pact?.malus.icon ?? "minus-circle"} size={20} color={colors.danger} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.danger }}>
                                     {t('pact.malusPrefix' as any, { name: displayedPact.malus.name })}
                                 </Text>

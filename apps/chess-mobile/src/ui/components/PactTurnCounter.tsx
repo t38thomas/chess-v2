@@ -7,7 +7,7 @@ import { useTheme } from '../theme';
 import { Text } from './Text';
 
 interface PactTurnCounterProps {
-    turnCounters: Record<PieceColor, TurnCounter[]>;
+    turnCounters: Record<PieceColor | 'both', TurnCounter[]>;
     bottomColor?: PieceColor; // To highlight 'Your' counters if needed
 }
 
@@ -15,10 +15,10 @@ export const PactTurnCounter: React.FC<PactTurnCounterProps> = ({ turnCounters, 
     const { colors } = useTheme();
     const { t } = useTranslation();
 
-    const renderSection = (color: PieceColor, counters: TurnCounter[]) => {
+    const renderSection = (color: PieceColor | 'both', counters: TurnCounter[]) => {
         if (!counters || counters.length === 0) return null;
 
-        const colorLabel = color === 'white' ? t('common.white') : t('common.black');
+        const colorLabel = color === 'both' ? t('game.sharedCounters' as any) : (color === 'white' ? t('common.white') : t('common.black'));
 
         return (
             <View style={[styles.section, { borderColor: colors.border, backgroundColor: 'rgba(255,255,255,0.03)' }]}>
@@ -29,10 +29,15 @@ export const PactTurnCounter: React.FC<PactTurnCounterProps> = ({ turnCounters, 
                     {counters.map((counter) => {
                         // Helper to find icon
                         let iconName = 'alert-circle-outline';
-                        const parentPact = PACT_CARDS.find(p => p.bonus.id === counter.pactId || p.malus.id === counter.pactId);
-                        if (parentPact) {
-                            if (parentPact.bonus.id === counter.pactId) iconName = parentPact.bonus.icon;
-                            else iconName = parentPact.malus.icon;
+                        if (counter.pactId === 'compass') {
+                            const icons = ['arrow-up', 'arrow-right', 'arrow-down', 'arrow-left'];
+                            iconName = icons[counter.value % 4] || 'compass';
+                        } else {
+                            const parentPact = PACT_CARDS.find(p => p.bonus.id === counter.pactId || p.malus.id === counter.pactId);
+                            if (parentPact) {
+                                if (parentPact.bonus.id === counter.pactId) iconName = parentPact.bonus.icon;
+                                else iconName = parentPact.malus.icon;
+                            }
                         }
 
                         return (
@@ -46,11 +51,13 @@ export const PactTurnCounter: React.FC<PactTurnCounterProps> = ({ turnCounters, 
 
     const hasWhite = turnCounters.white && turnCounters.white.length > 0;
     const hasBlack = turnCounters.black && turnCounters.black.length > 0;
+    const hasBoth = turnCounters.both && turnCounters.both.length > 0;
 
-    if (!hasWhite && !hasBlack) return null;
+    if (!hasWhite && !hasBlack && !hasBoth) return null;
 
     return (
         <View style={styles.container}>
+            {renderSection('both', turnCounters.both)}
             {renderSection('white', turnCounters.white)}
             {renderSection('black', turnCounters.black)}
         </View>
@@ -72,7 +79,9 @@ const CounterItem: React.FC<{ counter: TurnCounter; icon: string }> = ({ counter
                 </Text>
                 <View style={[styles.badge, { backgroundColor: counter.type === 'cooldown' ? '#f87171' + '20' : colors.primary + '20' }]}>
                     <Text variant="caption" bold style={{ color: counter.type === 'cooldown' ? '#f87171' : colors.primary }}>
-                        {counter.subLabel ? counter.subLabel : counter.value}
+                        {counter.subLabel ? (
+                            (/[0-9\/]/.test(counter.subLabel)) ? counter.subLabel : t(`pact.${counter.subLabel}` as any)
+                        ) : counter.value}
                     </Text>
                     {/* Optional: Add "Turns" label if needed */}
                 </View>

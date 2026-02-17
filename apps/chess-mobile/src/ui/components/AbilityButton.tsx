@@ -1,17 +1,14 @@
+import { PERK_LIBRARY } from 'chess-core';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text } from './Text';
-import { Icon } from './Icon';
-import { useTheme } from '../theme';
 import Animated, {
-    useAnimatedStyle,
-    withSpring,
-    withRepeat,
-    withSequence,
     FadeInRight,
     FadeOutRight
 } from 'react-native-reanimated';
-import { PERK_LIBRARY } from 'chess-core';
+import { useTheme } from '../theme';
+import { Icon } from './Icon';
+import { Text } from './Text';
+import { useTranslation } from '../../i18n';
 
 interface AbilityButtonProps {
     abilities: string[];
@@ -20,6 +17,7 @@ interface AbilityButtonProps {
 
 export const AbilityButton: React.FC<AbilityButtonProps> = ({ abilities, onPress }) => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
 
     if (abilities.length === 0) return null;
 
@@ -28,6 +26,11 @@ export const AbilityButton: React.FC<AbilityButtonProps> = ({ abilities, onPress
             {abilities.map((id, index) => {
                 const perk = (PERK_LIBRARY as any)[id];
                 if (!perk) return null;
+
+                // Translate name and description using the perk ID
+                const name = t(`perks.${id}.name` as any);
+                const translatedName = name.charAt(0).toUpperCase() + name.slice(1);
+                const translatedDesc = t(`perks.${id}.description` as any);
 
                 return (
                     <Animated.View
@@ -42,8 +45,8 @@ export const AbilityButton: React.FC<AbilityButtonProps> = ({ abilities, onPress
                         >
                             <Icon name={perk.icon || 'star'} size={20} color="#fff" />
                             <View style={styles.textContainer}>
-                                <Text bold style={styles.title}>{perk.name}</Text>
-                                <Text variant="caption" style={styles.desc}>{perk.description}</Text>
+                                <Text bold style={styles.title}>{translatedName}</Text>
+                                <Text variant="caption" style={styles.desc}>{translatedDesc}</Text>
                             </View>
                         </TouchableOpacity>
                     </Animated.View>

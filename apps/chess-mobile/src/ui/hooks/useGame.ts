@@ -40,15 +40,7 @@ export const useGame = (matchConfig?: MatchConfig) => {
     const resetGame = useCallback((newConfig?: MatchConfig) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         facade.reset(newConfig || matchConfig);
-        setReversed(false);
     }, [facade, matchConfig]);
-
-    const toggleOrientation = useCallback(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setReversed(prev => !prev);
-    }, []);
-
-
 
     const handleJumpToMove = useCallback((index: number) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -81,12 +73,10 @@ export const useGame = (matchConfig?: MatchConfig) => {
         turn,
         history,
         isCheck,
-        reversed,
         handleSquarePress,
         resetGame,
 
         jumpToMove: handleJumpToMove,
-        toggleOrientation,
         completePromotion,
         pendingPromotion,
         phase,

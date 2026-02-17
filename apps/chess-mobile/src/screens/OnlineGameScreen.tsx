@@ -25,7 +25,6 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
         handleSquarePress,
         createMatch,
         joinMatch,
-        toggleOrientation,
         players,
         playerColor,
         completePromotion,
@@ -123,7 +122,6 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
             phase={phase}
             pendingPromotion={pendingPromotion}
             availableAbilities={availableAbilities}
-            onRotate={toggleOrientation}
             onRotateBoard={rotateBoard}
             orientation={orientation}
             onLeaveMatch={handleBack}
