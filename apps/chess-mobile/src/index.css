@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #0f0e17; /* Match dark theme background */
+    min-height: 100dvh;
+}
+
+#root {
+    display: flex;
+    flex: 1;
+    min-height: 100dvh;
+}
