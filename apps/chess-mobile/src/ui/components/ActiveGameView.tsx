@@ -291,7 +291,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
             />
 
             <PactSelectionModal
-                visible={phase === 'setup' && turn === playerColor && !!players.white?.connected && !!players.black?.connected}
+                visible={phase === 'setup' && turn === playerColor}
                 color={playerColor || 'white'}
                 onSelect={onAssignPact}
                 choicesCount={viewModel.matchConfig?.pactChoicesAtStart}

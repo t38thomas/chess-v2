@@ -40,7 +40,9 @@ export class ChessGame implements IChessGame {
         this.turn = 'white';
         this.history = [];
         this.status = 'active';
-        this.phase = 'setup';
+        this.status = 'active';
+        // If no pacts are needed, start playing immediately
+        this.phase = config.activePactsMax > 0 ? 'setup' : 'playing';
         this.enPassantTarget = null;
         this.extraTurns = { white: 0, black: 0 };
         this.kingMoves = { white: 0, black: 0 };

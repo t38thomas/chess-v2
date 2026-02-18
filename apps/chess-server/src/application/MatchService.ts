@@ -56,4 +56,8 @@ export class MatchService {
         await this.store.save(match);
         return match;
     }
+
+    async getAllMatches(): Promise<Match[]> {
+        return this.store.getAll();
+    }
 }

@@ -25,6 +25,25 @@ export function setupWebSocket(wss: WebSocketServer, matchService: MatchService)
                             requestId,
                             payload: { sessionToken: currentPlayerId }
                         }));
+
+                        // Reconnection Logic: Find if player is in a match
+                        // Reconnection Logic: Find if player is in a match
+                        const allMatches = await matchService.getAllMatches();
+                        const activeMatch = allMatches.find(m => m.players.some(p => p.id === currentPlayerId));
+
+                        if (activeMatch) {
+                            currentMatchId = activeMatch.id;
+                            if (!clients.has(activeMatch.id)) clients.set(activeMatch.id, []);
+                            clients.get(activeMatch.id)!.push(ws);
+
+                            ws.send(JSON.stringify({
+                                type: 'reconnected',
+                                payload: {
+                                    matchId: activeMatch.id,
+                                    match: DtoMapper.toMatchDto(activeMatch)
+                                }
+                            }));
+                        }
                         break;
                     }
 

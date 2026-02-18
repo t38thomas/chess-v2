@@ -251,7 +251,7 @@ const createStyles = (isLargeScreen: boolean, colors: any) => StyleSheet.create(
     content: {
         backgroundColor: colors.surface,
         borderRadius: isLargeScreen ? 0 : 32,
-        flex: isLargeScreen ? 1 : 0,
+        flex: 1,
         maxHeight: isLargeScreen ? '100%' : '85%',
         width: isLargeScreen ? '100%' : '90%',
         alignSelf: 'center',

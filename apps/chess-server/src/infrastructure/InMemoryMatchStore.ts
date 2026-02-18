@@ -40,4 +40,8 @@ export class InMemoryMatchStore {
             }
         }
     }
+
+    async getAll(): Promise<Match[]> {
+        return Array.from(this.matches.values());
+    }
 }
