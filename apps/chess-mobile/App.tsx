@@ -8,7 +8,7 @@ import { GameScreen } from './src/screens/GameScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
 import { MatchConfig } from 'chess-core';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/context/ToastContext';
 import { ToastContainer } from './src/ui/components/ToastContainer';
 import { GameSettingsProvider } from './src/context/GameSettingsContext';
@@ -91,11 +91,11 @@ export default function App() {
                     <ToastProvider>
                         <SoundProvider>
                             <GameSettingsProvider>
-                                <SafeAreaView style={styles.container}>
+                                <View style={styles.container}>
                                     <StatusBar style="auto" />
                                     {isReady ? renderScreen() : null}
                                     <ToastContainer />
-                                </SafeAreaView>
+                                </View>
                             </GameSettingsProvider>
                         </SoundProvider>
                     </ToastProvider>
