@@ -1,21 +1,17 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
     StyleSheet,
     Modal,
     TouchableOpacity,
     ScrollView,
-    Dimensions,
     TextInput,
+    useWindowDimensions,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pact, PACT_CARDS, PieceColor, PactDraftService } from 'chess-core';
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
     useAnimatedStyle,
     withSpring,
     useSharedValue,
@@ -25,9 +21,6 @@ import { Text } from './Text';
 import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
 import { usePactTranslation } from '../hooks/usePactTranslation';
-
-const { width, height } = Dimensions.get('window');
-const isLargeScreen = width > 768;
 
 interface PactSelectionModalProps {
     visible: boolean;
@@ -50,25 +43,31 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
 }) => {
     const [options, setOptions] = useState<Pact[]>([]);
     const [searchText, setSearchText] = useState('');
-    const { colors, spacing } = useTheme();
+    const { colors, isDark } = useTheme(); // Added isDark for tint
+    const { width } = useWindowDimensions();
+    const isLargeScreen = width > 768;
     const { t } = useTranslation();
     const { translatePact } = usePactTranslation();
     const colorName = color === 'white' ? t('common.white') : t('common.black');
 
+    const styles = useMemo(() => createStyles(isLargeScreen, colors), [isLargeScreen, colors]);
+
     useEffect(() => {
         if (visible) {
-            if (searchText && __DEV__) {
-                const filtered = PACT_CARDS.filter(pact => {
-                    const translated = translatePact(pact);
-                    if (!translated) return false;
-                    const search = searchText.toLowerCase();
-                    return (
-                        translated.title.toLowerCase().includes(search) ||
-                        translated.description.toLowerCase().includes(search) ||
-                        pact.id.toLowerCase().includes(search)
-                    );
-                });
-                setOptions(filtered);
+            if (searchText) {
+                if (__DEV__) {
+                    const filtered = PACT_CARDS.filter(pact => {
+                        const translated = translatePact(pact);
+                        if (!translated) return false;
+                        const search = searchText.toLowerCase();
+                        return (
+                            translated.title.toLowerCase().includes(search) ||
+                            translated.description.toLowerCase().includes(search) ||
+                            pact.id.toLowerCase().includes(search)
+                        );
+                    });
+                    setOptions(filtered);
+                }
             } else {
                 // Use the configured number of choices
                 const choices = PactDraftService.generateChoices(
@@ -86,9 +85,9 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
     return (
         <Modal transparent visible={visible} animationType="fade">
             <View style={styles.container}>
-                <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
 
-                <SafeAreaWrapper>
+                <SafeAreaWrapper style={styles.safeArea}>
                     <View style={styles.content}>
                         <View>
                             <Text variant="title" bold style={styles.header}>{t('pact.title')}</Text>
@@ -100,13 +99,9 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                         {__DEV__ && (
                             <View style={styles.searchContainer}>
                                 <TextInput
-                                    style={[styles.searchInput, {
-                                        color: '#fff',
-                                        borderColor: colors.border,
-                                        backgroundColor: colors.surface
-                                    }]}
+                                    style={styles.searchInput}
                                     placeholder={t('pact.searchPlaceholder')}
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    placeholderTextColor={colors.textSecondary}
                                     value={searchText}
                                     onChangeText={setSearchText}
                                     autoCorrect={false}
@@ -121,7 +116,7 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                         >
                             <View style={styles.cardsContainer}>
                                 {options.length === 0 && (
-                                    <Text style={{ color: 'white', textAlign: 'center' }}>Loading Pacts...</Text>
+                                    <Text style={{ color: colors.text, textAlign: 'center' }}>Loading Pacts...</Text>
                                 )}
                                 {options.map((pact, index) => (
                                     <PactCard
@@ -129,6 +124,8 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                                         pact={translatePact(pact)}
                                         index={index}
                                         onSelect={() => onSelect(pact)}
+                                        isLargeScreen={isLargeScreen}
+                                        styles={styles}
                                     />
                                 ))}
                             </View>
@@ -140,8 +137,8 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
     );
 };
 
-const SafeAreaWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <View style={styles.safeArea}>
+const SafeAreaWrapper: React.FC<{ children: React.ReactNode, style?: any }> = ({ children, style }) => (
+    <View style={style}>
         {children}
     </View>
 );
@@ -156,10 +153,12 @@ interface PactCardProps {
     } | null;
     onSelect: () => void;
     index: number;
+    isLargeScreen: boolean;
+    styles: any;
 }
 
-const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
-    const { colors, spacing } = useTheme();
+const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index, isLargeScreen, styles }) => {
+    const { colors } = useTheme();
     const { t } = useTranslation();
     const scale = useSharedValue(1);
     const opacity = useSharedValue(0);
@@ -184,10 +183,10 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
                 onPress={onSelect}
                 onPressIn={() => (scale.value = 0.98)}
                 onPressOut={() => (scale.value = 1)}
-                style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={styles.card}
             >
-                <View style={[styles.cardHeader, { backgroundColor: colors.primary + '10' }]}>
-                    <Text variant="body" bold style={[styles.cardTitle, { color: colors.primary }]}>
+                <View style={styles.cardHeader}>
+                    <Text variant="body" bold style={styles.cardTitle}>
                         {pact.title.toUpperCase()}
                     </Text>
                 </View>
@@ -199,7 +198,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
                             <Text variant="caption" bold style={{ color: '#4ade80', marginLeft: 4 }}>{t('pact.ascension')}</Text>
                         </View>
                         <View style={styles.perkInfo}>
-                            <View style={[styles.iconBox, { backgroundColor: colors.background }]}>
+                            <View style={styles.iconBox}>
                                 <MaterialCommunityIcons name={pact.bonus.icon as any} size={20} color={colors.primary} />
                             </View>
                             <View style={styles.perkText}>
@@ -209,7 +208,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
                         </View>
                     </View>
 
-                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                    <View style={styles.divider} />
 
                     <View style={styles.perkSection}>
                         <View style={styles.perkLabel}>
@@ -217,7 +216,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
                             <Text variant="caption" bold style={{ color: '#f87171', marginLeft: 4 }}>{t('pact.sacrifice')}</Text>
                         </View>
                         <View style={styles.perkInfo}>
-                            <View style={[styles.iconBox, { backgroundColor: colors.background }]}>
+                            <View style={styles.iconBox}>
                                 <MaterialCommunityIcons name={pact.malus.icon as any} size={20} color="#f87171" />
                             </View>
                             <View style={styles.perkText}>
@@ -229,8 +228,8 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
 
                     <View style={styles.cardFooter}>
                         <Text variant="caption" style={styles.flavorText}>"{pact.description}"</Text>
-                        <View style={[styles.selectBtn, { backgroundColor: colors.primary }]}>
-                            <Text variant="body" bold style={{ color: '#fff' }}>{t('pact.embrace')}</Text>
+                        <View style={styles.selectBtn}>
+                            <Text variant="body" bold style={{ color: colors.primaryForeground || '#fff' }}>{t('pact.embrace')}</Text>
                         </View>
                     </View>
                 </View>
@@ -239,7 +238,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (isLargeScreen: boolean, colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.6)',
@@ -250,25 +249,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     content: {
-        backgroundColor: '#0a0a0a',
+        backgroundColor: colors.surface,
         borderRadius: isLargeScreen ? 0 : 32,
         flex: isLargeScreen ? 1 : 0,
         maxHeight: isLargeScreen ? '100%' : '85%',
         width: isLargeScreen ? '100%' : '90%',
         alignSelf: 'center',
         borderWidth: isLargeScreen ? 0 : 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: colors.border,
         overflow: 'hidden',
     },
     header: {
         fontSize: isLargeScreen ? 48 : 28,
         textAlign: 'center',
         marginTop: isLargeScreen ? 60 : 30,
-        color: '#fff',
+        color: colors.text,
     },
     subHeader: {
         fontSize: isLargeScreen ? 20 : 14,
-        color: 'rgba(255,255,255,0.5)',
+        color: colors.textSecondary,
         textAlign: 'center',
         marginTop: 12,
         paddingHorizontal: 40,
@@ -284,6 +283,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         paddingHorizontal: 16,
         fontSize: 16,
+        color: colors.text,
+        borderColor: colors.border,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         paddingBottom: 30,
@@ -300,22 +302,26 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.1,
         shadowRadius: 15,
-        elevation: 10,
+        elevation: 4,
         maxWidth: isLargeScreen ? 600 : '100%',
         alignSelf: 'center',
         width: '100%',
+        backgroundColor: colors.surface,
+        borderColor: colors.border,
     },
     cardHeader: {
         paddingVertical: 12,
         alignItems: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.05)',
+        borderBottomColor: colors.border,
+        backgroundColor: colors.surfaceHighlight || colors.background,
     },
     cardTitle: {
         fontSize: isLargeScreen ? 20 : 14,
         letterSpacing: 2,
+        color: colors.primary,
     },
     cardBody: {
         padding: isLargeScreen ? 24 : 16,
@@ -340,7 +346,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: colors.border,
+        backgroundColor: colors.background,
     },
     perkText: {
         flex: 1,
@@ -348,16 +355,19 @@ const styles = StyleSheet.create({
     },
     perkName: {
         fontSize: isLargeScreen ? 22 : 16,
+        color: colors.text,
     },
     perkDesc: {
         fontSize: isLargeScreen ? 16 : 12,
         marginTop: 4,
         lineHeight: isLargeScreen ? 24 : 16,
+        color: colors.textSecondary,
     },
     divider: {
         height: 1,
         marginVertical: 12,
         opacity: 0.3,
+        backgroundColor: colors.border,
     },
     cardFooter: {
         marginTop: 15,
@@ -368,10 +378,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         opacity: 0.6,
         marginBottom: 20,
+        color: colors.textSecondary,
     },
     selectBtn: {
         paddingVertical: isLargeScreen ? 16 : 12,
         borderRadius: 14,
         alignItems: 'center',
+        backgroundColor: colors.primary,
     }
 });
