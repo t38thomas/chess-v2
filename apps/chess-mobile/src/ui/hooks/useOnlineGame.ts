@@ -10,11 +10,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSoundContext } from '../context/SoundContext';
 import { GameEvent as SoundEvent } from '../../services/SoundManager';
 
-const SERVER_URL = Platform.select({
-    android: 'ws://10.0.2.2:8080',
-    ios: 'ws://localhost:8080',
-    default: 'ws://localhost:8080',
-})!;
+
+const PROD_WS = "wss://server.pactchess.com";
+const DEV_WS_WEB = "ws://localhost:8080";
+const DEV_WS_ANDROID = "ws://10.0.2.2:8080";
+const DEV_WS_IOS = "ws://localhost:8080";
+
+// Expo/React Native define __DEV__ in dev
+export const SERVER_URL = (() => {
+    if (!__DEV__) return PROD_WS;
+
+    return Platform.select({
+        android: DEV_WS_ANDROID,
+        ios: DEV_WS_IOS,
+        default: DEV_WS_WEB, // web
+    })!;
+})();
+
 
 export const useOnlineGame = () => {
     const { playGameEvent } = useSoundContext();
