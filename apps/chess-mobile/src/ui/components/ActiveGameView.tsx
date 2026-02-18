@@ -13,7 +13,7 @@ import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
 import { Pact, PERK_LIBRARY, BoardViewModel } from 'chess-core';
 import { usePactTranslation } from '../hooks/usePactTranslation';
-import { useGameSettings } from '../../context/GameSettingsContext';
+
 import { useCapturedPieces } from '../hooks/useCapturedPieces';
 import { CapturedPiecesRow } from './CapturedPiecesRow';
 import { useToast } from '../../context/ToastContext';
@@ -67,7 +67,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const { spacing, colors } = useTheme();
     const { t } = useTranslation();
     const { translatePact } = usePactTranslation();
-    const { rotatePieces } = useGameSettings();
+
     const [selectedPact, setSelectedPact] = useState<Pact | null>(null);
     const capturedPieces = useCapturedPieces(viewModel);
     const { showToast } = useToast();
@@ -84,7 +84,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
         onRotateBoard?.();
     };
 
-    const invertPieces = rotatePieces && turn === 'black';
+    const invertPieces = false; // Online game always shows pieces upright for the player
 
     const gameInfoContent = (
         <View style={styles.gameInfoContainer}>

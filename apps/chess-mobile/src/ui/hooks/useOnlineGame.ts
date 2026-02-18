@@ -11,9 +11,9 @@ import { useSoundContext } from '../context/SoundContext';
 import { GameEvent as SoundEvent } from '../../services/SoundManager';
 
 
-const DEV_WS_WEB = "ws://localhost:8080";
-const DEV_WS_ANDROID = "ws://10.0.2.2:8080";
-const DEV_WS_IOS = "ws://localhost:8080";
+const DEV_WS_WEB = "ws://localhost:8080/ws";
+const DEV_WS_ANDROID = "ws://10.0.2.2:8080/ws";
+const DEV_WS_IOS = "ws://localhost:8080/ws";
 const PROD_WS = "wss://server.pactchess.com/ws";
 
 // Expo/React Native define __DEV__ in dev
