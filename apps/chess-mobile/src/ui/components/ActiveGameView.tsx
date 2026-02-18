@@ -72,6 +72,9 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const capturedPieces = useCapturedPieces(viewModel);
     const { showToast } = useToast();
 
+
+
+
     const handleRotateBoard = () => {
         if (viewModel.totalTurns < 2) {
             showToast({

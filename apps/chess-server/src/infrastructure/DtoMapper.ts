@@ -50,7 +50,8 @@ export class DtoMapper {
                 } : { connected: false }
             },
             matchConfig: game.matchConfig,
-            orientation: game.orientation
+            orientation: game.orientation,
+            lastMove: game.history.length > 0 ? game.history[game.history.length - 1] : null
         };
     }
 }

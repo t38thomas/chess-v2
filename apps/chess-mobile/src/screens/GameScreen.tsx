@@ -265,7 +265,34 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             )}
 
             {/* Controls */}
-            \
+            <View style={styles.controlsContainer}>
+                {matchConfig.enableTurnRotate90 && (
+                    <Button
+                        label={t('game.rotateBoard' as any)}
+                        onPress={handleRotateBoardAction}
+                        variant="secondary"
+                        icon="rotate-right"
+                        disabled={phase !== 'playing'}
+                        fullWidth
+                    />
+                )}
+                <Button
+                    label={t('game.leaveMatch')}
+                    variant="destructive"
+                    icon="exit-to-app"
+                    onPress={onNavigateBack || (() => { })}
+                    fullWidth
+                />
+                {resign && (
+                    <Button
+                        label={t('game.resign')}
+                        variant="destructive"
+                        icon="flag"
+                        onPress={resign}
+                        fullWidth
+                    />
+                )}
+            </View>
         </View>
     );
 

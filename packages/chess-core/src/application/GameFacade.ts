@@ -548,6 +548,15 @@ export class GameFacade {
             this.game.orientation = payload.orientation;
         }
 
+        if (payload.lastMove) {
+            this.lastMove = {
+                from: new Coordinate(payload.lastMove.from.x, payload.lastMove.from.y),
+                to: new Coordinate(payload.lastMove.to.x, payload.lastMove.to.y)
+            };
+        } else {
+            this.lastMove = null;
+        }
+
         this.notify();
     }
 }
