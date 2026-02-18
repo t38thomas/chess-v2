@@ -3,17 +3,18 @@ import { createHttpServer } from './transport/http';
 import { setupWebSocket } from './transport/ws';
 import { MatchService } from './application/MatchService';
 import { InMemoryMatchStore } from './infrastructure/InMemoryMatchStore';
-
-const PORT = 8080;
-
-const server = createHttpServer();
-const wss = new WebSocketServer({ server });
+import { config } from './config';
 
 const store = new InMemoryMatchStore();
 const matchService = new MatchService(store);
 
-setupWebSocket(wss, matchService);
+const server = createHttpServer(matchService);
+// WebSocketServer is initialized with noServer: true to handle upgrade manually
+const wss = new WebSocketServer({ noServer: true, path: "/ws", maxPayload: config.WS.MAX_PAYLOAD });
 
-server.listen(PORT, () => {
-    console.log(` authoritative chess server running on port ${PORT}`);
+setupWebSocket(wss, server, matchService);
+
+server.listen(config.PORT, "0.0.0.0", () => {
+    console.log(` authoritative chess server running on port ${config.PORT}`);
+    console.log(` allowed origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
 });

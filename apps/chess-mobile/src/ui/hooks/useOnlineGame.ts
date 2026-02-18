@@ -11,7 +11,7 @@ import { useSoundContext } from '../context/SoundContext';
 import { GameEvent as SoundEvent } from '../../services/SoundManager';
 
 
-const PROD_WS = "wss://server.pactchess.com";
+const PROD_WS = "wss://server.pactchess.com/ws";
 const DEV_WS_WEB = "ws://localhost:8080";
 const DEV_WS_ANDROID = "ws://10.0.2.2:8080";
 const DEV_WS_IOS = "ws://localhost:8080";
