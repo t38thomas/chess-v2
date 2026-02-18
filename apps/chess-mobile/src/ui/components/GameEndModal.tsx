@@ -1,131 +1,120 @@
 import React from 'react';
-import { View, Modal, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../theme';
+import { BaseModal } from './BaseModal';
 import { Text } from './Text';
-import { Card } from './Card';
 import { Button } from './Button';
-import { Icon } from './Icon';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from '../../i18n';
-import { GameStatus, PieceColor } from 'chess-core';
 
 interface GameEndModalProps {
     visible: boolean;
-    status: GameStatus;
-    winner?: PieceColor;
-    onRestart: () => void;
-    onHome: () => void;
+    onClose: () => void;
+    onPlayAgain?: () => void;
+    onGoHome?: () => void;
+    status?: string;
+    winner?: string;
+    message?: string;
 }
 
 export const GameEndModal: React.FC<GameEndModalProps> = ({
     visible,
+    onClose,
+    onPlayAgain,
+    onGoHome,
     status,
     winner,
-    onRestart,
-    onHome,
+    message,
 }) => {
-    const { colors, spacing, typography } = useTheme();
+    const { colors, spacing, radii, glowShadow } = useTheme();
     const { t } = useTranslation();
 
-    const getTitle = () => {
-        if (status === 'checkmate') {
-            return t('game.checkmate');
+    const getStatusIcon = () => {
+        switch (status) {
+            case 'checkmate': return 'trophy';
+            case 'stalemate': return 'handshake';
+            case 'draw': return 'scale-balance';
+            case 'resigned': return 'flag-variant';
+            default: return 'chess-king';
         }
-        if (status === 'stalemate') {
-            return t('game.stalemate');
-        }
-        if (status === 'draw') {
-            return t('game.draw');
-        }
-        if (status === 'resignation') {
-            // return t('game.resignation'); // Ensure we have this key or use a generic one
-            return t('game.gameOver'); // Check translation keys
-        }
-        return t('game.gameOver');
-    };
-
-    const getMessage = () => {
-        if ((status === 'checkmate' || status === 'resignation') && winner) {
-            const winnerName = winner === 'white' ? t('common.white') : t('common.black');
-            if (status === 'resignation') {
-                // return t('game.resignationMessage', { winner: winnerName });
-                // Fallback if no specific key
-                return `${winnerName} ${t('game.wonByResignation')}`;
-            }
-            return t('game.winnerMessage', { winner: winnerName });
-        }
-        if (status === 'stalemate') {
-            return t('game.stalemateMessage');
-        }
-        return '';
-    };
-
-    const getIcon = () => {
-        if (status === 'checkmate') return 'trophy';
-        if (status === 'resignation') return 'flag';
-        return 'handshake';
     };
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="fade"
-            onRequestClose={onHome}
-        >
-            <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.8)' }]}>
-                <Card padding="lg" style={{ width: '85%', maxWidth: 400, alignItems: 'center' }}>
-                    <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-                        <Icon name={getIcon()} size={48} color={colors.primary} />
-                    </View>
+        <BaseModal visible={visible} onClose={onClose} size="md" dismissOnBackdrop={false}>
+            <View style={[styles.content, { padding: spacing[6] }]}>
+                {/* Icon */}
+                <View style={[
+                    styles.iconCircle,
+                    {
+                        backgroundColor: colors.primaryMuted,
+                        ...glowShadow(colors.primary),
+                    }
+                ]}>
+                    <MaterialCommunityIcons
+                        name={getStatusIcon()}
+                        size={36}
+                        color={colors.primary}
+                    />
+                </View>
 
-                    <Text variant="title" bold style={{ marginTop: spacing[4], marginBottom: spacing[2], textAlign: 'center' }}>
-                        {getTitle()}
+                {/* Status */}
+                <Text variant="title" bold align="center" style={{ marginTop: spacing[4] }}>
+                    {status === 'checkmate' ? t('game.checkmate') :
+                        status === 'stalemate' ? t('game.stalemate') :
+                            status === 'resigned' ? t('game.resigned') :
+                                t('game.gameOver')}
+                </Text>
+
+                {/* Winner / Message */}
+                {winner && (
+                    <Text variant="body" color="secondary" align="center" style={{ marginTop: spacing[2] }}>
+                        {winner}
                     </Text>
-
-                    <Text variant="body" color="secondary" style={{ marginBottom: spacing[6], textAlign: 'center' }}>
-                        {getMessage()}
+                )}
+                {message && (
+                    <Text variant="caption" color="secondary" align="center" style={{ marginTop: spacing[2] }}>
+                        {message}
                     </Text>
+                )}
 
-                    <View style={styles.buttonContainer}>
+                {/* Actions */}
+                <View style={[styles.actions, { marginTop: spacing[6], gap: spacing[3] }]}>
+                    {onPlayAgain && (
                         <Button
-                            label={t('game.rematch')}
+                            label={t('game.playAgain')}
                             variant="primary"
-                            icon="restart"
-                            onPress={onRestart}
+                            onPress={onPlayAgain}
+                            icon="refresh"
                             fullWidth
-                            size="lg"
                         />
+                    )}
+                    {onGoHome && (
                         <Button
-                            label={t('common.home')}
+                            label={t('game.backHome')}
                             variant="secondary"
+                            onPress={onGoHome}
                             icon="home"
-                            onPress={onHome}
                             fullWidth
-                            size="lg"
                         />
-                    </View>
-                </Card>
+                    )}
+                </View>
             </View>
-        </Modal>
+        </BaseModal>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        justifyContent: 'center',
+    content: {
         alignItems: 'center',
     },
-    iconContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
+    iconCircle: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         alignItems: 'center',
-        marginBottom: 8,
+        justifyContent: 'center',
     },
-    buttonContainer: {
+    actions: {
         width: '100%',
-        gap: 12,
     },
 });

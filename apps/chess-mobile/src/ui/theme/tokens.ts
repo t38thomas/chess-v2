@@ -1,95 +1,5 @@
 
 // ---------------------------------------------------------------------------
-// PRIMITIVES (Tailwind-ish reference)
-// ---------------------------------------------------------------------------
-const primitives = {
-    white: '#FFFFFF',
-    black: '#000000',
-
-    // Slate / Zinc (Neutral)
-    slate50: '#F8F9FA',
-    slate100: '#F1F5F9',
-    slate200: '#E2E8F0',
-    slate300: '#CBD5E1',
-    slate400: '#94A3B8',
-    slate500: '#64748B',
-    slate600: '#475569',
-    slate700: '#334155',
-    slate800: '#1E293B',
-    slate900: '#0F172A',
-
-    // Zinc (Darker neutrals for Dark Mode)
-    zinc800: '#27272A',
-    zinc900: '#18181B',
-    zinc950: '#09090B',
-
-    // Emerald (Primary Action)
-    emerald400: '#34D399',
-    emerald500: '#10B981',
-    emerald600: '#059669',
-
-    // Rose (Danger / Error)
-    rose500: '#F43F5E',
-
-    // Amber (Warning / Highlight)
-    amber400: '#FBBF24',
-};
-
-// ---------------------------------------------------------------------------
-// SEMANTIC COLORS
-// ---------------------------------------------------------------------------
-
-export const lightColors = {
-    background: primitives.slate50,
-    surface: primitives.white,
-    surfaceHighlight: primitives.slate100,
-
-    text: primitives.slate900,
-    textSecondary: primitives.slate500,
-    textInverse: primitives.white,
-
-    border: primitives.slate200,
-    borderStrong: primitives.slate300,
-
-    primary: primitives.emerald500,
-    primaryForeground: primitives.white,
-
-    danger: primitives.rose500,
-    warning: primitives.amber400,
-
-    // Specific to Board
-    boardLight: '#E2E8F0', // slate-200
-    boardDark: '#64748B',  // slate-500
-    boardHighlight: 'rgba(16, 185, 129, 0.4)', // emerald with opacity
-    moveHint: 'rgba(0,0,0,0.1)',
-};
-
-export const darkColors: typeof lightColors = {
-    background: primitives.zinc950,
-    surface: primitives.zinc900,
-    surfaceHighlight: primitives.zinc800,
-
-    text: primitives.slate100,
-    textSecondary: primitives.slate400,
-    textInverse: primitives.zinc900,
-
-    border: primitives.zinc800,
-    borderStrong: primitives.slate700,
-
-    primary: primitives.emerald500,
-    primaryForeground: primitives.white,
-
-    danger: primitives.rose500,
-    warning: primitives.amber400,
-
-    // Specific to Board
-    boardLight: '#CBD5E1', // slate-300
-    boardDark: '#475569',  // slate-600
-    boardHighlight: 'rgba(16, 185, 129, 0.4)',
-    moveHint: 'rgba(255,255,255,0.1)',
-};
-
-// ---------------------------------------------------------------------------
 // TYPOGRAPHY
 // ---------------------------------------------------------------------------
 export const typography = {
@@ -98,8 +8,20 @@ export const typography = {
         regular: 'System',
         medium: 'System',
         bold: 'System',
-        monospace: 'Courier New', // Fallback
+        monospace: 'Courier New',
     },
+    scale: {
+        display: { size: 36, lineHeight: 44, weight: '800' as const },
+        h1: { size: 28, lineHeight: 36, weight: '700' as const },
+        h2: { size: 22, lineHeight: 30, weight: '700' as const },
+        title: { size: 18, lineHeight: 26, weight: '600' as const },
+        body: { size: 15, lineHeight: 22, weight: '400' as const },
+        bodyBold: { size: 15, lineHeight: 22, weight: '600' as const },
+        caption: { size: 12, lineHeight: 18, weight: '500' as const },
+        micro: { size: 10, lineHeight: 14, weight: '500' as const },
+        mono: { size: 13, lineHeight: 20, weight: '400' as const },
+    },
+    // Legacy compat
     sizes: {
         xs: 12,
         sm: 14,
@@ -136,15 +58,16 @@ export const spacing = {
 
 export const radii = {
     none: 0,
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
+    xs: 4,
+    sm: 6,
+    md: 10,
+    lg: 14,
+    xl: 20,
     full: 9999,
 };
 
 // ---------------------------------------------------------------------------
-// SHADOWS & MOTION
+// SHADOWS
 // ---------------------------------------------------------------------------
 export const shadows = {
     none: {
@@ -157,19 +80,38 @@ export const shadows = {
     sm: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
         elevation: 2,
     },
     md: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.30,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    lg: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+        elevation: 10,
     },
 };
 
+/** Create a glow shadow for a given color */
+export const glowShadow = (color: string) => ({
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 6,
+});
+
+// ---------------------------------------------------------------------------
+// MOTION (legacy — use Motion.ts for new code)
+// ---------------------------------------------------------------------------
 export const motion = {
     duration: {
         fast: 150,

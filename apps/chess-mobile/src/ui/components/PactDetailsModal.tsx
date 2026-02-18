@@ -34,7 +34,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
             <View style={styles.overlay}>
                 <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={styles.header}>
-                        <View style={[styles.headerIcon, { backgroundColor: colors.primary + '15' }]}>
+                        <View style={[styles.headerIcon, { backgroundColor: colors.primaryMuted }]}>
                             <Icon name={displayedPact.bonus.icon as any} size={28} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1, marginLeft: spacing[4] }}>
@@ -52,7 +52,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                         </Text>
 
                         {/* Bonus Section */}
-                        <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: colors.primary + '08', borderColor: colors.primary + '30' }]}>
+                        <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: 'rgba(108,92,231,0.06)', borderColor: 'rgba(108,92,231,0.2)' }]}>
                             <View style={styles.perkHeader}>
                                 <Icon name={pact?.bonus.icon ?? "plus-circle"} size={20} color={colors.primary} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.primary }}>
@@ -67,7 +67,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                         <View style={{ height: spacing[4] }} />
 
                         {/* Malus Section */}
-                        <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: colors.danger + '08', borderColor: colors.danger + '30' }]}>
+                        <Card variant="flat" padding="md" style={[styles.perkCard, { backgroundColor: 'rgba(214,48,49,0.06)', borderColor: 'rgba(214,48,49,0.2)' }]}>
                             <View style={styles.perkHeader}>
                                 <Icon name={pact?.malus.icon ?? "minus-circle"} size={20} color={colors.danger} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.danger }}>

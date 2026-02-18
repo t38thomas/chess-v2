@@ -37,7 +37,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                 <Container maxWidth={600}>
                     <View style={styles.lobbyContent}>
                         <View style={styles.lobbyHero}>
-                            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: colors.primaryMuted }]}>
                                 <Icon name="earth" size={48} color={colors.primary} />
                             </View>
                             <Text variant="title" bold style={{ fontSize: 28, marginTop: spacing[4], marginBottom: spacing[2] }}>
@@ -50,7 +50,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                             {/* Connection Status */}
                             <View style={styles.connectionStatus}>
                                 <View style={[styles.statusDot, {
-                                    backgroundColor: isConnected ? '#4ade80' : '#f87171'
+                                    backgroundColor: isConnected ? colors.success : colors.danger
                                 }]} />
                                 <Text variant="caption" color={isConnected ? 'primary' : 'secondary'} bold>
                                     {isConnected ? t('game.serverConnected') : t('game.connecting')}

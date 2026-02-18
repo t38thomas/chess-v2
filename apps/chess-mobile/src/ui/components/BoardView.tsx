@@ -5,6 +5,7 @@ import { BoardViewModel } from 'chess-core';
 import { BOARD_ROTATION_SPRING_CONFIG, BOARD_SCALE_SPRING_CONFIG } from '../constants/Animations';
 import { Square } from './Square';
 import { Piece } from './Piece';
+import { useTheme } from '../theme';
 
 const BOARD_SIZE = 8;
 
@@ -25,6 +26,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     size,
     orientation = 0
 }) => {
+    const { colors } = useTheme();
     const prevOrientation = React.useRef(orientation);
     const rotationOffset = useSharedValue(0);
 
@@ -105,6 +107,17 @@ export const BoardView: React.FC<BoardViewProps> = ({
             style={[
                 styles.board,
                 size ? { width: size, height: size } : undefined,
+                {
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    elevation: 8,
+                },
                 animatedStyle
             ]}
         >

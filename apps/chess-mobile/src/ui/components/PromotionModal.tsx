@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Modal, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { PieceType } from 'chess-core';
 import { useTheme } from '../theme';
 import { Text } from './Text';
-import { Card } from './Card';
 import { Piece } from './Piece';
+import { BaseModal } from './BaseModal';
 import { useTranslation } from '../../i18n';
 
 interface PromotionModalProps {
@@ -23,64 +23,49 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({
     const { colors, spacing } = useTheme();
     const { t } = useTranslation();
 
-    const promotionOptions: PieceType[] = ['queen', 'rook', 'bishop', 'knight'];
+    const promotionOptions: { type: PieceType; labelKey: string }[] = [
+        { type: 'queen', labelKey: 'game.queen' },
+        { type: 'rook', labelKey: 'game.rook' },
+        { type: 'bishop', labelKey: 'game.bishop' },
+        { type: 'knight', labelKey: 'game.knight' },
+    ];
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="fade"
-            onRequestClose={onCancel}
-        >
-            <Pressable
-                style={styles.overlay}
-                onPress={onCancel}
-            >
-                <Pressable onPress={(e) => e.stopPropagation()}>
-                    <Card padding="lg" style={{ backgroundColor: colors.surface }}>
-                        <Text variant="title" bold style={{ marginBottom: spacing[4], textAlign: 'center' }}>
-                            {t('game.selectPromotion')}
-                        </Text>
+        <BaseModal visible={visible} onClose={onCancel} size="sm">
+            <Text variant="title" bold style={{ marginBottom: spacing[4], textAlign: 'center' }}>
+                {t('game.selectPromotion')}
+            </Text>
 
-                        <View style={styles.optionsContainer}>
-                            {promotionOptions.map((pieceType) => (
-                                <Pressable
-                                    key={pieceType}
-                                    style={[
-                                        styles.option,
-                                        { backgroundColor: colors.surfaceHighlight }
-                                    ]}
-                                    onPress={() => onSelect(pieceType)}
-                                >
-                                    <Piece
-                                        type={pieceType}
-                                        color={color}
-                                        size={60}
-                                    />
-                                    <Text
-                                        variant="caption"
-                                        style={{ marginTop: spacing[2], textTransform: 'capitalize' }}
-                                    >
-                                        {pieceType}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </Card>
-                </Pressable>
-            </Pressable>
-        </Modal>
+            <View style={styles.optionsContainer}>
+                {promotionOptions.map(({ type, labelKey }) => (
+                    <Pressable
+                        key={type}
+                        style={({ pressed }) => [
+                            styles.option,
+                            { backgroundColor: colors.surfaceHighlight },
+                            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }
+                        ]}
+                        onPress={() => onSelect(type)}
+                    >
+                        <Piece
+                            type={type}
+                            color={color}
+                            size={60}
+                        />
+                        <Text
+                            variant="caption"
+                            style={{ marginTop: spacing[2] }}
+                        >
+                            {t(labelKey as any)}
+                        </Text>
+                    </Pressable>
+                ))}
+            </View>
+        </BaseModal>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
     optionsContainer: {
         flexDirection: 'row',
         gap: 12,
@@ -88,7 +73,7 @@ const styles = StyleSheet.create({
     },
     option: {
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 14,
         alignItems: 'center',
         minWidth: 90,
     },

@@ -97,7 +97,7 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
 
     const renderHelp = () => (
         <View style={[styles.helpPanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
+            <View style={[styles.iconBox, { backgroundColor: colors.primaryMuted }]}>
                 <Icon name="information-variant" size={24} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -150,8 +150,8 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                             <Switch
                                 value={config.enableTurnRotate90 || false}
                                 onValueChange={toggleRotation}
-                                trackColor={{ false: colors.border, true: colors.primary }}
-                                thumbColor={Platform.OS === 'android' ? colors.surface : ''}
+                                trackColor={{ false: colors.text, true: colors.primary }}
+                                thumbColor={config.enableTurnRotate90 ? colors.text : colors.textSecondary}
                             />
                         </View>
 
@@ -163,7 +163,7 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                             </Text>
                         </View>
 
-                        <View style={[styles.summaryBox, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
+                        <View style={[styles.summaryBox, { backgroundColor: 'rgba(108,92,231,0.08)', borderColor: 'rgba(108,92,231,0.2)' }]}>
                             <Icon name="flash" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                             <Text variant="body" bold color="primary" style={{ flex: 1 }}>{getSummary()}</Text>
                         </View>
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderLeftWidth: 1,
         borderRightWidth: 1,
-        borderColor: 'inherit',
+        borderColor: 'transparent',
     },
     explanationBox: {
         padding: 16,

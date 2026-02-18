@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+
 import { View, StyleSheet, Animated, Pressable, useWindowDimensions, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../ui/responsive/Screen';
@@ -144,10 +145,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
                     {/* Decorative Chess Pieces (Background) */}
                     <View style={styles.decorativeLeft}>
-                        <Icon name="chess-queen" size={120} color={colors.border} style={{ opacity: 0.1 }} />
+                        <Icon name="chess-queen" size={120} color={colors.textMuted} style={{ opacity: 0.06 }} />
                     </View>
                     <View style={styles.decorativeRight}>
-                        <Icon name="chess-king" size={100} color={colors.border} style={{ opacity: 0.1 }} />
+                        <Icon name="chess-king" size={100} color={colors.textMuted} style={{ opacity: 0.06 }} />
                     </View>
 
                     {/* Hero Section */}
@@ -161,7 +162,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                         ]}
                     >
                         {/* App Icon/Logo */}
-                        <View style={[styles.logoContainer, { backgroundColor: colors.primary + '15' }]}>
+                        <View style={[styles.logoContainer, { backgroundColor: colors.primaryMuted }]}>
                             <Icon name="chess-knight" size={48} color={colors.primary} />
                         </View>
 
@@ -210,7 +211,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                                     borderColor: colors.border
                                 }]}
                                 placeholder={t('home.enterUsername')}
-                                placeholderTextColor={colors.textSecondary + '80'}
+                                placeholderTextColor={colors.textMuted}
                                 value={username}
                                 onChangeText={(text) => {
                                     setUsername(text);
@@ -235,7 +236,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                             t('home.onlineMatch'),
                             t('home.onlineMatchDesc'),
                             'earth',
-                            '#00BCD4', // Cyan accent
+                            colors.secondary,
                             () => onNavigate('online'),
                             scaleAnim2
                         )}

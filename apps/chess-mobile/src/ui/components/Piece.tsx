@@ -1,22 +1,25 @@
 
 import React from 'react';
-import { StyleSheet, TextStyle, Platform, View } from 'react-native';
-import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
+import { StyleSheet, TextStyle } from 'react-native';
+import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PieceType, PieceColor } from 'chess-core';
-import { useTheme } from '../theme';
+
+// Piece colors — slightly off pure white/black for elegance
+const PIECE_COLORS = {
+    white: '#F0F0F0',  // Soft white — less aggressive on light squares
+    black: '#1A1A2E',  // Deep blue-black — more elegant than pure black
+} as const;
 
 interface PieceProps {
     type: PieceType;
     color: PieceColor;
     size: number;
     reversed?: boolean;
-    boardRotation?: Readonly<Animated.SharedValue<number>>;
+    boardRotation?: Readonly<SharedValue<number>>;
 }
 
 export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = false, boardRotation }) => {
-    const { colors, shadows } = useTheme();
-
     const getIconName = (): keyof typeof MaterialCommunityIcons.glyphMap => {
         switch (type) {
             case 'king': return 'chess-king';
@@ -29,33 +32,28 @@ export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = fals
         }
     };
 
-    const getPieceColor = () => {
-        return color === 'white' ? '#FFFFFF' : '#171717';
-    };
+    const getPieceColor = () => PIECE_COLORS[color];
 
     const getStyle = (): TextStyle => {
-        // Strong shadow for better visibility on the new gray board
         if (color === 'white') {
+            // Dark shadow for white pieces — visible on both light and dark squares
             return {
-                textShadowColor: 'rgba(0, 0, 0, 0.8)',
-                textShadowOffset: { width: 0, height: 2 },
+                textShadowColor: 'rgba(0, 0, 0, 0.85)',
+                textShadowOffset: { width: 0, height: 1.5 },
                 textShadowRadius: 4,
             };
         }
-        // Strong light shadow for black pieces to pop on dark squares
+        // Light shadow for dark pieces — pops on both square colors
         return {
-            textShadowColor: 'rgba(255, 255, 255, 0.5)',
-            textShadowOffset: { width: 0, height: 2 },
+            textShadowColor: 'rgba(255, 255, 255, 0.55)',
+            textShadowOffset: { width: 0, height: 1.5 },
             textShadowRadius: 3,
-        }
+        };
     };
 
     const animatedPieceStyle = useAnimatedStyle(() => {
-        // We negate the board rotation to keep pieces upright relative to the screen,
-        // but we still respect the 'reversed' prop for individual piece flipping (e.g. for local face-to-face play).
         const baseRotation = boardRotation ? -boardRotation.value : 0;
         const extraFlip = reversed ? 180 : 0;
-
         return {
             transform: [{ rotate: `${baseRotation + extraFlip}deg` }]
         };
@@ -65,14 +63,13 @@ export const Piece: React.FC<PieceProps> = ({ type, color, size, reversed = fals
         <Animated.View style={animatedPieceStyle}>
             <MaterialCommunityIcons
                 name={getIconName()}
-                size={size * 0.8} // Occupy 80% of the square
+                size={size * 0.75}  // 75% of square — slightly smaller for more breathing room
                 color={getPieceColor()}
                 style={getStyle()}
             />
         </Animated.View>
     );
 };
-
 
 const styles = StyleSheet.create({
     reversed: {

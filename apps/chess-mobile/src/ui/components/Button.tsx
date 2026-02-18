@@ -1,9 +1,14 @@
 
-import React from 'react';
-import { Pressable, Text, ActivityIndicator, StyleSheet, Animated } from 'react-native';
+import React, { useCallback } from 'react';
+import { Pressable, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import Animated, {
+    useSharedValue, useAnimatedStyle, withSpring,
+} from 'react-native-reanimated';
 import { useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
+import { Text } from './Text';
 import { useSoundContext } from '../context/SoundContext';
+import { Motion } from '../constants/Motion';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -17,7 +22,7 @@ interface ButtonProps {
     loading?: boolean;
     disabled?: boolean;
     fullWidth?: boolean;
-    style?: any; // ViewStyle
+    style?: any;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -34,97 +39,110 @@ export const Button: React.FC<ButtonProps> = ({
     const { colors, spacing, radii, typography, shadows } = useTheme();
     const { playSound } = useSoundContext();
 
-    // Scale animation for press feedback
-    const scale = React.useRef(new Animated.Value(1)).current;
+    const scale = useSharedValue(1);
 
-    const handlePressIn = () => {
-        Animated.spring(scale, {
-            toValue: 0.96,
-            useNativeDriver: true,
-            speed: 200, // Faster than default
-        }).start();
-    };
+    const handlePressIn = useCallback(() => {
+        scale.value = withSpring(0.96, Motion.spring.snappy);
+    }, []);
 
-    const handlePressOut = () => {
-        Animated.spring(scale, {
-            toValue: 1,
-            useNativeDriver: true,
-            speed: 200,
-        }).start();
-    };
+    const handlePressOut = useCallback(() => {
+        scale.value = withSpring(1, Motion.spring.snappy);
+    }, []);
 
-    // Styles based on variant
+    const animatedScale = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    // Variant-based styles
     const getBackgroundColor = () => {
-        if (disabled) return colors.surfaceHighlight; // Muted for disabled
+        if (disabled) return colors.surfaceActive;
         switch (variant) {
             case 'primary': return colors.primary;
-            case 'destructive': return colors.danger;
-            case 'secondary': return colors.surfaceHighlight; // Or slightly darker background
+            case 'destructive': return colors.errorStrong;
+            case 'secondary': return 'transparent';
             case 'ghost': return 'transparent';
             default: return colors.primary;
         }
     };
 
     const getTextColor = () => {
-        if (disabled) return colors.textSecondary;
+        if (disabled) return colors.textMuted;
         switch (variant) {
-            case 'primary': return colors.primaryForeground; // White text on primary
-            case 'destructive': return colors.textInverse; // White text on danger
-            case 'secondary': return colors.text;
+            case 'primary': return colors.primaryForeground;
+            case 'destructive': return '#FFFFFF';
+            case 'secondary': return colors.primary;
             case 'ghost': return colors.primary;
-            default: return colors.textInverse;
+            default: return colors.primaryForeground;
         }
     };
 
-    const getPadding = () => {
+    const getBorderStyle = (): ViewStyle => {
+        if (variant === 'secondary') {
+            return {
+                borderWidth: 1,
+                borderColor: disabled ? colors.borderStrong : 'rgba(108,92,231,0.3)',
+            };
+        }
+        return {};
+    };
+
+    const getPadding = (): ViewStyle => {
         switch (size) {
             case 'sm': return { paddingVertical: spacing[1], paddingHorizontal: spacing[3] };
             case 'lg': return { paddingVertical: spacing[4], paddingHorizontal: spacing[8] };
-            case 'md':
             default: return { paddingVertical: spacing[3], paddingHorizontal: spacing[5] };
         }
     };
 
     const getFontSize = () => {
         switch (size) {
-            case 'sm': return typography.sizes.xs;
-            case 'lg': return typography.sizes.lg;
-            case 'md':
-            default: return typography.sizes.base;
+            case 'sm': return 12;
+            case 'lg': return 16;
+            default: return 15;
         }
     };
 
+    const getRadius = () => {
+        switch (size) {
+            case 'sm': return radii.sm;
+            case 'lg': return radii.lg;
+            default: return radii.md;
+        }
+    };
+
+    const getShadow = () => {
+        if (variant === 'primary' || variant === 'destructive') return shadows.sm;
+        return {};
+    };
+
     return (
-        <Pressable
-            onPress={() => {
-                playSound('button-click');
-                onPress?.();
-            }}
-            disabled={disabled || loading}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            style={({ pressed }) => [
-                {
-                    backgroundColor: getBackgroundColor(),
-                    borderRadius: radii.md,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: (pressed && variant === 'ghost') ? 0.7 : 1, // Feedback for ghost
-                    width: fullWidth ? '100%' : undefined,
-                    ...getPadding(),
-                    // Add shadow for primary/destructive
-                    ...(variant === 'primary' || variant === 'destructive' ? shadows.sm : {}),
-                    // Border for secondary
-                    borderWidth: variant === 'secondary' ? 1 : 0,
-                    borderColor: variant === 'secondary' ? colors.border : 'transparent',
-                },
-                style,
-            ]}
-        >
-            <Animated.View style={{ transform: [{ scale }], flexDirection: 'row', alignItems: 'center' }}>
+        <Animated.View style={[animatedScale, fullWidth && { width: '100%' }]}>
+            <Pressable
+                onPress={() => {
+                    if (!disabled && !loading) {
+                        playSound('button-click');
+                        onPress?.();
+                    }
+                }}
+                disabled={disabled || loading}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={[
+                    styles.base,
+                    {
+                        backgroundColor: getBackgroundColor(),
+                        borderRadius: getRadius(),
+                        opacity: disabled ? 0.55 : 1,
+                        ...getPadding(),
+                        ...getBorderStyle(),
+                        ...getShadow(),
+                        width: fullWidth ? '100%' : undefined,
+                    },
+                    style,
+                ]}
+            >
                 {loading ? (
-                    <ActivityIndicator size="small" color={getTextColor()} style={{ marginRight: spacing[2] }} />
+                    <ActivityIndicator size="small" color={getTextColor()} />
                 ) : (
                     <>
                         {icon && (
@@ -139,15 +157,22 @@ export const Button: React.FC<ButtonProps> = ({
                             style={{
                                 color: getTextColor(),
                                 fontSize: getFontSize(),
-                                fontWeight: typography.weights.bold as any,
-                                // casting as any because rn font weights are strings
+                                fontWeight: '600',
                             }}
                         >
                             {label}
                         </Text>
                     </>
                 )}
-            </Animated.View>
-        </Pressable>
+            </Pressable>
+        </Animated.View>
     );
 };
+
+const styles = StyleSheet.create({
+    base: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});

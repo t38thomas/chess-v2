@@ -70,15 +70,15 @@ const CounterItem: React.FC<{ counter: TurnCounter; icon: string }> = ({ counter
 
     return (
         <View style={styles.counterItem}>
-            <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
+            <View style={[styles.iconBox, { backgroundColor: colors.primaryMuted }]}>
                 <MaterialCommunityIcons name={icon as any} size={16} color={colors.primary} />
             </View>
             <View style={styles.textContainer}>
                 <Text variant="caption" style={{ color: colors.text, flex: 1 }}>
                     {t(`pact.${counter.label}` as any)}
                 </Text>
-                <View style={[styles.badge, { backgroundColor: counter.type === 'cooldown' ? '#f87171' + '20' : colors.primary + '20' }]}>
-                    <Text variant="caption" bold style={{ color: counter.type === 'cooldown' ? '#f87171' : colors.primary }}>
+                <View style={[styles.badge, { backgroundColor: counter.type === 'cooldown' ? 'rgba(214,48,49,0.15)' : colors.primaryMuted }]}>
+                    <Text variant="caption" bold style={{ color: counter.type === 'cooldown' ? colors.danger : colors.primary }}>
                         {counter.subLabel ? (
                             (/[0-9\/]/.test(counter.subLabel)) ? counter.subLabel : t(`pact.${counter.subLabel}` as any)
                         ) : counter.value}

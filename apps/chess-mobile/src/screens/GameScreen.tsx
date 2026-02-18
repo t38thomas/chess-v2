@@ -161,7 +161,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 <View style={styles.statusRow}>
                     <View style={[
                         styles.turnIndicator,
-                        { backgroundColor: turn === 'white' ? colors.primary + '20' : colors.textSecondary + '20' }
+                        { backgroundColor: turn === 'white' ? colors.primaryMuted : colors.surfaceActive }
                     ]}>
                         <Icon
                             name="chess-king"
@@ -265,22 +265,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             )}
 
             {/* Controls */}
-            <View style={styles.controlsContainer}>
-                {matchConfig.enableTurnRotate90 && (
-                    <Button
-                        label={t('game.rotateBoard' as any)}
-                        onPress={handleRotateBoardAction}
-                        variant="secondary"
-                        icon="rotate-right"
-                        disabled={phase !== 'playing' || status !== 'active'}
-                        style={{ marginBottom: spacing[2] }}
-                    />
-                )}
-                <View style={styles.buttonRow}>
-                    <IconButton icon="flag" onPress={() => resign()} />
-                    <IconButton icon="restart" onPress={resetGame} />
-                </View>
-            </View>
+            \
         </View>
     );
 
@@ -347,8 +332,9 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                 visible={status !== 'active' && phase !== 'setup'}
                 status={status}
                 winner={winner}
-                onRestart={resetGame}
-                onHome={onNavigateBack || (() => { })}
+                onClose={onNavigateBack || (() => { })}
+                onPlayAgain={resetGame}
+                onGoHome={onNavigateBack || (() => { })}
             />
         </React.Fragment>
     );
@@ -380,7 +366,7 @@ const styles = StyleSheet.create({
     checkBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FF525215',
+        backgroundColor: 'rgba(214,48,49,0.08)',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 12,
@@ -394,7 +380,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingBottom: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee', // Simplified, should use theme
+        borderBottomColor: 'rgba(255,255,255,0.1)',
     },
     historyScroll: {
         flexDirection: 'row',
@@ -435,7 +421,7 @@ const styles = StyleSheet.create({
     pactBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.06)',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,

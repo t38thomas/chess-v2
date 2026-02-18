@@ -194,8 +194,8 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index, isLargeScree
                 <View style={styles.cardBody}>
                     <View style={styles.perkSection}>
                         <View style={styles.perkLabel}>
-                            <MaterialCommunityIcons name="lightning-bolt" size={14} color="#4ade80" />
-                            <Text variant="caption" bold style={{ color: '#4ade80', marginLeft: 4 }}>{t('pact.ascension')}</Text>
+                            <MaterialCommunityIcons name="lightning-bolt" size={14} color={colors.success} />
+                            <Text variant="caption" bold style={{ color: colors.success, marginLeft: 4 }}>{t('pact.ascension')}</Text>
                         </View>
                         <View style={styles.perkInfo}>
                             <View style={styles.iconBox}>
@@ -212,12 +212,12 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index, isLargeScree
 
                     <View style={styles.perkSection}>
                         <View style={styles.perkLabel}>
-                            <MaterialCommunityIcons name="skull" size={12} color="#f87171" />
-                            <Text variant="caption" bold style={{ color: '#f87171', marginLeft: 4 }}>{t('pact.sacrifice')}</Text>
+                            <MaterialCommunityIcons name="skull" size={12} color={colors.danger} />
+                            <Text variant="caption" bold style={{ color: colors.danger, marginLeft: 4 }}>{t('pact.sacrifice')}</Text>
                         </View>
                         <View style={styles.perkInfo}>
                             <View style={styles.iconBox}>
-                                <MaterialCommunityIcons name={pact.malus.icon as any} size={20} color="#f87171" />
+                                <MaterialCommunityIcons name={pact.malus.icon as any} size={20} color={colors.danger} />
                             </View>
                             <View style={styles.perkText}>
                                 <Text variant="body" bold style={styles.perkName}>{pact.malus.name}</Text>

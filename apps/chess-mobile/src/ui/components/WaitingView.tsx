@@ -41,7 +41,7 @@ export const WaitingView: React.FC<WaitingViewProps> = ({
                 <Container maxWidth={600}>
                     <View style={styles.waitingContent}>
                         <View style={styles.waitingHero}>
-                            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: colors.primaryMuted }]}>
                                 <Icon name="account-clock" size={48} color={colors.primary} />
                             </View>
                             <Text variant="title" bold style={{ fontSize: 24, marginTop: spacing[4], marginBottom: spacing[2] }}>
@@ -52,7 +52,7 @@ export const WaitingView: React.FC<WaitingViewProps> = ({
                             </Text>
 
                             {/* Match Code Card */}
-                            <Card variant="outlined" padding="lg" style={[styles.codeCard, { borderColor: colors.primary + '40' }]}>
+                            <Card variant="outlined" padding="lg" style={[styles.codeCard, { borderColor: colors.primary }]}>
                                 <Text variant="caption" color="secondary" style={{ marginBottom: spacing[2], textAlign: 'center' }}>
                                     {t('createMatch.shareCode')}
                                 </Text>
@@ -78,7 +78,7 @@ export const WaitingView: React.FC<WaitingViewProps> = ({
                                         <Icon
                                             name={players.white?.connected ? 'check-circle' : 'clock-outline'}
                                             size={20}
-                                            color={players.white?.connected ? '#4ade80' : colors.textSecondary}
+                                            color={players.white?.connected ? colors.success : colors.textSecondary}
                                         />
                                         <Text variant="body" style={{ marginLeft: spacing[2] }}>
                                             {players.white?.connected ? players.white.username : t('game.waitingForWhite')}
@@ -90,7 +90,7 @@ export const WaitingView: React.FC<WaitingViewProps> = ({
                                         <Icon
                                             name={players.black?.connected ? 'check-circle' : 'clock-outline'}
                                             size={20}
-                                            color={players.black?.connected ? '#4ade80' : colors.textSecondary}
+                                            color={players.black?.connected ? colors.success : colors.textSecondary}
                                         />
                                         <Text variant="body" style={{ marginLeft: spacing[2] }}>
                                             {players.black?.connected ? players.black.username : t('game.waitingForBlack')}

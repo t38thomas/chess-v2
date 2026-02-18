@@ -107,12 +107,12 @@ const getIconColor = (type: ToastData['type'], colors: any) => {
 
 const getIconBgColor = (type: ToastData['type'], colors: any) => {
     switch (type) {
-        case 'error': return colors.danger + '20';
-        case 'warning': return colors.warning + '20';
-        case 'success': return colors.primary + '20';
-        case 'malus': return colors.danger + '20';
-        case 'bonus': return colors.primary + '20';
-        default: return colors.primary + '20';
+        case 'error': return colors.dangerMuted || 'rgba(214,48,49,0.15)';
+        case 'warning': return colors.warningMuted || 'rgba(253,203,110,0.15)';
+        case 'success': return colors.primaryMuted;
+        case 'malus': return colors.dangerMuted || 'rgba(214,48,49,0.15)';
+        case 'bonus': return colors.primaryMuted;
+        default: return colors.primaryMuted;
     }
 };
 

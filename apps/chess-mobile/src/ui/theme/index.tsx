@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
-import { lightColors, darkColors, typography, spacing, radii, shadows, motion } from './tokens';
+import { lightColors, darkColors } from './colors';
+import { typography, spacing, radii, shadows, glowShadow, motion } from './tokens';
 
 import { StorageService, STORAGE_KEYS } from '../../services/StorageService';
 
@@ -10,12 +11,13 @@ type ThemeMode = 'light' | 'dark' | 'system';
 interface ThemeContextType {
     mode: ThemeMode;
     setMode: (mode: ThemeMode) => void;
-    colors: typeof lightColors;
+    colors: typeof darkColors;
     isDark: boolean;
     typography: typeof typography;
     spacing: typeof spacing;
     radii: typeof radii;
     shadows: typeof shadows;
+    glowShadow: typeof glowShadow;
     motion: typeof motion;
 }
 
@@ -59,6 +61,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         spacing,
         radii,
         shadows,
+        glowShadow,
         motion,
     }), [mode, isDark, colors]);
 

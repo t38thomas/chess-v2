@@ -14,7 +14,6 @@ interface CapturedPiecesRowProps {
     pieceColor: PieceColor;
     label?: string;
     style?: any;
-    // We assume default LTR layout
 }
 
 export const CapturedPiecesRow: React.FC<CapturedPiecesRowProps> = ({
@@ -24,12 +23,18 @@ export const CapturedPiecesRow: React.FC<CapturedPiecesRowProps> = ({
     label,
     style,
 }) => {
-    // Determine min height to prevent layout shift when empty
-    const minHeight = 24;
-    const { colors, spacing } = useTheme();
+    const { colors, spacing, radii } = useTheme();
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.boardDark }, style, { minHeight }]}>
+        <View style={[
+            styles.container,
+            {
+                backgroundColor: colors.bg1,
+                borderColor: colors.bg2,
+                borderRadius: radii.sm,
+            },
+            style,
+        ]}>
             {label && (
                 <Text variant="caption" color="secondary" style={styles.label}>
                     {label}
@@ -41,6 +46,9 @@ export const CapturedPiecesRow: React.FC<CapturedPiecesRowProps> = ({
                 contentContainerStyle={styles.scrollContent}
                 style={styles.scrollView}
             >
+                {pieces.length === 0 && (
+                    <Text style={{ color: colors.textMuted, fontSize: 14 }}>—</Text>
+                )}
                 {pieces.map((p) => (
                     <PieceMini
                         key={p.kind}
@@ -51,7 +59,11 @@ export const CapturedPiecesRow: React.FC<CapturedPiecesRowProps> = ({
                 ))}
             </ScrollView>
             {advantage !== undefined && advantage > 0 && (
-                <MaterialAdvantageBadge value={advantage} />
+                <View style={[styles.advantageBadge, { backgroundColor: colors.primaryMuted }]}>
+                    <Text style={[styles.advantageText, { color: colors.primary }]}>
+                        +{advantage}
+                    </Text>
+                </View>
             )}
         </View>
     );
@@ -61,8 +73,10 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 4,
+        paddingHorizontal: 8,
+        borderWidth: 1,
         overflow: 'hidden',
+        minHeight: 32,
     },
     label: {
         fontSize: 10,
@@ -76,6 +90,17 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 14
-    }
+        paddingVertical: 6,
+        gap: 2,
+    },
+    advantageBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+        marginLeft: 8,
+    },
+    advantageText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
 });
