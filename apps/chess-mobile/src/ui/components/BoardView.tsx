@@ -92,7 +92,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
                                 type={squareVM.piece.type}
                                 color={squareVM.piece.color}
                                 size={squareSize * 0.8}
-                                reversed={invertPieces ? !reversed : reversed}
+                                reversed={invertPieces ? !reversed : false}
                                 boardRotation={rotation}
                             />
                         )}

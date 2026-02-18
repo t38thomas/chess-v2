@@ -4,7 +4,7 @@ dotenv.config();
 
 export const config = {
     PORT: parseInt(process.env.PORT || '8080', 10),
-    ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || 'https://pactchess.com,https://www.pactchess.com,http://localhost:8081,http://localhost:19006').split(','),
+    ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || 'https://pactchess.com,https://www.pactchess.com,http://localhost:8081,http://localhost:8082,http://localhost:19006').split(','),
     TOKEN_SECRET: process.env.TOKEN_SECRET || 'dev-secret-do-not-use-in-prod',
 
     // WebSocket Limits
