@@ -177,7 +177,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                                 letterSpacing: -1,
                             }}
                         >
-                            Chess V2
+                            {t('common.appName')}
                         </Text>
 
                         {/* Subtitle */}

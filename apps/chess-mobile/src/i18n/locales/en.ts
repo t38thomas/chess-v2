@@ -14,6 +14,7 @@ export const en = {
         backToMenu: 'Back to Menu',
         copy: 'Copy',
         home: 'Home',
+        appName: 'PactChess',
     },
     home: {
         playOnline: 'Play Online',
@@ -114,7 +115,7 @@ export const en = {
         rotate: 'Rotate',
         newGame: 'New Game',
         localGame: 'Local Game',
-        onlineChess: 'Online Chess',
+        onlineChess: 'PactChess Online',
         serverConnected: 'Server Connected',
         connecting: 'Connecting...',
         createMatchDesc: 'Create a New Match',

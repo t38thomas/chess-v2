@@ -16,6 +16,7 @@ export const it: Translations = {
         backToMenu: 'Torna al Menu',
         copy: "Copia",
         home: 'Home',
+        appName: 'Scacchi a Patti',
     },
     home: {
         playOnline: 'Gioca Online',
@@ -116,7 +117,7 @@ export const it: Translations = {
         rotate: 'Ruota',
         newGame: 'Nuova Partita',
         localGame: 'Partita Locale',
-        onlineChess: 'Scacchi Online',
+        onlineChess: 'PactChess Online',
         serverConnected: 'Server Connesso',
         connecting: 'Connessione...',
         createMatchDesc: 'Crea una Nuova Partita',
