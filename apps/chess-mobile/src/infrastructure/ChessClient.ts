@@ -33,7 +33,14 @@ export class ChessClient {
             }
 
             try {
-                this.ws = new WebSocket(this.url);
+                // Android's React Native WebSocket sends Origin derived from the WSS URL
+                // (e.g. https://server.pactchess.com) which is NOT in the server's
+                // ALLOWED_ORIGINS list. Explicitly pass an allowed Origin header.
+                // React Native's WebSocket accepts a 3rd options arg (not in browser types).
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                this.ws = new (WebSocket as any)(this.url, [], {
+                    headers: { Origin: 'https://pactchess.com' }
+                });
             } catch (e) {
                 reject(new Error(`Invalid URL: ${this.url}`));
                 return;

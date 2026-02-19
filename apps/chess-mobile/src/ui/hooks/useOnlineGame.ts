@@ -18,7 +18,7 @@ const PROD_WS = "wss://server.pactchess.com/ws";
 
 // Expo/React Native define __DEV__ in dev
 export const SERVER_URL = (() => {
-    if (!__DEV__) return PROD_WS;
+    return PROD_WS;
 
     return Platform.select({
         android: DEV_WS_ANDROID,
@@ -66,6 +66,8 @@ export const useOnlineGame = () => {
         // Load username only
         const initConnection = async () => {
             const storedUsername = await AsyncStorage.getItem('chess_username');
+
+            console.log("storedUsername", storedUsername);
 
             if (storedUsername) setUsername(storedUsername);
 

@@ -17,4 +17,5 @@ setupWebSocket(wss, server, matchService);
 server.listen(config.PORT, "0.0.0.0", () => {
     console.log(` authoritative chess server running on port ${config.PORT}`);
     console.log(` allowed origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
+    console.log("run: cloudflared tunnel --protocol http2 run pactchess-home to expose the server to the internet")
 });
