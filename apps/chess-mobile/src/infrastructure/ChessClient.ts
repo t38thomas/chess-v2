@@ -32,21 +32,23 @@ export class ChessClient {
                 this.ws.close();
             }
 
+            let ws: WebSocket;
             try {
                 // Android's React Native WebSocket sends Origin derived from the WSS URL
                 // (e.g. https://server.pactchess.com) which is NOT in the server's
                 // ALLOWED_ORIGINS list. Explicitly pass an allowed Origin header.
                 // React Native's WebSocket accepts a 3rd options arg (not in browser types).
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                this.ws = new (WebSocket as any)(this.url, [], {
+                ws = new (WebSocket as any)(this.url, [], {
                     headers: { Origin: 'https://pactchess.com' }
                 });
+                this.ws = ws;
             } catch (e) {
                 reject(new Error(`Invalid URL: ${this.url}`));
                 return;
             }
 
-            this.ws.onopen = () => {
+            ws.onopen = () => {
                 console.log('Connected to Chess Server');
                 this._isConnected = true;
 
@@ -60,7 +62,7 @@ export class ChessClient {
                 resolve();
             };
 
-            this.ws.onmessage = (event) => {
+            ws.onmessage = (event) => {
                 try {
                     const envelope = JSON.parse(event.data) as ServerEnvelope;
                     this.handleMessage(envelope);
@@ -69,7 +71,7 @@ export class ChessClient {
                 }
             };
 
-            this.ws.onerror = (e) => {
+            ws.onerror = (e) => {
                 console.error('WS Error', e);
                 // Only reject if we are still connecting
                 if (!this._isConnected) {
@@ -77,7 +79,7 @@ export class ChessClient {
                 }
             };
 
-            this.ws.onclose = () => {
+            ws.onclose = () => {
                 console.log('WS Closed');
                 this._isConnected = false;
                 this.ws = null;
