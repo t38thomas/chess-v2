@@ -27,6 +27,10 @@ export class OracleMalus extends PactLogic {
         if (event === 'move') {
             const move = payload as Move;
 
+            // Guard: payload must be a valid Move (has .piece). This can be undefined if
+            // a non-move action was incorrectly emitted as 'move' (e.g. board rotation).
+            if (!move?.piece) return;
+
             // Only check moves made by this player
             if (move.piece.color !== playerId) return;
 

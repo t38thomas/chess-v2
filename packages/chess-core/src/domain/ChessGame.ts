@@ -368,17 +368,10 @@ export class ChessGame implements IChessGame {
 
         // Action successful
         this.totalTurns++;
-        this.emit('move'); // Reuse 'move' generic or add 'board_rotated'?
-        // 'move' implies a piece moved. Let's send a generic State update or specific event?
-        // GameEvent has 'move', 'phase_change', etc.
-        // Let's rely on 'turn_start' mainly, but payload might be needed.
-        // Easiest: emit('move', { type: 'rotate' }) mockup?
-        // Better: Add 'board_rotated' to GameEvent? 
-        // Types TS allows string, but let's stick to existing or just emit change.
 
-        // Use 'pact_effect' as a generic "something happened" or just rely on state sync?
-        // Ideally we added 'board_rotated' to GameEvent but I didn't edit GameEvent string union yet.
-        // Let's double check GameTypes.
+        // Emit 'board_rotated' (not 'move') so pact handlers that listen for 'move'
+        // don't process this action with an undefined Move payload.
+        this.emit('board_rotated');
 
         // Turn Economy
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();

@@ -1,14 +1,10 @@
 
-import React, { useCallback } from 'react';
-import { Pressable, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import Animated, {
-    useSharedValue, useAnimatedStyle, withSpring,
-} from 'react-native-reanimated';
+import React, { useCallback, useRef } from 'react';
+import { Pressable, ActivityIndicator, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
 import { Text } from './Text';
 import { useSoundContext } from '../context/SoundContext';
-import { Motion } from '../constants/Motion';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -36,22 +32,28 @@ export const Button: React.FC<ButtonProps> = ({
     fullWidth = false,
     style,
 }) => {
-    const { colors, spacing, radii, typography, shadows } = useTheme();
+    const { colors, spacing, radii, shadows } = useTheme();
     const { playSound } = useSoundContext();
 
-    const scale = useSharedValue(1);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = useCallback(() => {
-        scale.value = withSpring(0.96, Motion.spring.snappy);
-    }, []);
+        Animated.spring(scaleAnim, {
+            toValue: 0.96,
+            useNativeDriver: true,
+            speed: 50,
+            bounciness: 0,
+        }).start();
+    }, [scaleAnim]);
 
     const handlePressOut = useCallback(() => {
-        scale.value = withSpring(1, Motion.spring.snappy);
-    }, []);
-
-    const animatedScale = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
-    }));
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 50,
+            bounciness: 4,
+        }).start();
+    }, [scaleAnim]);
 
     // Variant-based styles
     const getBackgroundColor = () => {
@@ -116,7 +118,7 @@ export const Button: React.FC<ButtonProps> = ({
     };
 
     return (
-        <Animated.View style={[animatedScale, fullWidth && { width: '100%' }, style]}>
+        <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, fullWidth && { width: '100%' }, style]}>
             <Pressable
                 onPress={() => {
                     if (!disabled && !loading) {
