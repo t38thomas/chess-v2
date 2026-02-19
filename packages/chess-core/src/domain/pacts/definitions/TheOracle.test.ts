@@ -3,7 +3,7 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece, PieceColor } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { OracleMalus } from './TheOracle';
+import { TheOracle } from './TheOracle';
 import { ChessGame } from '../../ChessGame';
 import { GameEvent } from '../../GameTypes';
 import { PactContext } from '../PactLogic';
@@ -11,20 +11,19 @@ import { PactContext } from '../PactLogic';
 describe('The Oracle Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let malus: OracleMalus;
+    const malus = TheOracle.malus;
     const playerId: PieceColor = 'white';
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
         board.clear(); // Important to start with empty board
-        malus = new OracleMalus();
     });
 
     const getContext = () => ({
         game,
         playerId,
-        pactId: malus.id
+        pactId: TheOracle.id
     });
 
     describe('Inevitable Fate Malus', () => {

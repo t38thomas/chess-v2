@@ -3,20 +3,18 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { RangerBonus, RangerMalus } from './TheRanger';
+import { TheRanger } from './TheRanger';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Ranger Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: RangerBonus;
-    let malus: RangerMalus;
+    const bonus = TheRanger.bonus;
+    const malus = TheRanger.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new RangerBonus();
-        malus = new RangerMalus();
     });
 
     describe('Short Sighted (Malus)', () => {
@@ -109,7 +107,7 @@ describe('The Ranger Pact', () => {
 
             // Activate Snipe ability
             const context = { game, playerId: 'white' as const, pactId: 'snipe' };
-            bonus.activeAbility.execute(context, {});
+            bonus.activeAbility!.execute(context, {});
             expect(game.pactState['ranger_snipe_active_white']).toBe(true);
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { TimeStopBonus, ParadoxMalus } from './TheTimekeeper';
+import { TheTimekeeper } from './TheTimekeeper';
 import { ChessGame } from '../../ChessGame';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
@@ -8,14 +8,12 @@ import { PactContext } from '../PactLogic';
 
 describe('The Timekeeper', () => {
     let game: ChessGame;
-    let timeStop: TimeStopBonus;
-    let paradox: ParadoxMalus;
+    const timeStop = TheTimekeeper.bonus;
+    const paradox = TheTimekeeper.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         // game.start() is not needed/does not exist, constructor sets up game
-        timeStop = new TimeStopBonus();
-        paradox = new ParadoxMalus();
     });
 
     it('should grant an extra turn when Time Stop is activated', () => {
@@ -24,7 +22,7 @@ describe('The Timekeeper', () => {
         const context: PactContext = {
             game: game,
             playerId: 'white',
-            pactId: 'time_stop'
+            pactId: TheTimekeeper.id
         };
 
         // Mock execute if needed, but we are testing the class providing execute

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { PhoenixBonus, PhoenixMalus } from './ThePhoenix';
+import { ThePhoenix } from './ThePhoenix';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
@@ -7,13 +7,11 @@ import { PactContext } from '../PactLogic';
 
 describe('The Phoenix', () => {
     let game: ChessGame;
-    let phoenixBonus: PhoenixBonus;
-    let phoenixMalus: PhoenixMalus;
+    const phoenixBonus = ThePhoenix.bonus;
+    const phoenixMalus = ThePhoenix.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        phoenixBonus = new PhoenixBonus();
-        phoenixMalus = new PhoenixMalus();
     });
 
     describe('Wingless (Malus)', () => {
@@ -99,7 +97,7 @@ describe('The Phoenix', () => {
 
             // Verify toast emission
             expect(emitSpy).toHaveBeenCalledWith('pact_effect', expect.objectContaining({
-                pactId: 'rebirth',
+                pactId: 'phoenix',
                 type: 'bonus'
             }));
         });

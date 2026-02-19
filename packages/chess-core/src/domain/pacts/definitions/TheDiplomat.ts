@@ -1,95 +1,58 @@
-import { PactLogic, RuleModifiers, PactContext, TurnCounter } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
 const HAS_CAPTURED_KEY = (playerId: string) => `diplomat_has_captured_${playerId}`;
 
 /**
- * Diplomatic Immunity Bonus: The Queen cannot be captured by Pawns
- * until she makes her first capture.
+ * The Diplomat Pact
+ * Bonus (Diplomatic Immunity): The Queen cannot be captured by pawns until she captures something.
+ * Malus (Internal Sabotage): Knights are blocked until the Queen captures something.
  */
-export class DiplomaticImmunityBonus extends PactLogic {
-    id = 'diplomatic_immunity';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            canBeCaptured: (game, attacker, victim, to, from) => {
-                if (!game) return true;
-
-                // If victim is not a Queen, immunity doesn't apply
-                if (!PactUtils.isQueen(victim)) return true;
-
-                // Check if the Queen belongs to the player with this pact
-                // This is a bit tricky since RuleModifiers don't always have playerId directly
-                // but we can check if the victim color has the pact.
-                // However, the rule typically applies to the player who HAS the pact.
-                const playerId = victim.color;
-                const hasCaptured = game.pactState[HAS_CAPTURED_KEY(playerId)];
-
-                if (!hasCaptured && PactUtils.isPawn(attacker)) {
-                    return false; // Immune to pawns
-                }
-
-                return true;
+export const TheDiplomat = definePact('diplomat')
+    .bonus('diplomatic_immunity', {
+        modifiers: {
+            canBeCaptured: (game, attacker, victim) => {
+                if (!game || !PactUtils.isQueen(victim)) return true;
+                const hasCaptured = game.pactState[HAS_CAPTURED_KEY(victim.color)];
+                return !!(hasCaptured || !PactUtils.isPawn(attacker));
             }
-        };
-    }
-
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'capture' && payload) {
-            const move = payload as any;
-            const hasCaptured = game.pactState[HAS_CAPTURED_KEY(playerId)];
-
-            if (!hasCaptured && move.piece && move.piece.color === playerId && PactUtils.isQueen(move.piece)) {
-                game.pactState[HAS_CAPTURED_KEY(playerId)] = true;
-
-                PactUtils.notifyPactEffect(game, 'diplomat', 'immunity_lost', 'malus', 'shield-off');
-                PactUtils.notifyPactEffect(game, 'diplomat', 'sabotage_ended', 'bonus', 'horse-variant');
-            }
-        }
-    }
-
-    getTurnCounters(context: PactContext): TurnCounter[] {
-        const { game, playerId } = context;
-        const hasCaptured = game.pactState[HAS_CAPTURED_KEY(playerId)];
-
-        return [{
-            id: 'diplomatic_immunity_status',
-            label: hasCaptured ? 'queen_successor' : 'queen_initial',
-            value: hasCaptured ? 0 : 1,
-            pactId: this.id,
-            type: 'counter',
-            subLabel: hasCaptured ? 'Active' : 'Protected'
-        }];
-
-    }
-}
-
-/**
- * Internal Sabotage Malus: Knights are blocked until the Queen makes her first capture.
- */
-export class InternalSabotageMalus extends PactLogic {
-    id = 'internal_sabotage';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            canMovePiece: (game, from, board) => {
-                const square = board ? board.getSquare(from) : game.board.getSquare(from);
-                const piece = square?.piece;
-
-                if (piece && PactUtils.isKnight(piece)) {
-                    const playerId = piece.color;
-                    const hasCaptured = game.pactState[HAS_CAPTURED_KEY(playerId)];
-
-                    if (!hasCaptured) {
-                        return false; // Knights are sabotaged
+        },
+        onEvent: (event, payload, context) => {
+            const { game, playerId } = context;
+            if (event === 'capture' && payload) {
+                const move = payload as any;
+                if (move.piece && move.piece.color === playerId && PactUtils.isQueen(move.piece)) {
+                    if (!game.pactState[HAS_CAPTURED_KEY(playerId)]) {
+                        game.pactState[HAS_CAPTURED_KEY(playerId)] = true;
+                        PactUtils.notifyPactEffect(game, 'diplomat', 'immunity_lost', 'malus', 'shield-off');
+                        PactUtils.notifyPactEffect(game, 'diplomat', 'sabotage_ended', 'bonus', 'horse-variant');
                     }
                 }
-
+            }
+        },
+        getTurnCounters: (context) => {
+            const hasCaptured = context.game.pactState[HAS_CAPTURED_KEY(context.playerId)];
+            return [{
+                id: 'diplomatic_immunity_status',
+                label: hasCaptured ? 'queen_successor' : 'queen_initial',
+                value: hasCaptured ? 0 : 1,
+                pactId: 'diplomatic_immunity',
+                type: 'counter',
+                subLabel: hasCaptured ? 'Active' : 'Protected'
+            }];
+        }
+    })
+    .malus('internal_sabotage', {
+        modifiers: {
+            canMovePiece: (game, from, board) => {
+                const b = board || game.board;
+                const piece = b.getSquare(from)?.piece;
+                if (piece && PactUtils.isKnight(piece)) {
+                    return !!game.pactState[HAS_CAPTURED_KEY(piece.color)];
+                }
                 return true;
             }
-        };
-    }
-}
+        }
+    })
+    .build();
+

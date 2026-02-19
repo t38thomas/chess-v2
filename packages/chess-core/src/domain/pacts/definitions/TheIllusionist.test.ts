@@ -1,20 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ChessGame } from '../../ChessGame';
-import { IllusionistBonus, IllusionistMalus } from './TheIllusionist';
+import { TheIllusionist } from './TheIllusionist';
 import { PactFactory } from '../PactFactory';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
 describe('The Illusionist Pact', () => {
     let game: ChessGame;
-    let bonus: IllusionistBonus;
-    let malus: IllusionistMalus;
+    const bonus = TheIllusionist.bonus;
+    const malus = TheIllusionist.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         PactFactory.initialize();
-        bonus = new IllusionistBonus();
-        malus = new IllusionistMalus();
     });
 
     describe('IllusionistBonus (Displace)', () => {

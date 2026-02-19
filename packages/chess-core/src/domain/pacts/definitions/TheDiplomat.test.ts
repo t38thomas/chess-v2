@@ -2,20 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
-import { DiplomaticImmunityBonus, InternalSabotageMalus } from './TheDiplomat';
+import { TheDiplomat } from './TheDiplomat';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Diplomat Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: DiplomaticImmunityBonus;
-    let malus: InternalSabotageMalus;
+    const bonus = TheDiplomat.bonus;
+    const malus = TheDiplomat.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new DiplomaticImmunityBonus();
-        malus = new InternalSabotageMalus();
     });
 
     describe('DiplomaticImmunityBonus', () => {

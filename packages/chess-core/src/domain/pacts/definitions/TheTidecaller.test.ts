@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ChessGame } from '../../ChessGame';
-import { TidecallerBonus, TidecallerMalus } from './TheTidecaller';
+import { TheTidecaller } from './TheTidecaller';
 import { Coordinate } from '../../models/Coordinate';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { Move } from '../../models/Move';
@@ -36,16 +36,15 @@ describe('The Tidecaller Pact', () => {
 
     describe('Bonus: Flow', () => {
         it('should allow pawns to move backward 1 square if empty', () => {
-            const bonus = new TidecallerBonus();
             game.pacts.white.push({
-                id: 'tidecaller',
+                id: TheTidecaller.id,
                 name: 'The Tidecaller',
                 description: '...',
                 category: 'Passive',
                 // @ts-ignore
-                bonus: { id: bonus.id, name: 'Flow', description: '...' },
+                bonus: { id: TheTidecaller.bonus.id, name: 'Flow', description: '...' },
                 // @ts-ignore
-                malus: { id: 'ebb', name: 'Ebb', description: '...' }
+                malus: { id: TheTidecaller.malus.id, name: 'Ebb', description: '...' }
             });
 
             // Setup: Move a white pawn forward so it has space to move back
@@ -74,7 +73,7 @@ describe('The Tidecaller Pact', () => {
 
 
         it('should NOT allow pawns to capture backward vertically', () => {
-            const bonus = new TidecallerBonus();
+            const bonus = TheTidecaller.bonus;
             game.pacts.white.push({
                 id: 'tidecaller',
                 name: 'The Tidecaller',
@@ -103,16 +102,15 @@ describe('The Tidecaller Pact', () => {
         });
 
         it('should NOT allow pawns to capture forward vertically', () => {
-            const bonus = new TidecallerBonus();
             game.pacts.white.push({
-                id: 'tidecaller',
+                id: TheTidecaller.id,
                 name: 'The Tidecaller',
                 description: '...',
                 category: 'Passive',
                 // @ts-ignore
-                bonus: { id: bonus.id, name: 'Flow', description: '...' },
+                bonus: { id: TheTidecaller.bonus.id, name: 'Flow', description: '...' },
                 // @ts-ignore
-                malus: { id: 'ebb', name: 'Ebb', description: '...' }
+                malus: { id: TheTidecaller.malus.id, name: 'Ebb', description: '...' }
             });
 
             // Setup: White Pawn at e4 (4,3). Black Pawn at e5 (4,4).
@@ -132,16 +130,15 @@ describe('The Tidecaller Pact', () => {
         });
 
         it('should NOT allow pawns to move backward into a piece', () => {
-            const bonus = new TidecallerBonus();
             game.pacts.white.push({
-                id: 'tidecaller',
+                id: TheTidecaller.id,
                 name: 'The Tidecaller',
                 description: '...',
                 category: 'Passive',
                 // @ts-ignore
-                bonus: { id: bonus.id, name: 'Flow', description: '...' },
+                bonus: { id: TheTidecaller.bonus.id, name: 'Flow', description: '...' },
                 // @ts-ignore
-                malus: { id: 'ebb', name: 'Ebb', description: '...' }
+                malus: { id: TheTidecaller.malus.id, name: 'Ebb', description: '...' }
             });
 
             // White pawn at e2 (4,1). Backward is (4,0).
@@ -156,16 +153,15 @@ describe('The Tidecaller Pact', () => {
 
     describe('Malus: Ebb', () => {
         it('should prevent diagonal captures for pawns', () => {
-            const malus = new TidecallerMalus();
             game.pacts.white.push({
-                id: 'tidecaller',
+                id: TheTidecaller.id,
                 name: 'The Tidecaller',
                 description: '...',
                 category: 'Passive',
                 // @ts-ignore
-                bonus: { id: 'flow', name: 'Flow', description: '...' },
+                bonus: { id: TheTidecaller.bonus.id, name: 'Flow', description: '...' },
                 // @ts-ignore
-                malus: { id: malus.id, name: 'Ebb', description: '...' }
+                malus: { id: TheTidecaller.malus.id, name: 'Ebb', description: '...' }
             });
 
             // Setup capture scenario
@@ -189,7 +185,7 @@ describe('The Tidecaller Pact', () => {
         });
 
         it('should still allow forward movement', () => {
-            const malus = new TidecallerMalus();
+            const malus = TheTidecaller.malus;
             game.pacts.white.push({
                 id: 'tidecaller',
                 name: 'The Tidecaller',

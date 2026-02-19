@@ -1,98 +1,50 @@
-import { PactLogic, PactContext, RuleModifiers } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
-import { Move } from '../../models/Move';
 
-// We use a WeakMap to store the turn-start state to avoid polluting global state
-// Key is Game instance -> value is "List of Piece IDs that had capture opportunities"
-const opportunities = new WeakMap<any, string[]>();
+/**
+ * The Oracle Pact
+ * Bonus (Prescience): (No active logic yet)
+ * Malus (Inevitable Fate): If you have an opportunity to capture an undefended piece and don't take it, you must sacrifice a piece.
+ */
+export const TheOracle = definePact('oracle')
+    .bonus('prescience', {})
+    .malus('inevitable_fate', {
+        initialState: () => [],
+        onTurnStart: (context) => {
+            const { game, playerId } = context;
+            const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
+            game.pactState['oracle_capable'] = capablePieceIds;
+        },
+        onEvent: (event, payload, context) => {
+            const { game, playerId } = context;
+            if (event === 'move') {
+                const move = payload as any;
+                if (move?.piece?.color !== playerId) return;
 
-export class OracleBonus extends PactLogic {
-    id = 'prescience';
-}
+                const capablePieceIds = game.pactState['oracle_capable'] || [];
+                if (capablePieceIds.length === 0) return;
 
-export class OracleMalus extends PactLogic {
-    id = 'inevitable_fate';
-
-    onTurnStart(context: PactContext): void {
-        const { game, playerId } = context;
-        // Check which pieces have capture opportunities of an undefended piece at start of turn
-        const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
-        opportunities.set(game, capablePieceIds);
-    }
-
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'move') {
-            const move = payload as Move;
-
-            // Guard: payload must be a valid Move (has .piece). This can be undefined if
-            // a non-move action was incorrectly emitted as 'move' (e.g. board rotation).
-            if (!move?.piece) return;
-
-            // Only check moves made by this player
-            if (move.piece.color !== playerId) return;
-
-            const capablePieceIds = opportunities.get(game) || [];
-
-            // If no piece had an opportunity to capture an undefended piece, we are free.
-            if (capablePieceIds.length === 0) return;
-
-            // If we HAD an opportunity, we MUST have taken it.
-            // Did we capture an undefended piece?
-            let satisfied = false;
-
-            if (move.capturedPiece) {
-                const opponentColor = playerId === 'white' ? 'black' : 'white';
-
-                // After the capture, the piece is on `move.to`.
-                // If `move.to` is attacked by opponent, then the piece we captured was "defended".
-                // If NOT attacked, it was "undefended".
-
-                const isAttackedNow = PactUtils.isSquareAttacked(game, move.to, opponentColor);
-
-                if (!isAttackedNow) {
-                    satisfied = true;
+                let satisfied = false;
+                if (move.capturedPiece) {
+                    const opponentColor = playerId === 'white' ? 'black' : 'white';
+                    if (!PactUtils.isSquareAttacked(game, move.to, opponentColor)) satisfied = true;
                 }
-            }
 
-            if (!satisfied) {
-                // Punishment: 
-                // We need to sacrifice a piece that missed the opportunity.
-                // 1. If the moved piece was one of the capable pieces, IT is the culprit for not capturing.
-                // 2. If the moved piece was NOT one of the capable pieces, then one of the capable pieces sat idle.
-                //    We sacrifice one of them (e.g. random or first found).
+                if (!satisfied) {
+                    let victimId: string;
+                    if (capablePieceIds.includes(move.piece.id)) {
 
-                let victimId: string | undefined;
-
-                if (capablePieceIds.includes(move.piece.id)) {
-                    // The moved piece is guilty
-                    victimId = move.piece.id;
-                    // It is at move.to now
-                    PactUtils.removePiece(game, move.to);
-                } else {
-                    // Another piece is guilty
-                    // Pick the first one for simplicity/determinism or random?
-                    // Let's pick random to feel like "fate".
-                    victimId = capablePieceIds[Math.floor(Math.random() * capablePieceIds.length)];
-
-                    // Find where this piece is
-                    const victimSquare = game.board.getAllSquares().find(s => s.piece?.id === victimId);
-                    if (victimSquare) {
-                        PactUtils.removePiece(game, victimSquare.coordinate);
+                        victimId = move.piece.id;
+                        PactUtils.removePiece(game, move.to);
+                    } else {
+                        victimId = capablePieceIds[Math.floor(Math.random() * capablePieceIds.length)];
+                        const victimSquare = game.board.getAllSquares().find(s => s.piece?.id === victimId);
+                        if (victimSquare) PactUtils.removePiece(game, victimSquare.coordinate);
                     }
+                    PactUtils.notifyPactEffect(game, 'oracle', 'punishment', 'malus', 'skull');
                 }
-
-                // Notify user
-                PactUtils.emitPactEffect(game, {
-                    pactId: this.id,
-                    title: 'pact.toasts.oracle.punishment.title',
-                    description: 'pact.toasts.oracle.punishment.desc',
-                    icon: 'skull',
-                    type: 'malus'
-                });
             }
         }
-    }
-}
+    })
+    .build();
+

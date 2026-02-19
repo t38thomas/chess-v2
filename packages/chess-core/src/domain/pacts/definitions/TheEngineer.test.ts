@@ -3,20 +3,18 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { TurretBonus, DesignFlawMalus } from './TheEngineer';
+import { TheEngineer } from './TheEngineer';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Engineer Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: TurretBonus;
-    let malus: DesignFlawMalus;
+    const bonus = TheEngineer.bonus;
+    const malus = TheEngineer.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new TurretBonus();
-        malus = new DesignFlawMalus();
     });
 
     describe('TurretBonus', () => {

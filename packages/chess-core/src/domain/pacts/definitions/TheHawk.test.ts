@@ -1,19 +1,16 @@
-
 import { describe, it, expect, beforeEach } from 'vitest';
-import { HawkBonus, HawkMalus } from './TheHawk';
+import { TheHawk } from './TheHawk';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 
 describe('The Hawk Pact', () => {
     let game: ChessGame;
-    let bonus: HawkBonus;
-    let malus: HawkMalus;
+    const bonus = TheHawk.bonus;
+    const malus = TheHawk.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bonus = new HawkBonus();
-        malus = new HawkMalus();
     });
 
     describe('HawkBonus (High Flyer)', () => {

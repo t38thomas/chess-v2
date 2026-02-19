@@ -1,25 +1,20 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
-import { PieceType } from '../../models/Piece';
+import { definePact } from '../PactLogic';
 
-export class SaboteurBonus extends PactLogic {
-    id = 'diagonal_dash';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+/**
+ * The Saboteur Pact
+ * Bonus (Diagonal Dash): Pawns can move diagonally (without capture).
+ * Malus (Cut Supplies): Cannot promote to Queen.
+ */
+export const TheSaboteur = definePact('saboteur')
+    .bonus('diagonal_dash', {
+        modifiers: {
             canDiagonalDash: (piece) => piece.type === 'pawn'
-        };
-    }
-}
+        }
+    })
+    .malus('cut_supplies', {
+        modifiers: {
+            getAllowedPromotionTypes: () => ['rook', 'bishop', 'knight']
+        }
+    })
+    .build();
 
-export class SaboteurMalus extends PactLogic {
-    id = 'cut_supplies';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            getAllowedPromotionTypes: (piece) => {
-                // Cannot promote to Queen
-                return ['rook', 'bishop', 'knight'];
-            }
-        };
-    }
-}

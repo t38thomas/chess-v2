@@ -1,35 +1,62 @@
 import { PactRegistry } from './PactRegistry';
-import { VeteranBonus, VeteranMalus } from './definitions/TheVeteran';
-import { SaboteurBonus, SaboteurMalus } from './definitions/TheSaboteur';
-import { NecromancerBonus, NecromancerMalus } from './definitions/TheNecromancer';
-import { SwarmBonus, SwarmMalus } from './definitions/TheSwarm';
-import { AlchemistBonus, AlchemistMalus } from './definitions/TheAlchemist';
-import { BerserkerBonus, BerserkerMalus } from './definitions/TheBerserker';
+import { PactLogic, PactDefinition } from './PactLogic';
+import { TheVeteran } from './definitions/TheVeteran';
+import { TheSaboteur } from './definitions/TheSaboteur';
 
-import { HeavyCavalryBonus, HeavyCavalryMalus } from './definitions/TheHeavyCavalry';
-import { SpectreBonus, SpectreMalus } from './definitions/TheSpectre';
-import { SniperBonus, SniperMalus } from './definitions/TheSniper';
-import { ChangelingBonus, ChangelingMalus } from './definitions/TheChangeling';
-import { StoneSkinBonus, LeadFeetMalus } from './definitions/TheGolem';
-import { ChaosBonus, JesterMalus } from './definitions/TheJester';
-import { ThiefBonus, ThiefMalus } from './definitions/TheThief';
-import { RangerBonus, RangerMalus } from './definitions/TheRanger';
-import { TidecallerBonus, TidecallerMalus } from './definitions/TheTidecaller';
-import { HawkBonus, HawkMalus } from './definitions/TheHawk';
-import { TimeStopBonus, ParadoxMalus } from './definitions/TheTimekeeper';
-import { PhoenixBonus, PhoenixMalus } from './definitions/ThePhoenix';
-import { VoidJumpBonus, RitualSacrificeMalus } from './definitions/TheVoidJumper';
-import { IllusionistBonus, IllusionistMalus } from './definitions/TheIllusionist';
-import { BloodlineBonus, YoungQueenMalus } from './definitions/TheHeir';
-import { LifeThirstBonus, VampireCurseMalus } from './definitions/TheVampire';
-import { VigilanceBonus, AnchoredMalus } from './definitions/TheSentinel';
-import { ArenaBonus, DisarmedMalus } from './definitions/TheGladiator';
-import { EarthquakeBonus, GigantismMalus } from './definitions/TheTitan';
-import { ShadowCloakBonus, BlindLightMalus } from './definitions/TheShadow';
-import { TurretBonus, DesignFlawMalus } from './definitions/TheEngineer';
-import { DiplomaticImmunityBonus, InternalSabotageMalus } from './definitions/TheDiplomat';
-import { OracleBonus, OracleMalus } from './definitions/TheOracle';
-import { BlindSeerBonus, BlindSeerMalus } from './definitions/TheBlindSeer';
+import { TheNecromancer } from './definitions/TheNecromancer';
+
+import { TheSwarm } from './definitions/TheSwarm';
+
+import { TheAlchemist } from './definitions/TheAlchemist';
+import { TheBerserker } from './definitions/TheBerserker';
+
+
+import { TheHeavyCavalry } from './definitions/TheHeavyCavalry';
+
+import { TheSpectre } from './definitions/TheSpectre';
+import { TheSniper } from './definitions/TheSniper';
+
+import { TheChangeling } from './definitions/TheChangeling';
+
+import { TheGolem } from './definitions/TheGolem';
+
+import { TheJester } from './definitions/TheJester';
+
+import { TheThief } from './definitions/TheThief';
+
+import { TheRanger } from './definitions/TheRanger';
+
+import { TheTidecaller } from './definitions/TheTidecaller';
+
+import { TheHawk } from './definitions/TheHawk';
+
+import { TheTimekeeper } from './definitions/TheTimekeeper';
+
+import { ThePhoenix } from './definitions/ThePhoenix';
+
+import { TheVoidJumper } from './definitions/TheVoidJumper';
+
+import { TheIllusionist } from './definitions/TheIllusionist';
+
+import { TheHeir } from './definitions/TheHeir';
+
+import { TheVampire } from './definitions/TheVampire';
+
+import { TheSentinel } from './definitions/TheSentinel';
+
+import { TheGladiator } from './definitions/TheGladiator';
+
+import { TheTitan } from './definitions/TheTitan';
+import { TheShadow } from './definitions/TheShadow';
+
+import { TheEngineer } from './definitions/TheEngineer';
+
+import { TheDiplomat } from './definitions/TheDiplomat';
+
+import { TheOracle } from './definitions/TheOracle';
+
+import { TheBlindSeer } from './definitions/TheBlindSeer';
+
 
 declare var __DEV__: boolean;
 
@@ -40,7 +67,7 @@ export class PactFactory {
         'reclaimer', 'ascension_cost',
         'hydra', 'hive_queen',
         'transmutation', 'volatile_reagents',
-        'frenzy', 'defenseless',
+        'frenzy', 'missing_knight',
         'trample', 'heavy_armor',
         'incorporeal', 'possession',
         'long_sight', 'reload',
@@ -60,137 +87,81 @@ export class PactFactory {
         'shadow_cloak', 'blind_light',
         'turret', 'design_flaw',
         'prescience', 'inevitable_fate',
-        'echolocation', 'darkness'
+        'echolocation', 'darkness',
+        'time_stop', 'paradox',
+        'void_jump', 'ritual_sacrifice',
+        'arena', 'disarmed'
+    ];
+
+    private static readonly PACTS: PactDefinition[] = [
+        TheVeteran,
+        TheSaboteur,
+
+        TheNecromancer,
+
+        TheSwarm,
+
+        TheAlchemist,
+        TheBerserker,
+
+        TheHeavyCavalry,
+
+        TheSpectre,
+        TheSniper,
+
+        TheChangeling,
+
+        TheGolem,
+
+        TheJester,
+
+        TheThief,
+
+        TheRanger,
+        TheTidecaller,
+
+        TheHawk,
+
+
+
+        TheTimekeeper,
+
+        ThePhoenix,
+
+        TheVoidJumper,
+
+        TheIllusionist,
+
+        TheHeir,
+
+        TheVampire,
+
+        TheSentinel,
+
+        TheGladiator,
+
+        TheTitan,
+        TheShadow,
+
+        TheEngineer,
+
+        TheDiplomat,
+
+        TheOracle,
+
+        TheBlindSeer
+
     ];
 
     public static initialize() {
         const registry = PactRegistry.getInstance();
         const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
 
-        const register = (pact: any) => {
-            if (isDev || PactFactory.RELEASE_READY_PACTS.includes(pact.id)) {
-                registry.register(pact);
+        for (const pactDef of PactFactory.PACTS) {
+            if (isDev || (PactFactory.RELEASE_READY_PACTS.includes(pactDef.bonus.id) && PactFactory.RELEASE_READY_PACTS.includes(pactDef.malus.id))) {
+                registry.register(pactDef.bonus);
+                registry.register(pactDef.malus);
             }
-        };
-
-        // 1. Il Veterano
-        register(new VeteranBonus());
-        register(new VeteranMalus());
-
-        // 2. Il Sabotatore
-        register(new SaboteurBonus());
-        register(new SaboteurMalus());
-
-        // 3. Il Negromante
-        register(new NecromancerBonus());
-        register(new NecromancerMalus());
-
-        // 4. Lo Sciame
-        register(new SwarmBonus());
-        register(new SwarmMalus());
-
-        // 5. L'Alchimista
-        register(new AlchemistBonus());
-        register(new AlchemistMalus());
-
-        // 6. Il Berserker
-        register(new BerserkerBonus());
-        register(new BerserkerMalus());
-
-        // 7. Cavalleria Pesante
-        register(new HeavyCavalryBonus());
-        register(new HeavyCavalryMalus());
-
-        // 8. Lo Spettro
-        register(new SpectreBonus());
-        register(new SpectreMalus());
-
-        // 9. Il Cecchino
-        register(new SniperBonus());
-        register(new SniperMalus());
-
-        // 10. Il Mutaforma
-        register(new ChangelingBonus());
-        register(new ChangelingMalus());
-
-        // 11. Il Golem
-        register(new StoneSkinBonus());
-        register(new LeadFeetMalus());
-
-        // 12. Il Giullare
-        register(new ChaosBonus());
-        register(new JesterMalus());
-
-        // 13. Il Ladro
-        register(new ThiefBonus());
-        register(new ThiefMalus());
-
-        // 14. L'Arciere
-        register(new RangerBonus());
-        register(new RangerMalus());
-
-        // 15. Il Richiamo della Marea (The Tidecaller)
-        register(new TidecallerBonus());
-        register(new TidecallerMalus());
-
-        // 16. Il Falco (The Hawk)
-        register(new HawkBonus());
-        register(new HawkMalus());
-
-        // 17. Il Guardiano del Tempo (The Timekeeper)
-        register(new TimeStopBonus());
-        register(new ParadoxMalus());
-
-        // 18. La Fenice (The Phoenix)
-        register(new PhoenixBonus());
-        register(new PhoenixMalus());
-
-        // 19. Il Saltatore del Vuoto (The Void Jumper)
-        register(new VoidJumpBonus());
-        register(new RitualSacrificeMalus());
-
-        // 20. L'Illusionista (The Illusionist)
-        register(new IllusionistBonus());
-        register(new IllusionistMalus());
-
-        // 21. L'Erede (The Heir)
-        register(new BloodlineBonus());
-        register(new YoungQueenMalus());
-
-        // 22. Il Vampiro (The Vampire)
-        register(new LifeThirstBonus());
-        register(new VampireCurseMalus());
-
-        // 23. La Sentinella (The Sentinel)
-        register(new VigilanceBonus());
-        register(new AnchoredMalus());
-
-        // 24. Il Gladiatore (The Gladiator)
-        register(new ArenaBonus());
-        register(new DisarmedMalus());
-
-        // 25. Il Titano (The Titan)
-        register(new EarthquakeBonus());
-        register(new GigantismMalus());
-
-        // 26. L'Ombra (The Shadow)
-        register(new ShadowCloakBonus());
-        register(new BlindLightMalus());
-
-        // 27. L'Ingegnere (The Engineer)
-        register(new TurretBonus());
-        register(new DesignFlawMalus());
-
-        // 28. Il Diplomatico (The Diplomat)
-        register(new DiplomaticImmunityBonus());
-        register(new InternalSabotageMalus());
-
-        // 29. L'Oracolo (The Oracle)
-        register(new OracleBonus());
-        register(new OracleMalus());
-
-        // 30. Il Veggente Cieco (The Blind Seer)
-        register(new BlindSeerBonus());
-        register(new BlindSeerMalus());
+        }
     }
 }

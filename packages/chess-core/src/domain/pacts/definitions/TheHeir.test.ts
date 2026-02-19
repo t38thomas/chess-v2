@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BloodlineBonus, YoungQueenMalus } from './TheHeir';
+import { TheHeir } from './TheHeir';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
@@ -7,13 +7,11 @@ import { PactContext } from '../PactLogic';
 
 describe('The Heir', () => {
     let game: ChessGame;
-    let bloodlineBonus: BloodlineBonus;
-    let youngQueenMalus: YoungQueenMalus;
+    const bloodlineBonus = TheHeir.bonus;
+    const youngQueenMalus = TheHeir.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bloodlineBonus = new BloodlineBonus();
-        youngQueenMalus = new YoungQueenMalus();
     });
 
     describe('Young Queen (Malus)', () => {

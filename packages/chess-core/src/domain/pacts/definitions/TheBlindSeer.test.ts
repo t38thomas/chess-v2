@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BlindSeerBonus, BlindSeerMalus } from './TheBlindSeer';
+import { TheBlindSeer } from './TheBlindSeer';
 import { ChessGame } from '../../ChessGame';
 import { Piece } from '../../models/Piece';
 import { Coordinate } from '../../models/Coordinate';
@@ -7,13 +7,11 @@ import { PactFactory } from '../PactFactory';
 
 describe('The Blind Seer Pact', () => {
     let game: ChessGame;
-    let bonus: BlindSeerBonus;
-    let malus: BlindSeerMalus;
+    const bonus = TheBlindSeer.bonus;
+    const malus = TheBlindSeer.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bonus = new BlindSeerBonus();
-        malus = new BlindSeerMalus();
 
         // Register manually if needed or rely on factory if we use it
         // For unit testing logic, we can just inject into game state if possible or mock

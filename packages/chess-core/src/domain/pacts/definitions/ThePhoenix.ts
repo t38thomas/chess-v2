@@ -1,71 +1,44 @@
-import { PactLogic, ActiveAbilityConfig, PactContext, RuleModifiers } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
-import { Coordinate } from '../../models/Coordinate';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
-export class PhoenixBonus extends PactLogic {
-    id = 'rebirth';
+/**
+ * The Phoenix Pact
+ * Bonus (Rebirth): Once per match, if your Queen is captured, a random pawn is promoted to a Queen.
+ * Malus (Wingless): Start the match without rooks.
+ */
+export const ThePhoenix = definePact('phoenix')
+    .bonus('rebirth', {
+        onEvent: (event, payload, context) => {
+            const { game, playerId } = context;
+            if (event === 'capture' && payload) {
+                const capturedPiece = (payload as any).capturedPiece;
+                if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
+                    const stateKey = `phoenix_rebirth_used_${playerId}`;
+                    if (game.pactState[stateKey]) return;
 
-    getRuleModifiers(): RuleModifiers {
-        return {};
-    }
-
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'capture' && payload) {
-            const move = payload as any;
-            const capturedPiece = move.capturedPiece;
-
-            // If the captured piece is OUR Queen
-            if (capturedPiece && capturedPiece.color === playerId && capturedPiece.type === 'queen') {
-
-                // Check if already used
-                const stateKey = `phoenix_rebirth_used_${playerId}`;
-                if (game.pactState[stateKey]) return;
-
-                // Find all friendly pawns
-                const myPawnDetails = PactUtils.findPieces(game, playerId, 'pawn');
-
-                if (myPawnDetails.length > 0) {
-                    // Pick a random pawn
-                    const [victim] = PactUtils.pickRandom(myPawnDetails, 1);
-
-                    if (victim) {
-                        // Promote to Queen
-                        PactUtils.promotePiece(game, victim.coord, 'queen');
-
-                        // Mark as used
-                        game.pactState[stateKey] = true;
-
-                        // Notification
-                        PactUtils.emitPactEffect(game, {
-                            pactId: this.id,
-                            title: 'pact.toasts.phoenix.rebirth.title',
-                            description: 'pact.toasts.phoenix.rebirth.desc',
-                            icon: 'fire',
-                            type: 'bonus'
-                        });
+                    const pawns = PactUtils.findPieces(game, playerId, 'pawn');
+                    if (pawns.length > 0) {
+                        const [victim] = PactUtils.pickRandom(pawns, 1);
+                        if (victim) {
+                            PactUtils.promotePiece(game, victim.coord, 'queen');
+                            game.pactState[stateKey] = true;
+                            PactUtils.notifyPactEffect(game, 'phoenix', 'rebirth', 'bonus', 'fire');
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-export class PhoenixMalus extends PactLogic {
-    id = 'wingless';
-
-    // Remove rooks immediately when assigned
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'pact_assigned') {
-            const rooks = PactUtils.findPieces(game, playerId, 'rook');
-
-            for (const { coord } of rooks) {
-                PactUtils.removePiece(game, coord);
+    })
+    .malus('wingless', {
+        onEvent: (event, payload, context) => {
+            const { game, playerId } = context;
+            if (event === 'pact_assigned') {
+                const rooks = PactUtils.findPieces(game, playerId, 'rook');
+                for (const { coord } of rooks) {
+                    PactUtils.removePiece(game, coord);
+                }
             }
         }
-    }
-}
+    })
+    .build();
+

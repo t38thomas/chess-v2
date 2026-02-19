@@ -1,7 +1,4 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
-import { PieceColor } from '../../models/Piece';
-import { GameEvent } from '../../GameTypes';
-import { PactContext } from '../PactLogic';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
 interface BerserkerState {
@@ -10,109 +7,60 @@ interface BerserkerState {
 }
 
 /**
- * BerserkerBonus — "Pawn Hunter" (frenzy)
- *
- * When you capture an enemy PAWN, you gain one extra move with the same piece.
- * The extra move cannot be another capture.
- * If there are no pawns to capture, the bonus never triggers.
+ * The Berserker Pact
+ * Bonus (Frenzy): Catching a pawn gives an extra non-capture move.
+ * Malus (Missing Knight): Start with one less random knight.
  */
-export class BerserkerBonus extends PactLogic {
-    id = 'frenzy';
-
-    private getState(game: any, color: PieceColor): BerserkerState {
-        const key = `frenzy_${color}`;
-        if (!game.pactState[key]) {
-            game.pactState[key] = { isFrenzyActive: false, frenzyPieceId: null };
-        }
-        return game.pactState[key];
-    }
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+export const TheBerserker = definePact('berserker')
+    .bonus('frenzy', {
+        initialState: (): BerserkerState => ({ isFrenzyActive: false, frenzyPieceId: null }),
+        modifiers: {
             onExecuteMove: (game, move) => {
                 const color = move.piece.color;
-                const state = this.getState(game, color);
+                // Get state manually here because we are in RuleModifiers context
+                const state = game.pactState[`frenzy_${color}`] as BerserkerState;
+                if (!state) return;
 
                 if (state.isFrenzyActive) {
-                    // The extra move has been played — reset frenzy
                     state.isFrenzyActive = false;
                     state.frenzyPieceId = null;
                 } else if (move.capturedPiece && move.capturedPiece.type === 'pawn') {
-                    // Only trigger on pawn captures
                     state.isFrenzyActive = true;
                     state.frenzyPieceId = move.piece.id;
-
-                    game.emit('pact_effect', {
-                        pactId: this.id,
-                        title: 'pact.toasts.berserker.frenzy.title',
-                        description: 'pact.toasts.berserker.frenzy.desc',
-                        icon: 'axe',
-                        type: 'bonus'
-                    });
+                    PactUtils.notifyPactEffect(game, 'berserker', 'frenzy', 'bonus', 'axe');
                 }
             },
-
             modifyNextTurn: (game, currentTurn) => {
-                const state = this.getState(game, currentTurn);
-                if (state.isFrenzyActive) {
-                    // Keep the same player's turn for the extra move
-                    return currentTurn;
-                }
+                const state = game.pactState[`frenzy_${currentTurn}`] as BerserkerState;
+                if (state?.isFrenzyActive) return currentTurn;
                 return null;
             },
-
             canMovePiece: (game, from) => {
-                const color = game.turn;
-                const state = this.getState(game, color);
-
-                if (state.isFrenzyActive && state.frenzyPieceId) {
+                const state = game.pactState[`frenzy_${game.turn}`] as BerserkerState;
+                if (state?.isFrenzyActive && state.frenzyPieceId) {
                     const square = game.board.getSquare(from);
-                    if (square && square.piece) {
-                        return square.piece.id === state.frenzyPieceId;
-                    }
-                    return false;
+                    return square?.piece?.id === state.frenzyPieceId;
                 }
                 return true;
             },
-
             canCapture: (game, attacker) => {
-                // During the extra frenzy move, capturing is not allowed
                 if (!game) return true;
-                const state = this.getState(game, attacker.color);
-                if (state.isFrenzyActive) {
-                    return false;
-                }
-                return true;
+                const state = game.pactState[`frenzy_${attacker.color}`] as BerserkerState;
+                return !state?.isFrenzyActive;
             }
-        };
-    }
-}
-
-/**
- * BerserkerMalus — "One-Handed" (missing_knight)
- *
- * At the start of the game you are missing one random knight.
- */
-export class BerserkerMalus extends PactLogic {
-    id = 'missing_knight';
-
-    onEvent(event: GameEvent, _payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'pact_assigned') {
-            const knights = PactUtils.findPieces(game, playerId, 'knight');
-
-            if (knights.length > 0) {
-                // Pick one at random and remove it
-                const [victim] = PactUtils.pickRandom(knights, 1);
-                if (victim) {
-                    PactUtils.removePiece(game, victim.coord);
+        }
+    })
+    .malus('missing_knight', {
+        onEvent: (event, _payload, context) => {
+            const { game, playerId } = context;
+            if (event === 'pact_assigned') {
+                const knights = PactUtils.findPieces(game, playerId, 'knight');
+                if (knights.length > 0) {
+                    const [victim] = PactUtils.pickRandom(knights, 1);
+                    if (victim) PactUtils.removePiece(game, victim.coord);
                 }
             }
         }
-    }
+    })
+    .build();
 
-    getRuleModifiers(): RuleModifiers {
-        return {};
-    }
-}

@@ -1,53 +1,33 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
-import { IChessGame } from '../../GameTypes';
-import { Piece, PieceColor, PieceType } from '../../models/Piece';
-import { Coordinate } from '../../models/Coordinate';
-import { BoardModel } from '../../models/BoardModel';
 
-export class VigilanceBonus extends PactLogic {
-    id = 'vigilance';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            canBeCaptured: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel): boolean => {
+/**
+ * The Sentinel Pact
+ * Bonus (Vigilance): Pieces adjacent to their King are immune to capture.
+ * Malus (Anchored): King cannot move if he has any adjacent piece.
+ */
+export const TheSentinel = definePact('sentinel')
+    .bonus('vigilance', {
+        modifiers: {
+            canBeCaptured: (game, attacker, victim, to, from, board) => {
                 if (!game) return true;
-
-                // Find the victim's King on the effective board
                 const kingInfo = PactUtils.findPieces(game, victim.color, 'king', board)[0];
                 if (!kingInfo) return true;
-
-                // If victim is adjacent to its King, it cannot be captured
-                if (PactUtils.isAdjacent(to, kingInfo.coord)) {
-                    return false;
-                }
-
-                return true;
+                return !PactUtils.isAdjacent(to, kingInfo.coord);
             }
-        };
-    }
-}
-
-export class AnchoredMalus extends PactLogic {
-    id = 'anchored';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            canMovePiece: (game: IChessGame, from: Coordinate, board?: BoardModel): boolean => {
+        }
+    })
+    .malus('anchored', {
+        modifiers: {
+            canMovePiece: (game, from, board) => {
                 const effectiveBoard = board || game.board;
-                const square = effectiveBoard.getSquare(from);
-                const piece = square?.piece;
-
+                const piece = effectiveBoard.getSquare(from)?.piece;
                 if (piece?.type === 'king') {
-                    // King cannot move if he has ANY adjacent piece (friendly or enemy)
-                    const adjacentPieces = PactUtils.getPiecesAdjacentTo(game, from, effectiveBoard);
-                    if (adjacentPieces.length > 0) {
-                        return false;
-                    }
+                    return PactUtils.getPiecesAdjacentTo(game, from, effectiveBoard).length === 0;
                 }
-
                 return true;
             }
-        };
-    }
-}
+        }
+    })
+    .build();
+

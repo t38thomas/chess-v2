@@ -4,18 +4,20 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece, PieceColor } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { BerserkerBonus, BerserkerMalus } from './TheBerserker';
+import { TheBerserker } from './TheBerserker';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: BerserkerBonus;
+    const bonus = TheBerserker.bonus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new BerserkerBonus();
+        // Initialize state for the test
+        game.pactState['frenzy_white'] = { isFrenzyActive: false, frenzyPieceId: null };
+        game.pactState['frenzy_black'] = { isFrenzyActive: false, frenzyPieceId: null };
     });
 
     it('should trigger frenzy when capturing an enemy PAWN', () => {
@@ -42,7 +44,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(true);
         expect(game.pactState['frenzy_white'].frenzyPieceId).toBe(whiteRook.id);
-        expect(events.length).toBe(1);
+        expect(events[0].pactId).toBe('berserker');
         expect(events[0].title).toBe('pact.toasts.berserker.frenzy.title');
     });
 
@@ -143,12 +145,11 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
 describe('The Berserker Pact — BerserkerMalus (One-Handed)', () => {
     let game: ChessGame;
-    let malus: BerserkerMalus;
+    const malus = TheBerserker.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         game.board.setupStandardGame();
-        malus = new BerserkerMalus();
     });
 
     it('should remove one knight on pact_assigned', () => {

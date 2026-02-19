@@ -3,20 +3,18 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { HeavyCavalryBonus, HeavyCavalryMalus } from './TheHeavyCavalry';
+import { TheHeavyCavalry } from './TheHeavyCavalry';
 import { ChessGame } from '../../ChessGame';
 
 describe('Heavy Cavalry Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: HeavyCavalryBonus;
-    let malus: HeavyCavalryMalus;
+    const bonus = TheHeavyCavalry.bonus;
+    const malus = TheHeavyCavalry.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new HeavyCavalryBonus();
-        malus = new HeavyCavalryMalus();
     });
 
     describe('HeavyCavalryMalus (Heavy Armor)', () => {

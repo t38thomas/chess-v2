@@ -1,15 +1,17 @@
-import { PactLogic, RuleModifiers, PactContext } from '../PactLogic';
+import { definePact } from '../PactLogic';
 import { Move } from '../../models/Move';
 import { Coordinate } from '../../models/Coordinate';
 import { BoardModel } from '../../models/BoardModel';
-import { PieceColor } from '../../models/Piece';
-import { GameEvent } from '../../GameTypes';
+import { PactUtils } from '../PactUtils';
 
-export class SniperBonus extends PactLogic {
-    id = 'long_sight';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+/**
+ * The Sniper Pact
+ * Bonus (Long Sight): Rooks can capture pieces behind exactly one obstacle.
+ * Malus (Reload): Rooks get a 2-turn cooldown after capturing.
+ */
+export const TheSniper = definePact('sniper')
+    .bonus('long_sight', {
+        modifiers: {
             onGetPseudoMoves: ({ board, piece, from, moves }) => {
                 if (piece.type !== 'rook') return;
 
@@ -27,28 +29,18 @@ export class SniperBonus extends PactLogic {
                         if (target.piece) {
                             obstaclesFound++;
                             if (obstaclesFound === 1) {
-                                // First obstacle found, we skip it and continue the loop
                                 x += dx;
                                 y += dy;
                                 continue;
                             } else if (obstaclesFound === 2) {
-                                // Second obstacle found
-                                if (target.piece.color !== piece.color) {
-                                    // It's an enemy, it's a "snipe" move (capture)
-                                    // Check if this move is already in the list to avoid duplicates
-                                    if (!moves.some(m => m.to.equals(coord))) {
-                                        moves.push(new Move(from, coord, piece, target.piece));
-                                    }
+                                if (target.piece.color !== piece.color && !moves.some(m => m.to.equals(coord))) {
+                                    moves.push(new Move(from, coord, piece, target.piece));
                                 }
-                                break; // Blocked after the second obstacle
+                                break;
                             }
-                        } else {
-                            // Empty square
-                            if (obstaclesFound === 1) {
-                                // We are behind exactly one obstacle
-                                if (!moves.some(m => m.to.equals(coord))) {
-                                    moves.push(new Move(from, coord, piece));
-                                }
+                        } else if (obstaclesFound === 1) {
+                            if (!moves.some(m => m.to.equals(coord))) {
+                                moves.push(new Move(from, coord, piece));
                             }
                         }
                         x += dx;
@@ -56,74 +48,43 @@ export class SniperBonus extends PactLogic {
                     }
                 });
             }
-        };
-    }
-}
-
-export class SniperMalus extends PactLogic {
-    id = 'reload';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+        }
+    })
+    .malus('reload', {
+        modifiers: {
             canMovePiece: (game, from) => {
                 const square = game.board.getSquare(from);
-                if (square && square.piece) {
+                if (square?.piece) {
                     const cooldown = game.pieceCooldowns.get(square.piece.id);
                     if (cooldown && cooldown > 0) return false;
                 }
                 return true;
             },
             onExecuteMove: (game, move) => {
-                // If a Rook captures, it gets the 'reload' cooldown
                 if (move.piece.type === 'rook' && (move.capturedPiece || move.isEnPassant)) {
-                    // Stun for 1 full turn cycle. 
-                    // Decremented at beginning of player's turn.
                     game.pieceCooldowns.set(move.piece.id, 2);
+                    PactUtils.notifyPactEffect(game, 'sniper', 'reload', 'malus', 'reload');
                 }
             }
-        };
-    }
+        },
+        getTurnCounters: (context) => {
+            const { game, playerId } = context;
+            let maxCooldown = 0;
+            game.pieceCooldowns.forEach((cd, id) => {
+                if (id.startsWith(playerId) && cd > maxCooldown) maxCooldown = cd;
+            });
 
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        const { game, playerId } = context;
-
-        if (event === 'capture' && payload) {
-            const move = payload as Move;
-            if (move.piece.color === playerId && move.piece.type === 'rook') {
-                game.emit('pact_effect', {
-                    pactId: this.id,
-                    title: 'pact.toasts.sniper.reload.title',
-                    description: 'pact.toasts.sniper.reload.desc',
-                    icon: 'reload',
-                    type: 'malus'
-                });
+            if (maxCooldown > 0) {
+                return [{
+                    id: 'reload_counter',
+                    label: 'reloading',
+                    value: maxCooldown,
+                    pactId: 'sniper',
+                    type: 'cooldown'
+                }];
             }
+            return [];
         }
-    }
+    })
+    .build();
 
-    getTurnCounters(context: PactContext): any[] {
-        const { game, playerId } = context;
-        let maxCooldown = 0;
-
-        // Check if any rook is on cooldown
-        game.pieceCooldowns.forEach((cd, id) => {
-            if (id.startsWith(playerId) && cd > 0) {
-                // Determine piece type from ID is non-trivial without board scan or ID convention
-                // But generally only rooks get cooldown here.
-                // Or we can just show max cooldown for any piece (which is correct as only rooks get it here)
-                if (cd > maxCooldown) maxCooldown = cd;
-            }
-        });
-
-        if (maxCooldown > 0) {
-            return [{
-                id: 'reload_counter',
-                label: 'reloading',
-                value: maxCooldown,
-                pactId: this.id,
-                type: 'cooldown'
-            }];
-        }
-        return [];
-    }
-}

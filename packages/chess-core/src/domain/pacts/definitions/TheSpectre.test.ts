@@ -3,22 +3,19 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { SpectreBonus, SpectreMalus } from './TheSpectre';
+import { TheSpectre } from './TheSpectre';
 import { ChessGame } from '../../ChessGame';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 
 describe('The Spectre Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: SpectreBonus;
-    let malus: SpectreMalus;
+    const bonus = TheSpectre.bonus;
+    const malus = TheSpectre.malus;
 
     beforeEach(() => {
-        board = new BoardModel();
         game = new ChessGame();
         board = game.board;
-        bonus = new SpectreBonus();
-        malus = new SpectreMalus();
     });
 
     describe('SpectreBonus (Incorporeal)', () => {

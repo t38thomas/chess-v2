@@ -3,18 +3,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
-import { ThiefBonus, ThiefMalus } from './TheThief';
+import { TheThief } from './TheThief';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Thief Pact (Balanced)', () => {
     let game: ChessGame;
-    let bonus: ThiefBonus;
-    let malus: ThiefMalus;
+    const bonus = TheThief.bonus;
+    const malus = TheThief.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bonus = new ThiefBonus();
-        malus = new ThiefMalus();
     });
 
     describe('Pickpocket (Passive Bonus)', () => {
@@ -33,7 +31,7 @@ describe('The Thief Pact (Balanced)', () => {
 
             // Assign Thief pact to white
             game.pacts.white = [{
-                id: 'thief',
+                id: TheThief.id,
                 title: 'Thief',
                 bonus: { id: 'pickpocket', name: 'pickpocket', icon: '', description: '', ranking: 5, category: 'Movement' },
                 malus: { id: 'wanted', name: 'wanted', icon: '', description: '', ranking: -5, category: 'Promotion' },

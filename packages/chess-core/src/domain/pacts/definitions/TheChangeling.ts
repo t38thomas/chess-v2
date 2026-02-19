@@ -1,159 +1,105 @@
-import { PactLogic, RuleModifiers, PactContext, MoveParams } from '../PactLogic';
-import { PieceType, Piece } from '../../models/Piece';
-import { GameEvent } from '../../GameTypes';
+import { definePact } from '../PactLogic';
 import { Move } from '../../models/Move';
 import { MoveGenerator } from '../../rules/MoveGenerator';
+import { PactUtils } from '../PactUtils';
 
-export class ChangelingBonus extends PactLogic {
-    id = 'mimicry';
+/**
+ * The Changeling Pact
+ * Bonus (Mimicry): Pawns that capture a piece mimic its movement for one turn.
+ * Malus (Unstable Identity): If you don't capture for 5 turns, a random piece demotes to a pawn.
+ */
+export const TheChangeling = definePact('changeling')
+    .bonus('mimicry', {
+        modifiers: {
+            onGetPseudoMoves: (params) => {
+                const game = params.game as any;
+                if (!game?.pactState?.mimicry_activeMimics) return;
 
-    private getMimics(context: { game: any }): Record<string, { type: PieceType, expiresAtTurn: number }> {
-        if (!context.game || !context.game.pactState) return {};
-
-        if (!context.game.pactState.mimicry_activeMimics) {
-            context.game.pactState.mimicry_activeMimics = {};
-        }
-        return context.game.pactState.mimicry_activeMimics;
-    }
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            onGetPseudoMoves: (params: MoveParams) => {
-                const mimics = this.getMimics({ game: params.game });
-                const mimicData = mimics[params.piece.id];
+                const mimicData = game.pactState.mimicry_activeMimics[params.piece.id];
                 if (mimicData) {
-                    // Create a phantom piece with the mimicked type
                     const phantomPiece = params.piece.clone();
                     phantomPiece.type = mimicData.type;
 
-                    // Generate moves for the phantom piece
                     const moves = MoveGenerator.getPseudoLegalMoves(
                         params.board,
                         phantomPiece,
                         params.from,
                         params.game?.enPassantTarget,
-                        [] // No perks to avoid recursion
+                        []
                     );
 
-                    // Add unique moves to the main list
                     moves.forEach(m => {
-                        // Ensure we don't duplicate existing moves if any
                         if (!params.moves.some(existing => existing.to.equals(m.to))) {
-                            const correctedMove = new Move(
-                                m.from,
-                                m.to,
-                                params.piece,
-                                m.capturedPiece,
-                                m.isCastling,
-                                m.isEnPassant,
-                                m.isSwap,
-                                false, // isSnipe
-                                m.promotion
-                            );
-                            params.moves.push(correctedMove);
+                            params.moves.push(new Move(m.from, m.to, params.piece, m.capturedPiece, m.isCastling, m.isEnPassant, m.isSwap, false, m.promotion));
                         }
                     });
                 }
             },
-            onExecuteMove: (game, move) => {
-                // If it's a pawn capture, trigger mimicry
+            onExecuteMove: (game: any, move) => {
                 if (move.piece.type === 'pawn' && move.capturedPiece) {
-                    const victimType = move.capturedPiece.type;
+                    if (!game.pactState) game.pactState = {};
+                    if (!game.pactState.mimicry_activeMimics) game.pactState.mimicry_activeMimics = {};
 
-                    const mimics = this.getMimics({ game });
-                    mimics[move.piece.id] = {
-                        type: victimType,
-                        expiresAtTurn: game.totalTurns + 1 // Next turn only
+                    game.pactState.mimicry_activeMimics[move.piece.id] = {
+                        type: move.capturedPiece.type,
+                        expiresAtTurn: game.totalTurns + 1
                     };
-
-                    game.emit('pact_effect', {
-                        pactId: this.id,
-                        title: 'pact.toasts.changeling.mimicry.title',
-                        description: 'pact.toasts.changeling.mimicry.desc',
-                        icon: 'cached', // Symbolizing change/mimicry
-                        type: 'bonus'
-                    });
+                    PactUtils.notifyPactEffect(game, 'changeling', 'mimicry', 'bonus', 'cached');
                 }
             }
-        };
-    }
-
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'turn_start') {
-            const mimics = this.getMimics(context);
-            // Clean up expired mimics
-            for (const id in mimics) {
-                if (context.game.totalTurns > mimics[id].expiresAtTurn) {
-                    delete mimics[id];
+        },
+        onEvent: (event, payload, context) => {
+            if (event === 'turn_start') {
+                const mimics = (context.game as any).pactState?.mimicry_activeMimics;
+                if (!mimics) return;
+                for (const id in mimics) {
+                    if (context.game.totalTurns > mimics[id].expiresAtTurn) {
+                        delete mimics[id];
+                    }
                 }
             }
         }
-    }
-}
+    })
+    .malus('unstable_identity', {
+        initialState: () => 0,
+        onEvent: (event, payload, context) => {
+            const { game, playerId } = context;
+            const key = `unstable_identity_${playerId}`;
 
-export class ChangelingMalus extends PactLogic {
-    id = 'unstable_identity';
-    private readonly THRESHOLD = 5;
+            if (event === 'capture') {
+                const move = payload as Move;
+                if (move.piece.color === playerId) {
+                    game.pactState[key] = 0;
+                }
+            } else if (event === 'turn_start' && payload === playerId) {
+                game.pactState[key] = (game.pactState[key] || 0) + 1;
 
-    private getTurnsSinceCapture(context: PactContext): number {
-        const key = `unstable_identity_${context.playerId}`;
-        return context.game.pactState[key] || 0;
-    }
+                if (game.pactState[key] >= 5) {
+                    const myPieces = game.board.getAllSquares()
+                        .map(s => s.piece)
+                        .filter(p => p && p.color === playerId && p.type !== 'pawn' && p.type !== 'king');
 
-    private setTurnsSinceCapture(context: PactContext, value: number) {
-        const key = `unstable_identity_${context.playerId}`;
-        context.game.pactState[key] = value;
-    }
-
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'capture') {
-            const move = payload as Move;
-            if (move.piece.color === context.playerId) {
-                this.setTurnsSinceCapture(context, 0);
+                    if (myPieces.length > 0) {
+                        const victim = myPieces[Math.floor(Math.random() * myPieces.length)];
+                        victim!.type = 'pawn';
+                        PactUtils.notifyPactEffect(game, 'changeling', 'demotion', 'malus', 'dna');
+                    }
+                    game.pactState[key] = 0;
+                }
             }
-        } else if (event === 'turn_start' && payload === context.playerId) {
-            // Only increment on my turn start
-            let turns = this.getTurnsSinceCapture(context);
-            turns++;
-            this.setTurnsSinceCapture(context, turns);
-
-            if (turns >= this.THRESHOLD) {
-                this.triggerDemotion(context);
-                this.setTurnsSinceCapture(context, 0); // Reset after penalty
-            }
+        },
+        getTurnCounters: (context) => {
+            const val = context.game.pactState[`unstable_identity_${context.playerId}`] || 0;
+            return [{
+                id: 'unstable_identity_counter',
+                label: 'unstable_identity_progress',
+                value: val,
+                pactId: 'unstable_identity',
+                type: 'counter',
+                maxValue: 5,
+                subLabel: `${val}/5`
+            }];
         }
-    }
+    })
+    .build();
 
-    getTurnCounters(context: PactContext): any[] {
-        const val = this.getTurnsSinceCapture(context);
-        return [{
-            id: 'unstable_identity_counter',
-            label: 'unstable_identity_progress',
-            value: val,
-            pactId: this.id,
-            type: 'counter',
-            maxValue: this.THRESHOLD,
-            subLabel: `${val}/${this.THRESHOLD}`
-        }];
-    }
-
-    private triggerDemotion(context: PactContext) {
-        const board = context.game.board;
-        const myPieces = board.getAllSquares()
-            .map(s => s.piece)
-            .filter(p => p && p.color === context.playerId && p.type !== 'pawn' && p.type !== 'king') as Piece[];
-
-        if (myPieces.length > 0) {
-            const victim = myPieces[Math.floor(Math.random() * myPieces.length)];
-            victim.type = 'pawn';
-
-            context.game.emit('pact_effect', {
-                pactId: this.id,
-                title: 'pact.toasts.changeling.demotion.title',
-                description: 'pact.toasts.changeling.demotion.desc',
-                icon: 'dna', // or 'virus' if available, 'dna' fits changeling
-                type: 'malus'
-            });
-        }
-    }
-}

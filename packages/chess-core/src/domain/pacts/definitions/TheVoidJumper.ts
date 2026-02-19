@@ -1,58 +1,41 @@
-import { PactLogic, ActiveAbilityConfig, PactContext, RuleModifiers } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
+import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
-export class VoidJumpBonus extends PactLogic {
-    id = 'void_jump';
+/**
+ * The Void Jumper Pact
+ * Bonus (Void Jump): Swap positions of two friendly pieces at the cost of your most advanced piece.
+ * Malus (Ritual Sacrifice): Associated with the Void Jump cost.
+ */
+export const TheVoidJumper = definePact('void_jumper')
+    .bonus('void_jump', {
+        activeAbility: {
+            id: 'void_jump',
+            name: 'void_jump',
+            description: 'desc_void_jump',
+            icon: 'swap-vertical-bold',
+            targetType: 'square',
+            consumesTurn: true,
+            repeatable: true,
+            execute: (context, params?: { from: Coordinate, to: Coordinate }) => {
+                const { game, playerId } = context;
+                if (!params?.from || !params?.to) return false;
 
-    readonly activeAbility: ActiveAbilityConfig = {
-        id: 'void_jump',
-        name: 'void_jump',
-        description: 'desc_void_jump',
-        icon: 'swap-vertical-bold',
-        targetType: 'square',
-        consumesTurn: true,
-        repeatable: true,
-        execute: (context: PactContext, params?: { from: Coordinate, to: Coordinate }) => {
-            const { game, playerId } = context;
+                const sq1 = game.board.getSquare(params.from);
+                const sq2 = game.board.getSquare(params.to);
 
-            if (!params || !params.from || !params.to) return false;
-
-            const fromCoord = new Coordinate(params.from.x, params.from.y);
-            const toCoord = new Coordinate(params.to.x, params.to.y);
-
-            const sq1 = game.board.getSquare(fromCoord);
-            const sq2 = game.board.getSquare(toCoord);
-
-            // Validation: Both must be pieces owned by player
-            if (!sq1 || !sq2 || !sq1.piece || !sq2.piece) return false;
-            if (sq1.piece.color !== playerId || sq2.piece.color !== playerId) return false;
-
-            // Execute Swap
-            PactUtils.swapPieces(game, fromCoord, toCoord);
-
-            // Execute Ritual Sacrifice
-            // Removes the most advanced piece (excluding King)
-            const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
-
-            if (victim) {
-                PactUtils.emitPactEffect(game, {
-                    pactId: 'ritual_sacrifice', // Using the malus ID here for the toast
-                    title: 'pact.toasts.void_jumper.sacrifice.title',
-                    description: 'pact.toasts.void_jumper.sacrifice.desc',
-                    icon: 'skull',
-                    type: 'malus',
-                    payload: { victimName: victim.type } // Could be used in dynamic desc if supported
-                });
+                if (sq1?.piece?.color === playerId && sq2?.piece?.color === playerId) {
+                    PactUtils.swapPieces(game, params.from, params.to);
+                    const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
+                    if (victim) {
+                        PactUtils.notifyPactEffect(game, 'void_jumper', 'sacrifice', 'malus', 'skull');
+                    }
+                    return true;
+                }
+                return false;
             }
-
-            return true;
         }
-    };
-}
+    })
+    .malus('ritual_sacrifice', {})
+    .build();
 
-export class RitualSacrificeMalus extends PactLogic {
-    id = 'ritual_sacrifice';
-    // Logic is handled in Bonus execute
-}

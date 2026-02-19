@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { EarthquakeBonus, GigantismMalus } from './TheTitan';
+import { TheTitan } from './TheTitan';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Move } from '../../models/Move';
 
 describe('The Titan', () => {
     let game: ChessGame;
-    let earthquakeBonus: EarthquakeBonus;
-    let gigantismMalus: GigantismMalus;
+    const earthquakeBonus = TheTitan.bonus;
+    const gigantismMalus = TheTitan.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        earthquakeBonus = new EarthquakeBonus();
-        gigantismMalus = new GigantismMalus();
     });
 
     describe('Earthquake (Bonus)', () => {

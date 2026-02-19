@@ -3,7 +3,7 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { SniperBonus, SniperMalus } from './TheSniper';
+import { TheSniper } from './TheSniper';
 import { ChessGame } from '../../ChessGame';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { CheckDetector } from '../../rules/CheckDetector';
@@ -12,14 +12,12 @@ import { PactFactory } from '../PactFactory';
 describe('The Sniper Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: SniperBonus;
-    let malus: SniperMalus;
+    const bonus = TheSniper.bonus;
+    const malus = TheSniper.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new SniperBonus();
-        malus = new SniperMalus();
     });
 
     describe('SniperBonus (Long Sight)', () => {
@@ -139,7 +137,7 @@ describe('The Sniper Pact', () => {
             // Assign pact to white
             game.pacts.white = [
                 // @ts-ignore
-                { id: 'the_sniper', name: 'The Sniper', bonus: { id: bonus.id, name: 'Long Sight', description: '' }, malus: { id: malus.id, name: 'Reload', description: '' }, category: 'Passive', description: '' }
+                { id: TheSniper.id, name: 'The Sniper', bonus: { id: bonus.id, name: 'Long Sight', description: '' }, malus: { id: malus.id, name: 'Reload', description: '' }, category: 'Passive', description: '' }
             ];
             game.pacts.black = [];
 

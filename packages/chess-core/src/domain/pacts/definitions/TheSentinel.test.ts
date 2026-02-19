@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { VigilanceBonus, AnchoredMalus } from './TheSentinel';
+import { TheSentinel } from './TheSentinel';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 
 describe('The Sentinel', () => {
     let game: ChessGame;
-    let vigilanceBonus: VigilanceBonus;
-    let anchoredMalus: AnchoredMalus;
+    const vigilanceBonus = TheSentinel.bonus;
+    const anchoredMalus = TheSentinel.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        vigilanceBonus = new VigilanceBonus();
-        anchoredMalus = new AnchoredMalus();
     });
 
     describe('Vigilance (Bonus)', () => {

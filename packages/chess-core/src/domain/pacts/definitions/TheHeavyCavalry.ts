@@ -1,74 +1,50 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
-import { Move } from '../../models/Move';
+import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
-import { GameEvent, IChessGame } from '../../GameTypes';
+import { PactUtils } from '../PactUtils';
 
-export class HeavyCavalryBonus extends PactLogic {
-    id = 'trample';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            onExecuteMove: (game: IChessGame, move: Move) => {
-                // If it's a Knight move
+/**
+ * The Heavy Cavalry Pact
+ * Bonus (Trample): Knights trample (remove) adjacent enemy pawns upon landing.
+ * Malus (Heavy Armor): Knights cannot jump over friendly pawns (Mao-style blocking).
+ */
+export const TheHeavyCavalry = definePact('heavy_cavalry')
+    .bonus('trample', {
+        modifiers: {
+            onExecuteMove: (game, move) => {
                 if (move.piece.type !== 'knight') return;
 
-                const targetPos = move.to;
                 const directions = [
-                    { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
-                    { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
-                    { dx: 1, dy: 1 }, { dx: 1, dy: -1 },
-                    { dx: -1, dy: 1 }, { dx: -1, dy: -1 }
+                    { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
+                    { dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }
                 ];
 
                 for (const dir of directions) {
-                    const nx = targetPos.x + dir.dx;
-                    const ny = targetPos.y + dir.dy;
+                    const nx = move.to.x + dir.dx;
+                    const ny = move.to.y + dir.dy;
 
                     if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
                         const coord = new Coordinate(nx, ny);
                         const square = game.board.getSquare(coord);
 
-                        // Trample enemy pawns adjacent to landing spot
-                        if (square && square.piece && square.piece.color !== move.piece.color && square.piece.type === 'pawn') {
+                        if (square?.piece && square.piece.color !== move.piece.color && square.piece.type === 'pawn') {
                             game.board.removePiece(coord);
-                            game.emit('pact_effect', {
-                                pactId: this.id,
-                                title: 'pact.toasts.heavy_cavalry.trample.title',
-                                description: 'pact.toasts.heavy_cavalry.trample.desc',
-                                icon: 'horse-variant',
-                                type: 'bonus'
-                            });
+                            PactUtils.notifyPactEffect(game, 'heavy_cavalry', 'trample', 'bonus', 'horse-variant');
                         }
                     }
                 }
             }
-        };
-    }
-}
-
-export class HeavyCavalryMalus extends PactLogic {
-    id = 'heavy_armor';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+        }
+    })
+    .malus('heavy_armor', {
+        modifiers: {
             onGetPseudoMoves: ({ board, piece, from, moves }) => {
                 if (piece.type !== 'knight') return;
 
-                // Knight armor: cannot jump over own pawns.
-                // Interpretation: Mao logic. 
-                // Any knight jump is blocked if there's a friendly pawn in the middle of the "L"
-                // e.g. from (x,y) to (x+1, y+2) is blocked by (x, y+1)
-
-                // We iterate moves and remove those that are blocked.
                 for (let i = moves.length - 1; i >= 0; i--) {
                     const m = moves[i];
                     if (m.piece.type === 'knight') {
                         const dx = m.to.x - from.x;
                         const dy = m.to.y - from.y;
-
-                        // Identify blocking candidate:
-                        // If |dx| == 1 and |dy| == 2, the blocker is at (from.x, from.y + sign(dy))
-                        // If |dx| == 2 and |dy| == 1, the blocker is at (from.x + sign(dx), from.y)
 
                         let bx = from.x;
                         let by = from.y;
@@ -77,20 +53,17 @@ export class HeavyCavalryMalus extends PactLogic {
                             by += Math.sign(dy);
                         } else if (Math.abs(dx) === 2 && Math.abs(dy) === 1) {
                             bx += Math.sign(dx);
-                        } else {
-                            // Should not happen for standard knight moves
-                            continue;
-                        }
+                        } else continue;
 
                         const blockCoord = new Coordinate(bx, by);
                         const blockSquare = board.getSquare(blockCoord);
 
-                        if (blockSquare && blockSquare.piece && blockSquare.piece.color === piece.color && blockSquare.piece.type === 'pawn') {
+                        if (blockSquare?.piece && blockSquare.piece.color === piece.color && blockSquare.piece.type === 'pawn') {
                             moves.splice(i, 1);
                         }
                     }
                 }
             }
-        };
-    }
-}
+        }
+    })
+    .build();

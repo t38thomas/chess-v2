@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { VeteranBonus, VeteranMalus } from './TheVeteran';
+import { TheVeteran } from './TheVeteran';
 import { ChessGame } from '../../ChessGame';
 import { Piece } from '../../models/Piece';
 import { Coordinate } from '../../models/Coordinate';
@@ -7,13 +7,11 @@ import { PactFactory } from '../PactFactory';
 
 describe('The Veteran Pact', () => {
     let game: ChessGame;
-    let bonus: VeteranBonus;
-    let malus: VeteranMalus;
+    const bonus = TheVeteran.bonus;
+    const malus = TheVeteran.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bonus = new VeteranBonus();
-        malus = new VeteranMalus();
         PactFactory.initialize();
     });
 
@@ -53,7 +51,7 @@ describe('The Veteran Pact', () => {
             game.board.placePiece(new Coordinate(7, 7), new Piece('king', 'black', 'bk'));
 
             const pact = {
-                id: 'veteran',
+                id: TheVeteran.id,
                 title: 'Veteran',
                 bonus: { id: bonus.id, name: 'bayonet', icon: '', description: '', ranking: 1, category: 'Capture' },
                 malus: { id: 'any', name: 'any', icon: '', description: '', ranking: 0, category: 'None' }

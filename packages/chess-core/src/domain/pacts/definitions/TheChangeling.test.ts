@@ -3,21 +3,19 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece, PieceColor } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { ChangelingBonus, ChangelingMalus } from './TheChangeling';
+import { TheChangeling } from './TheChangeling';
 import { ChessGame } from '../../ChessGame';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 
 describe('The Changeling Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: ChangelingBonus;
-    let malus: ChangelingMalus;
+    const bonus = TheChangeling.bonus;
+    const malus = TheChangeling.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new ChangelingBonus();
-        malus = new ChangelingMalus();
     });
 
     describe('ChangelingBonus (Mimicry)', () => {

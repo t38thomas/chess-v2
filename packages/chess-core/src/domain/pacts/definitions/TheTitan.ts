@@ -1,37 +1,27 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
 /**
- * Earthquake Bonus: When the Queen moves, all adjacent pawns (friendly or enemy)
- * are pushed away from the Queen's destination.
+ * The Titan Pact
+ * Bonus (Earthquake): When the Queen moves, all adjacent pawns are pushed away.
+ * Malus (Gigantism): The Queen cannot move to or capture on edge squares.
  */
-export class EarthquakeBonus extends PactLogic {
-    id = 'earthquake';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+export const TheTitan = definePact('titan')
+    .bonus('earthquake', {
+        modifiers: {
             onExecuteMove: (game, move) => {
                 const b = game.board;
                 const square = b.getSquare(move.to);
-                if (!square || !square.piece) return;
-
-                const piece = square.piece;
-                // Only trigger for Queen of the player who has this pact
-                // Wait, PactLogic is instantiated per player? 
-                // In context we have playerId.
-
-                if (piece.type !== 'queen') return;
+                if (!square || !square.piece || square.piece.type !== 'queen') return;
 
                 const adjacent = PactUtils.getPiecesAdjacentTo(game, move.to);
                 let pushedAny = false;
 
                 for (const { piece: adjPiece, coord: adjCoord } of adjacent) {
                     if (adjPiece.type === 'pawn') {
-                        // Direction is from Queen's destination to pawn's position
                         const dx = adjCoord.x - move.to.x;
                         const dy = adjCoord.y - move.to.y;
 
-                        // Push piece in that direction
                         if (PactUtils.pushPiece(game, adjCoord, dx, dy)) {
                             pushedAny = true;
                         }
@@ -39,33 +29,15 @@ export class EarthquakeBonus extends PactLogic {
                 }
 
                 if (pushedAny) {
-                    PactUtils.emitPactEffect(game, {
-                        pactId: this.id,
-                        title: 'pact.toasts.titan.earthquake.title',
-                        description: 'pact.toasts.titan.earthquake.desc',
-                        icon: 'waves',
-                        type: 'bonus'
-                    });
+                    PactUtils.notifyPactEffect(game, 'titan', 'earthquake', 'bonus', 'waves');
                 }
             }
-        };
-    }
-}
-
-/**
- * Gigantism Malus: The Queen cannot move to or capture on squares that are on the edges of the board.
- */
-export class GigantismMalus extends PactLogic {
-    id = 'gigantism';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+        }
+    })
+    .malus('gigantism', {
+        modifiers: {
             onGetPseudoMoves: (params) => {
                 if (params.piece.type === 'queen') {
-                    // Remove moves that land on edge squares in-place.
-                    // We must splice rather than reassign params.moves, because the
-                    // RuleEngine holds a reference to the original array and would
-                    // never see a newly allocated array from .filter().
                     for (let i = params.moves.length - 1; i >= 0; i--) {
                         if (PactUtils.isEdgeSquare(params.moves[i].to)) {
                             params.moves.splice(i, 1);
@@ -73,6 +45,7 @@ export class GigantismMalus extends PactLogic {
                     }
                 }
             }
-        };
-    }
-}
+        }
+    })
+    .build();
+

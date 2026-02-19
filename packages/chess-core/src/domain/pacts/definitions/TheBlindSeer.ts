@@ -1,25 +1,20 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
-import { Piece } from '../../models/Piece';
+import { definePact } from '../PactLogic';
 
-export class BlindSeerBonus extends PactLogic {
-    id = 'echolocation';
+/**
+ * The Blind Seer Pact
+ * Bonus (Echolocation): Sliding pieces can see through other pieces.
+ * Malus (Darkness): All pieces have a maximum move/view range of 3 squares.
+ */
+export const TheBlindSeer = definePact('blind_seer')
+    .bonus('echolocation', {
+        modifiers: {
+            hasEcholocation: (piece) => ['rook', 'bishop', 'queen'].includes(piece.type)
+        }
+    })
+    .malus('darkness', {
+        modifiers: {
+            getMaxRange: () => 3
+        }
+    })
+    .build();
 
-    getRuleModifiers(): RuleModifiers {
-        return {
-            hasEcholocation: (piece: Piece) => {
-                // Sliding pieces can see through walls
-                return piece.type === 'rook' || piece.type === 'bishop' || piece.type === 'queen';
-            }
-        };
-    }
-}
-
-export class BlindSeerMalus extends PactLogic {
-    id = 'darkness';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            getMaxRange: (piece: Piece) => 3
-        };
-    }
-}

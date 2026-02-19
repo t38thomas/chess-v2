@@ -18,7 +18,7 @@ const PROD_WS = "wss://server.pactchess.com/ws";
 
 // Expo/React Native define __DEV__ in dev
 export const SERVER_URL = (() => {
-    return PROD_WS;
+    if (!__DEV__) return PROD_WS;
 
     return Platform.select({
         android: DEV_WS_ANDROID,

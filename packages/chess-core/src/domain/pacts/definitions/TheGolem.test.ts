@@ -2,20 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
-import { StoneSkinBonus, LeadFeetMalus } from './TheGolem';
+import { TheGolem } from './TheGolem';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Golem Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: StoneSkinBonus;
-    let malus: LeadFeetMalus;
+    const bonus = TheGolem.bonus;
+    const malus = TheGolem.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new StoneSkinBonus();
-        malus = new LeadFeetMalus();
     });
 
     describe('Stone Skin Bonus', () => {

@@ -1,49 +1,27 @@
-import { PactLogic, RuleModifiers, PactContext } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
-import { Move } from '../../models/Move';
+import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
-import { PieceType } from '../../models/Piece';
 
 /**
- * Life Thirst: Capturing the enemy Queen resurrects a minor piece (Bishop or Knight).
+ * The Vampire Pact
+ * Bonus (Life Thirst): Capturing the enemy Queen resurrects a friendly minor piece.
+ * Malus (Vampire Curse): The King can never castle.
  */
-export class LifeThirstBonus extends PactLogic {
-    id = 'life_thirst';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            onExecuteMove: (game, move: Move) => {
-                // Check if a capture happened and the victim was a Queen
-                if (move.capturedPiece && move.capturedPiece.type === 'queen') {
-                    const myColor = move.piece.color;
-
-                    // Try to resurrect a random captured Bishop or Knight
-                    const resurrected = PactUtils.resurrectRandomPiece(game, myColor, ['bishop', 'knight']);
-
-                    if (resurrected) {
-                        PactUtils.emitPactEffect(game, {
-                            pactId: this.id,
-                            title: 'pact.toasts.vampire.life_thirst.title',
-                            description: 'pact.toasts.vampire.life_thirst.desc',
-                            icon: 'blood-bag',
-                            type: 'bonus'
-                        });
+export const TheVampire = definePact('vampire')
+    .bonus('life_thirst', {
+        modifiers: {
+            onExecuteMove: (game, move) => {
+                if (move.capturedPiece?.type === 'queen') {
+                    if (PactUtils.resurrectRandomPiece(game, move.piece.color, ['bishop', 'knight'])) {
+                        PactUtils.notifyPactEffect(game, 'vampire', 'life_thirst', 'bonus', 'blood-bag');
                     }
                 }
             }
-        };
-    }
-}
-
-/**
- * Vampire Curse: The King can never castle.
- */
-export class VampireCurseMalus extends PactLogic {
-    id = 'vampire_curse';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
+        }
+    })
+    .malus('vampire_curse', {
+        modifiers: {
             canCastle: () => false
-        };
-    }
-}
+        }
+    })
+    .build();
+

@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ShadowCloakBonus, BlindLightMalus } from './TheShadow';
+import { TheShadow } from './TheShadow';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 
 describe('The Shadow', () => {
     let game: ChessGame;
-    let shadowCloakBonus: ShadowCloakBonus;
-    let blindLightMalus: BlindLightMalus;
+    const shadowCloakBonus = TheShadow.bonus;
+    const blindLightMalus = TheShadow.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        shadowCloakBonus = new ShadowCloakBonus();
-        blindLightMalus = new BlindLightMalus();
     });
 
     describe('Shadow Cloak (Bonus)', () => {

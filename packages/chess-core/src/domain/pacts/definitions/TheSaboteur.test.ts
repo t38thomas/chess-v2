@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SaboteurBonus, SaboteurMalus } from './TheSaboteur';
+import { TheSaboteur } from './TheSaboteur';
 import { ChessGame } from '../../ChessGame';
 import { Piece } from '../../models/Piece';
 import { Coordinate } from '../../models/Coordinate';
@@ -7,13 +7,11 @@ import { PactFactory } from '../PactFactory';
 
 describe('The Saboteur Pact', () => {
     let game: ChessGame;
-    let bonus: SaboteurBonus;
-    let malus: SaboteurMalus;
+    const bonus = TheSaboteur.bonus;
+    const malus = TheSaboteur.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        bonus = new SaboteurBonus();
-        malus = new SaboteurMalus();
         PactFactory.initialize();
     });
 

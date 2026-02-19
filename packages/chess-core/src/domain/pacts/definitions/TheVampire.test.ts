@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { LifeThirstBonus, VampireCurseMalus } from './TheVampire';
+import { TheVampire } from './TheVampire';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
@@ -7,13 +7,11 @@ import { Move } from '../../models/Move';
 
 describe('The Vampire', () => {
     let game: ChessGame;
-    let vampireBonus: LifeThirstBonus;
-    let vampireMalus: VampireCurseMalus;
+    const vampireBonus = TheVampire.bonus;
+    const vampireMalus = TheVampire.malus;
 
     beforeEach(() => {
         game = new ChessGame();
-        vampireBonus = new LifeThirstBonus();
-        vampireMalus = new VampireCurseMalus();
     });
 
     describe('Vampire Curse (Malus)', () => {
@@ -66,7 +64,7 @@ describe('The Vampire', () => {
 
             // Verify toast
             expect(emitSpy).toHaveBeenCalledWith('pact_effect', expect.objectContaining({
-                pactId: 'life_thirst',
+                pactId: TheVampire.bonus.id,
                 type: 'bonus'
             }));
         });

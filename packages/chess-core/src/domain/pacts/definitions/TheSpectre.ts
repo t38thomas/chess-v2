@@ -1,61 +1,42 @@
-import { PactLogic, RuleModifiers } from '../PactLogic';
-import { Piece } from '../../models/Piece';
-import { IChessGame } from '../../GameTypes';
-import { Move } from '../../models/Move';
+import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
+import { PactUtils } from '../PactUtils';
 
-export class SpectreBonus extends PactLogic {
-    id = 'incorporeal';
-
-    getRuleModifiers(): RuleModifiers {
-        return {
-            canMoveThroughFriendlies: (mover: Piece, obstacle: Piece) => {
-                // Non-pawn pieces can move through friendly pawns
+/**
+ * The Spectre Pact
+ * Bonus (Incorporeal): Non-pawn pieces can move through friendly pawns.
+ * Malus (Possession): Friendy pawns moved through are killed.
+ */
+export const TheSpectre = definePact('spectre')
+    .bonus('incorporeal', {
+        modifiers: {
+            canMoveThroughFriendlies: (mover, obstacle) => {
                 return mover.type !== 'pawn' && obstacle.type === 'pawn';
             }
-        };
-    }
-}
+        }
+    })
+    .malus('possession', {
+        modifiers: {
+            onExecuteMove: (game, move) => {
+                if (move.isCastling || move.isEnPassant || move.isSwap || move.piece.type === 'knight') return;
 
-export class SpectreMalus extends PactLogic {
-    id = 'possession';
+                const dx = Math.sign(move.to.x - move.from.x);
+                const dy = Math.sign(move.to.y - move.from.y);
+                let curX = move.from.x + dx;
+                let curY = move.from.y + dy;
 
-    getRuleModifiers(): RuleModifiers {
-        return {
-            onExecuteMove: (game: IChessGame, move: Move) => {
-                // If a piece moves through friendly pawns, they are killed (removed)
-                if (move.isCastling || move.isEnPassant || move.isSwap || move.piece.type === 'knight') {
-                    return;
-                }
-
-                const from = move.from;
-                const to = move.to;
-                const dx = Math.sign(to.x - from.x);
-                const dy = Math.sign(to.y - from.y);
-
-                let curX = from.x + dx;
-                let curY = from.y + dy;
-
-                while (curX !== to.x || curY !== to.y) {
+                while (curX !== move.to.x || curY !== move.to.y) {
                     const coord = new Coordinate(curX, curY);
                     const square = game.board.getSquare(coord);
-
                     if (square?.piece && square.piece.color === move.piece.color && square.piece.type === 'pawn') {
-                        // Kill the friendly pawn
                         game.board.removePiece(coord);
-                        game.emit('pact_effect', {
-                            pactId: this.id,
-                            title: 'pact.toasts.spectre.possession.title',
-                            description: 'pact.toasts.spectre.possession.desc',
-                            icon: 'ghost',
-                            type: 'malus'
-                        });
+                        PactUtils.notifyPactEffect(game, 'spectre', 'possession', 'malus', 'ghost');
                     }
-
                     curX += dx;
                     curY += dy;
                 }
             }
-        };
-    }
-}
+        }
+    })
+    .build();
+

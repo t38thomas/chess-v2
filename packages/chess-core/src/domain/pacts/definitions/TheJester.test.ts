@@ -2,20 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
-import { ChaosBonus, JesterMalus } from './TheJester';
+import { TheJester } from './TheJester';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Jester Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: ChaosBonus;
-    let malus: JesterMalus;
+    const bonus = TheJester.bonus;
+    const malus = TheJester.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new ChaosBonus();
-        malus = new JesterMalus();
     });
 
     describe('Chaos Bonus', () => {

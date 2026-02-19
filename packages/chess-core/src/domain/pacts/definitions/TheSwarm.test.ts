@@ -3,20 +3,18 @@ import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
-import { SwarmBonus, SwarmMalus } from './TheSwarm';
+import { TheSwarm } from './TheSwarm';
 import { ChessGame } from '../../ChessGame';
 
 describe('The Swarm Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: SwarmBonus;
-    let malus: SwarmMalus;
+    const bonus = TheSwarm.bonus;
+    const malus = TheSwarm.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new SwarmBonus();
-        malus = new SwarmMalus();
     });
 
     describe('SwarmBonus (Hydra)', () => {
@@ -52,7 +50,7 @@ describe('The Swarm Pact', () => {
             game.board.placePiece(new Coordinate(0, 0), blackQueen);
 
             // Assign Swarm pact to black
-            game.pacts.black = [{ id: 'swarm', title: 'Swarm', bonus: { id: 'hydra', name: 'hydra', icon: '', description: '', ranking: 5, category: 'Other' }, malus: { id: 'hive_queen', name: 'hive_queen', icon: '', description: '', ranking: -5, category: 'Other' }, description: '' }];
+            game.pacts.black = [{ id: TheSwarm.id, title: 'Swarm', bonus: { id: 'hydra', name: 'hydra', icon: '', description: '', ranking: 5, category: 'Other' }, malus: { id: 'hive_queen', name: 'hive_queen', icon: '', description: '', ranking: -5, category: 'Other' }, description: '' }];
 
             // Simulate loss of queen
             game.board.removePiece(new Coordinate(0, 0));

@@ -2,21 +2,19 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardModel } from '../../models/BoardModel';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
-import { NecromancerBonus, NecromancerMalus } from './TheNecromancer';
+import { TheNecromancer } from './TheNecromancer';
 import { ChessGame } from '../../ChessGame';
 import { Move } from '../../models/Move';
 
 describe('The Necromancer Pact', () => {
     let board: BoardModel;
     let game: ChessGame;
-    let bonus: NecromancerBonus;
-    let malus: NecromancerMalus;
+    const bonus = TheNecromancer.bonus;
+    const malus = TheNecromancer.malus;
 
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        bonus = new NecromancerBonus();
-        malus = new NecromancerMalus();
     });
 
     describe('NecromancerBonus (Reclaimer)', () => {
@@ -31,7 +29,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 1));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
+            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 1))?.piece?.id).toBe('white-pawn-0');
@@ -48,7 +46,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 0));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
+            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 0))?.piece?.id).toBe('white-rook-0');
@@ -65,7 +63,7 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(7, 0));
 
-            const success = bonus.activeAbility.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
+            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer' }, {});
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(7, 0))?.piece?.id).toBe('white-rook-7');
