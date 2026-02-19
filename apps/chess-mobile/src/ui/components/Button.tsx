@@ -116,7 +116,7 @@ export const Button: React.FC<ButtonProps> = ({
     };
 
     return (
-        <Animated.View style={[animatedScale, fullWidth && { width: '100%' }]}>
+        <Animated.View style={[animatedScale, fullWidth && { width: '100%' }, style]}>
             <Pressable
                 onPress={() => {
                     if (!disabled && !loading) {
@@ -137,8 +137,8 @@ export const Button: React.FC<ButtonProps> = ({
                         ...getBorderStyle(),
                         ...getShadow(),
                         width: fullWidth ? '100%' : undefined,
+                        flex: 1,
                     },
-                    style,
                 ]}
             >
                 {loading ? (

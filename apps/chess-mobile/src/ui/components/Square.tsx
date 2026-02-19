@@ -6,6 +6,7 @@ import Animated, {
     withRepeat,
     withTiming,
     withSequence,
+    cancelAnimation,
 } from 'react-native-reanimated';
 import { SquareViewModel } from 'chess-core';
 import { useTheme } from '../theme';
@@ -40,8 +41,14 @@ export const Square: React.FC<SquareProps> = ({
                 true
             );
         } else {
+            cancelAnimation(checkPulse);
             checkPulse.value = withTiming(0, { duration: 200 });
         }
+
+        return () => {
+            // Cancel the animation on unmount to prevent crashes during board rotation.
+            cancelAnimation(checkPulse);
+        };
     }, [viewModel.isAttacked]);
 
     const checkGlowStyle = useAnimatedStyle(() => ({

@@ -67,7 +67,8 @@ export class MoveGenerator {
                 }
                 break;
             case 'queen':
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, perks, game);
+                const queenRange = RuleEngine.getMaxRange(piece, perks);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, queenRange, perks, game);
                 break;
             case 'knight':
                 const knightDirs = perks.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
