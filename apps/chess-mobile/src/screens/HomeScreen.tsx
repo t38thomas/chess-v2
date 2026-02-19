@@ -8,7 +8,9 @@ import { useBreakpoint } from '../ui/responsive/useBreakpoint';
 import { Text } from '../ui/components/Text';
 import { Icon } from '../ui/components/Icon';
 import { IconButton } from '../ui/components/IconButton';
+import { Button } from '../ui/components/Button';
 import { SettingsModal } from '../ui/components/SettingsModal';
+import { openSupportEmail } from '../shared/supportEmail';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../ui/theme';
 
@@ -242,6 +244,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                         )}
                     </View>
 
+                    {/* Feedback Section */}
+                    <View style={[styles.feedbackContainer, { width: '100%', maxWidth: 600 }]}>
+                        <Text variant="caption" color="secondary" style={styles.feedbackTitle}>
+                            {t('support.feedback').toUpperCase()}
+                        </Text>
+                        <View style={[
+                            styles.feedbackButtons,
+                            isWide ? { flexDirection: 'row' } : { flexDirection: 'column' }
+                        ]}>
+                            <Button
+                                label={t('support.reportBug')}
+                                icon="bug"
+                                variant="secondary"
+                                onPress={() => openSupportEmail({ kind: 'bug' })}
+                                style={{ flex: 1 }}
+                            />
+                            <Button
+                                label={t('support.proposePact')}
+                                icon="lightbulb-outline"
+                                variant="secondary"
+                                onPress={() => openSupportEmail({ kind: 'pact_idea' })}
+                                style={{ flex: 1 }}
+                            />
+                        </View>
+                    </View>
+
                     {/* Footer tagline */}
                     <Animated.View style={{ opacity: fadeAnim, marginTop: spacing[6] }}>
                         <Text variant="caption" color="secondary" style={{ textAlign: 'center', opacity: 0.5 }}>
@@ -300,6 +328,20 @@ const styles = StyleSheet.create({
         maxWidth: 600,
         gap: 16,
         zIndex: 1,
+    },
+    feedbackContainer: {
+        marginTop: 32,
+        zIndex: 1,
+    },
+    feedbackTitle: {
+        textAlign: 'center',
+        marginBottom: 12,
+        opacity: 0.6,
+        letterSpacing: 1,
+        fontSize: 11,
+    },
+    feedbackButtons: {
+        gap: 12,
     },
     gameCard: {
         padding: 24,

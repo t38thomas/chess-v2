@@ -430,7 +430,9 @@ export const en = {
         moveIllegal: 'Illegal Move',
         notYourTurn: 'Not your turn',
         matchEnded: 'Match has ended',
-        rotationTooEarly: 'Both players must move at least once before rotating the board'
+        rotationTooEarly: 'Both players must move at least once before rotating the board',
+        emailClientTitle: 'Unable to open email app',
+        emailClientBody: 'Write to {recipient}',
     },
     status: {
         online: 'Online',
@@ -439,6 +441,50 @@ export const en = {
     },
     help: {
         rotateBoard: 'Tap to rotate the board view',
+    },
+    support: {
+        bugReportSubject: '[Bug] PactChess - {platform}',
+        bugReportBody: `
+Board Version: {version}
+Platform: {platform}
+Device: {device}
+
+---
+What were you doing?
+
+
+What did you expect?
+
+
+What happened instead?
+
+
+Steps to reproduce:
+1.
+2.
+3.
+`,
+        pactIdeaSubject: '[Pact Idea] PactChess',
+        pactIdeaBody: `
+Pact Name:
+
+Bonus (Description):
+
+
+Malus (Description):
+
+
+Ranking Bonus (1-5):
+Ranking Malus (-1 to -5):
+
+Scope (Specific Pieces / Global / Action):
+
+Practical Example:
+
+`,
+        reportBug: 'Report a Bug',
+        proposePact: 'Propose a New Pact',
+        feedback: 'Feedback',
     },
 
 };

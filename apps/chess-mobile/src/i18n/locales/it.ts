@@ -433,7 +433,9 @@ export const it: Translations = {
         moveIllegal: 'Mossa Illegale',
         notYourTurn: 'Non è il tuo turno',
         matchEnded: 'Partita terminata',
-        rotationTooEarly: 'Entrambi i giocatori devono muovere almeno una volta prima di ruotare la scacchiera'
+        rotationTooEarly: 'Entrambi i giocatori devono muovere almeno una volta prima di ruotare la scacchiera',
+        emailClientTitle: 'Impossibile aprire l’app Email',
+        emailClientBody: 'Scrivi a {recipient}',
     },
     status: {
         online: 'Online',
@@ -442,5 +444,49 @@ export const it: Translations = {
     },
     help: {
         rotateBoard: 'Tocca per ruotare la vista della scacchiera',
+    },
+    support: {
+        bugReportSubject: '[Bug] PactChess - {platform}',
+        bugReportBody: `
+Versione Board: {version}
+Piattaforma: {platform}
+Device: {device}
+
+---
+Cosa stavi facendo?
+
+
+Cosa ti aspettavi?
+
+
+Cosa è successo?
+
+
+Step per riprodurre:
+1.
+2.
+3.
+`,
+        pactIdeaSubject: '[Idea Patto] PactChess',
+        pactIdeaBody: `
+Nome Patto:
+
+Bonus (Descrizione):
+
+
+Malus (Descrizione):
+
+
+Ranking Bonus (1-5):
+Ranking Malus (-1..-5):
+
+Per quali pezzi / globale / azione:
+
+Esempio pratico in partita:
+
+`,
+        reportBug: 'Segnala un Bug',
+        proposePact: 'Proponi un nuovo Patto',
+        feedback: 'Feedback',
     },
 };
