@@ -34,12 +34,10 @@ export const openSupportEmail = async ({ kind }: SupportEmailOptions) => {
         body = t('support.pactIdeaBody');
     }
 
-    const query = new URLSearchParams({
-        subject,
-        body,
-    }).toString();
+    const encodedSubject = encodeURIComponent(subject);
+    const encodedBody = encodeURIComponent(body);
 
-    const url = `mailto:${recipient}?${query}`;
+    const url = `mailto:${recipient}?subject=${encodedSubject}&body=${encodedBody}`;
 
     try {
         const canOpen = await Linking.canOpenURL(url);

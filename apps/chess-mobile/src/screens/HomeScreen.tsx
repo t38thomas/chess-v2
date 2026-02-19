@@ -251,7 +251,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                         </Text>
                         <View style={[
                             styles.feedbackButtons,
-                            isWide ? { flexDirection: 'row' } : { flexDirection: 'column' }
+                            isWide ? { flexDirection: 'row', justifyContent: "center" } : { flexDirection: 'column' }
                         ]}>
                             <Button
                                 label={t('support.reportBug')}
