@@ -476,10 +476,6 @@ Bonus (Descrizione):
 
 Malus (Descrizione):
 
-
-Ranking Bonus (1-5):
-Ranking Malus (-1..-5):
-
 Per quali pezzi / globale / azione:
 
 Esempio pratico in partita:

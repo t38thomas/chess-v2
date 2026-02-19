@@ -473,10 +473,6 @@ Bonus (Description):
 
 Malus (Description):
 
-
-Ranking Bonus (1-5):
-Ranking Malus (-1 to -5):
-
 Scope (Specific Pieces / Global / Action):
 
 Practical Example:
