@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-import { View, StyleSheet, Animated, Pressable, useWindowDimensions, TextInput } from 'react-native';
+import { View, StyleSheet, Animated, Pressable, useWindowDimensions, TextInput, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../ui/responsive/Screen';
 import { Container } from '../ui/responsive/Container';
@@ -135,151 +135,153 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     return (
         <Screen>
             <Container>
-                <View style={styles.container}>
-                    {/* Settings Button */}
-                    <View style={styles.soundToggle}>
-                        <IconButton
-                            icon="cog"
-                            onPress={() => setSettingsVisible(true)}
-                            variant="secondary"
-                        />
-                    </View>
-
-                    {/* Decorative Chess Pieces (Background) */}
-                    <View style={styles.decorativeLeft}>
-                        <Icon name="chess-queen" size={120} color={colors.textMuted} style={{ opacity: 0.06 }} />
-                    </View>
-                    <View style={styles.decorativeRight}>
-                        <Icon name="chess-king" size={100} color={colors.textMuted} style={{ opacity: 0.06 }} />
-                    </View>
-
-                    {/* Hero Section */}
-                    <Animated.View
-                        style={[
-                            styles.heroSection,
-                            {
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }],
-                            }
-                        ]}
-                    >
-                        {/* App Icon/Logo */}
-                        <View style={[styles.logoContainer, { backgroundColor: colors.primaryMuted }]}>
-                            <Icon name="chess-knight" size={48} color={colors.primary} />
+                <ScrollView>
+                    <View style={styles.container}>
+                        {/* Settings Button */}
+                        <View style={styles.soundToggle}>
+                            <IconButton
+                                icon="cog"
+                                onPress={() => setSettingsVisible(true)}
+                                variant="secondary"
+                            />
                         </View>
 
-                        {/* Title */}
-                        <Text
-                            variant="title"
-                            bold
-                            style={{
-                                fontSize: 42,
-                                marginTop: spacing[4],
-                                marginBottom: spacing[2],
-                                textAlign: 'center',
-                                letterSpacing: -1,
-                            }}
-                        >
-                            {t('common.appName')}
-                        </Text>
+                        {/* Decorative Chess Pieces (Background) */}
+                        <View style={styles.decorativeLeft}>
+                            <Icon name="chess-queen" size={120} color={colors.textMuted} style={{ opacity: 0.06 }} />
+                        </View>
+                        <View style={styles.decorativeRight}>
+                            <Icon name="chess-king" size={100} color={colors.textMuted} style={{ opacity: 0.06 }} />
+                        </View>
 
-                        {/* Subtitle */}
-                        <Text
-                            variant="body"
-                            color="secondary"
-                            style={{
-                                textAlign: 'center',
-                                marginBottom: spacing[6],
-                                opacity: 0.8,
-                            }}
+                        {/* Hero Section */}
+                        <Animated.View
+                            style={[
+                                styles.heroSection,
+                                {
+                                    opacity: fadeAnim,
+                                    transform: [{ translateY: slideAnim }],
+                                }
+                            ]}
                         >
-                            {t('home.subtitle')}
-                        </Text>
-                        {/* Username Input */}
-                        <Animated.View style={{
-                            opacity: fadeAnim,
-                            width: '100%',
-                            maxWidth: 300,
-                            marginBottom: spacing[6],
-                            transform: [{ translateY: slideAnim }]
-                        }}>
-                            <Text variant="caption" color="secondary" style={{ marginBottom: spacing[1], marginLeft: spacing[1] }}>
-                                {t('home.displayName')}
-                            </Text>
-                            <TextInput
-                                style={[styles.usernameInput, {
-                                    color: colors.text,
-                                    backgroundColor: colors.surface,
-                                    borderColor: colors.border
-                                }]}
-                                placeholder={t('home.enterUsername')}
-                                placeholderTextColor={colors.textMuted}
-                                value={username}
-                                onChangeText={(text) => {
-                                    setUsername(text);
-                                    AsyncStorage.setItem('chess_username', text);
+                            {/* App Icon/Logo */}
+                            <View style={[styles.logoContainer, { backgroundColor: colors.primaryMuted }]}>
+                                <Icon name="chess-knight" size={48} color={colors.primary} />
+                            </View>
+
+                            {/* Title */}
+                            <Text
+                                variant="title"
+                                bold
+                                style={{
+                                    fontSize: 42,
+                                    marginTop: spacing[4],
+                                    marginBottom: spacing[2],
+                                    textAlign: 'center',
+                                    letterSpacing: -1,
                                 }}
-                                maxLength={15}
-                            />
+                            >
+                                {t('common.appName')}
+                            </Text>
+
+                            {/* Subtitle */}
+                            <Text
+                                variant="body"
+                                color="secondary"
+                                style={{
+                                    textAlign: 'center',
+                                    marginBottom: spacing[6],
+                                    opacity: 0.8,
+                                }}
+                            >
+                                {t('home.subtitle')}
+                            </Text>
+                            {/* Username Input */}
+                            <Animated.View style={{
+                                opacity: fadeAnim,
+                                width: '100%',
+                                maxWidth: 300,
+                                marginBottom: spacing[6],
+                                transform: [{ translateY: slideAnim }]
+                            }}>
+                                <Text variant="caption" color="secondary" style={{ marginBottom: spacing[1], marginLeft: spacing[1] }}>
+                                    {t('home.displayName')}
+                                </Text>
+                                <TextInput
+                                    style={[styles.usernameInput, {
+                                        color: colors.text,
+                                        backgroundColor: colors.surface,
+                                        borderColor: colors.border
+                                    }]}
+                                    placeholder={t('home.enterUsername')}
+                                    placeholderTextColor={colors.textMuted}
+                                    value={username}
+                                    onChangeText={(text) => {
+                                        setUsername(text);
+                                        AsyncStorage.setItem('chess_username', text);
+                                    }}
+                                    maxLength={15}
+                                />
+                            </Animated.View>
                         </Animated.View>
-                    </Animated.View>
 
-                    {/* Game Mode Cards */}
-                    <View style={[styles.cardsContainer, isWide && { flexDirection: 'row', gap: spacing[4] }]}>
-                        {renderGameCard(
-                            t('home.localGame'),
-                            t('home.localGameDesc'),
-                            'chess-pawn',
-                            colors.primary,
-                            () => onNavigate('local'),
-                            scaleAnim1
-                        )}
-                        {renderGameCard(
-                            t('home.onlineMatch'),
-                            t('home.onlineMatchDesc'),
-                            'earth',
-                            colors.secondary,
-                            () => onNavigate('online'),
-                            scaleAnim2
-                        )}
-                    </View>
-
-                    {/* Feedback Section */}
-                    <View style={[styles.feedbackContainer, { width: '100%', maxWidth: 600 }]}>
-                        <Text variant="caption" color="secondary" style={styles.feedbackTitle}>
-                            {t('support.feedback').toUpperCase()}
-                        </Text>
-                        <View style={[
-                            styles.feedbackButtons,
-                            isWide ? { flexDirection: 'row', justifyContent: "center" } : { flexDirection: 'column' }
-                        ]}>
-                            <Button
-                                label={t('support.reportBug')}
-                                icon="bug"
-                                variant="secondary"
-                                onPress={() => openSupportEmail({ kind: 'bug' })}
-                                style={{ flex: 1 }}
-                            />
-                            <Button
-                                label={t('support.proposePact')}
-                                icon="lightbulb-outline"
-                                variant="secondary"
-                                onPress={() => openSupportEmail({ kind: 'pact_idea' })}
-                                style={{ flex: 1 }}
-                            />
+                        {/* Game Mode Cards */}
+                        <View style={[styles.cardsContainer, isWide && { flexDirection: 'row', gap: spacing[4] }]}>
+                            {renderGameCard(
+                                t('home.localGame'),
+                                t('home.localGameDesc'),
+                                'chess-pawn',
+                                colors.primary,
+                                () => onNavigate('local'),
+                                scaleAnim1
+                            )}
+                            {renderGameCard(
+                                t('home.onlineMatch'),
+                                t('home.onlineMatchDesc'),
+                                'earth',
+                                colors.secondary,
+                                () => onNavigate('online'),
+                                scaleAnim2
+                            )}
                         </View>
+
+                        {/* Feedback Section */}
+                        <View style={[styles.feedbackContainer, { width: '100%', maxWidth: 600 }]}>
+                            <Text variant="caption" color="secondary" style={styles.feedbackTitle}>
+                                {t('support.feedback').toUpperCase()}
+                            </Text>
+                            <View style={[
+                                styles.feedbackButtons,
+                                isWide ? { flexDirection: 'row', justifyContent: "center" } : { flexDirection: 'column' }
+                            ]}>
+                                <Button
+                                    label={t('support.reportBug')}
+                                    icon="bug"
+                                    variant="secondary"
+                                    onPress={() => openSupportEmail({ kind: 'bug' })}
+                                    style={{ flex: 1 }}
+                                />
+                                <Button
+                                    label={t('support.proposePact')}
+                                    icon="lightbulb-outline"
+                                    variant="secondary"
+                                    onPress={() => openSupportEmail({ kind: 'pact_idea' })}
+                                    style={{ flex: 1 }}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Footer tagline */}
+                        <Animated.View style={{ opacity: fadeAnim, marginTop: spacing[6] }}>
+                            <Text variant="caption" color="secondary" style={{ textAlign: 'center', opacity: 0.5 }}>
+                                {t('home.poweredBy')}
+                            </Text>
+                        </Animated.View>
+
+                        <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+
                     </View>
-
-                    {/* Footer tagline */}
-                    <Animated.View style={{ opacity: fadeAnim, marginTop: spacing[6] }}>
-                        <Text variant="caption" color="secondary" style={{ textAlign: 'center', opacity: 0.5 }}>
-                            {t('home.poweredBy')}
-                        </Text>
-                    </Animated.View>
-
-                    <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
-
-                </View>
+                </ScrollView>
             </Container>
         </Screen>
     );

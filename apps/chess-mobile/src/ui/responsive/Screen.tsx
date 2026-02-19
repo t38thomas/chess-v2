@@ -14,7 +14,7 @@ interface ScreenProps {
 export const Screen: React.FC<ScreenProps> = ({ children, safe = true }) => {
     const { colors } = useTheme();
 
-    const Wrapper = safe ? SafeAreaView : View;
+    const Wrapper = View;
 
     return (
         <Wrapper style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -26,5 +26,6 @@ export const Screen: React.FC<ScreenProps> = ({ children, safe = true }) => {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
+
     },
 });

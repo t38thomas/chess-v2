@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { ThemeProvider } from './src/ui/theme';
+import { ThemeProvider, useTheme } from './src/ui/theme';
 import { I18nProvider, initI18n } from './src/i18n';
 import { SoundProvider } from './src/ui/context/SoundContext';
 import { GameScreen } from './src/screens/GameScreen';
@@ -18,10 +18,31 @@ import { MatchConfigScreen } from './src/screens/MatchConfigScreen';
 type Screen = 'home' | 'matchConfig' | 'local' | 'online';
 
 export default function App() {
+
+    return (
+        <SafeAreaProvider>
+            <ThemeProvider>
+                <I18nProvider>
+                    <ToastProvider>
+                        <SoundProvider>
+                            <GameSettingsProvider>
+                                <AppEntry />
+                            </GameSettingsProvider>
+                        </SoundProvider>
+                    </ToastProvider>
+                </I18nProvider>
+            </ThemeProvider>
+        </SafeAreaProvider>
+    );
+}
+
+const AppEntry = () => {
+
     const [currentScreen, setCurrentScreen] = useState<Screen>('home');
     const [configMode, setConfigMode] = useState<'local' | 'online'>('local');
     const [matchConfig, setMatchConfig] = useState<MatchConfig | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const theme = useTheme();
 
     useEffect(() => {
         const initialize = async () => {
@@ -86,24 +107,12 @@ export default function App() {
     };
 
     return (
-        <SafeAreaProvider>
-            <ThemeProvider>
-                <I18nProvider>
-                    <ToastProvider>
-                        <SoundProvider>
-                            <GameSettingsProvider>
-                                <SafeAreaView style={styles.container}>
-                                    <StatusBar style="auto" />
-                                    {isReady ? renderScreen() : null}
-                                    <ToastContainer />
-                                </SafeAreaView>
-                            </GameSettingsProvider>
-                        </SoundProvider>
-                    </ToastProvider>
-                </I18nProvider>
-            </ThemeProvider>
-        </SafeAreaProvider>
-    );
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <StatusBar style={theme.isDark ? 'light' : 'dark'} />
+            {isReady ? renderScreen() : null}
+            <ToastContainer />
+        </SafeAreaView>
+    )
 }
 
 const styles = StyleSheet.create({

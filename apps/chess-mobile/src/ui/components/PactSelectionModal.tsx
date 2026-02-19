@@ -21,6 +21,7 @@ import { Text } from './Text';
 import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
 import { usePactTranslation } from '../hooks/usePactTranslation';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PactSelectionModalProps {
     visible: boolean;
@@ -87,7 +88,7 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
             <View style={styles.container}>
                 <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
 
-                <SafeAreaWrapper style={styles.safeArea}>
+                <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.surface }]}>
                     <View style={styles.content}>
                         <View>
                             <Text variant="title" bold style={styles.header}>{t('pact.title')}</Text>
@@ -131,7 +132,7 @@ export const PactSelectionModal: React.FC<PactSelectionModalProps> = ({
                             </View>
                         </ScrollView>
                     </View>
-                </SafeAreaWrapper>
+                </SafeAreaView>
             </View>
         </Modal>
     );
@@ -246,14 +247,14 @@ const createStyles = (isLargeScreen: boolean, colors: any) => StyleSheet.create(
     safeArea: {
         flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: isLargeScreen ? 20 : 0,
     },
     content: {
         backgroundColor: colors.surface,
-        borderRadius: isLargeScreen ? 0 : 32,
+        borderRadius: 0,
         flex: 1,
-        maxHeight: isLargeScreen ? '100%' : '85%',
-        width: isLargeScreen ? '100%' : '90%',
+        maxHeight: isLargeScreen ? '100%' : '100%',
+        width: isLargeScreen ? '100%' : '100%',
         alignSelf: 'center',
         borderWidth: isLargeScreen ? 0 : 1,
         borderColor: colors.border,

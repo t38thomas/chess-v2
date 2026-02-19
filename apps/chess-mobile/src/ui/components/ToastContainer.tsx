@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useToast } from '../../context/ToastContext';
 import { Toast } from './Toast';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const ToastContainer: React.FC = () => {
     const { toasts } = useToast();
@@ -32,6 +33,6 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         justifyContent: 'flex-start',
-        paddingTop: 16, // Add some top padding
+        paddingTop: 16, // Add some top padding,
     }
 });

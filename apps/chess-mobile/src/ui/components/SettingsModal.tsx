@@ -40,14 +40,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                             label="English"
                             variant={locale === 'en' ? 'primary' : 'secondary'}
                             onPress={() => setLocale('en')}
-                            style={{ flex: 1, marginRight: spacing[2] }}
+                            style={{ marginRight: spacing[2] }}
                             size="sm"
                         />
                         <Button
                             label="Italiano"
                             variant={locale === 'it' ? 'primary' : 'secondary'}
                             onPress={() => setLocale('it')}
-                            style={{ flex: 1 }}
                             size="sm"
                         />
                     </View>
@@ -63,21 +62,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                             label={t('settings.themeLight')}
                             variant={mode === 'light' ? 'primary' : 'secondary'}
                             onPress={() => setMode('light')}
-                            style={{ flex: 1, marginRight: spacing[2] }}
+                            style={{ marginRight: spacing[2] }}
                             size="sm"
                         />
                         <Button
                             label={t('settings.themeDark')}
                             variant={mode === 'dark' ? 'primary' : 'secondary'}
                             onPress={() => setMode('dark')}
-                            style={{ flex: 1, marginRight: spacing[2] }}
+                            style={{ marginRight: spacing[2] }}
                             size="sm"
                         />
                         <Button
                             label={t('settings.themeSystem')}
                             variant={mode === 'system' ? 'primary' : 'secondary'}
                             onPress={() => setMode('system')}
-                            style={{ flex: 1 }}
                             size="sm"
                         />
                     </View>
