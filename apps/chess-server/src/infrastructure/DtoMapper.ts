@@ -51,7 +51,9 @@ export class DtoMapper {
             },
             matchConfig: game.matchConfig,
             orientation: game.orientation,
-            lastMove: game.history.length > 0 ? game.history[game.history.length - 1] : null
+            lastMove: game.history.length > 0 ? game.history[game.history.length - 1] : null,
+            pactState: game.pactState,
+            winner: game.winner
         };
     }
 }

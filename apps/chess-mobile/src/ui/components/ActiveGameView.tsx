@@ -8,6 +8,8 @@ import { Icon } from './Icon';
 import { PromotionModal } from './PromotionModal';
 import { PactSelectionModal } from './PactSelectionModal';
 import { PactDetailsModal } from './PactDetailsModal';
+import { GameEndModal } from './GameEndModal';
+import { PactTurnCounter } from './PactTurnCounter';
 import { GameSessionLayout } from './GameSessionLayout';
 import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
@@ -208,6 +210,13 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 </View>
             )}
 
+            {viewModel.turnCounters && (
+                <PactTurnCounter
+                    turnCounters={viewModel.turnCounters}
+                    bottomColor={playerColor}
+                />
+            )}
+
             {/* Match Info */}
             <Card variant="outlined" padding="sm">
                 <View style={styles.matchInfo}>
@@ -231,13 +240,6 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         fullWidth
                     />
                 )}
-                <Button
-                    label={t('game.leaveMatch')}
-                    variant="destructive"
-                    icon="exit-to-app"
-                    onPress={onLeaveMatch}
-                    fullWidth
-                />
                 {onResign && (
                     <Button
                         label={t('game.resign')}
@@ -245,7 +247,6 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         icon="flag"
                         onPress={onResign}
                         fullWidth
-                        style={{ marginTop: 12 }}
                     />
                 )}
             </View>
@@ -307,6 +308,15 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                 visible={!!selectedPact}
                 pact={selectedPact}
                 onClose={() => setSelectedPact(null)}
+            />
+
+            <GameEndModal
+                visible={viewModel.status !== 'active' && viewModel.phase !== 'setup'}
+                status={viewModel.status}
+                winner={viewModel.winner}
+                onClose={onLeaveMatch}
+                onPlayAgain={onLeaveMatch}
+                onGoHome={onLeaveMatch}
             />
         </React.Fragment>
     );

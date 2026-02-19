@@ -64,6 +64,7 @@ export class GameFacade {
             const opponentPieces = PactUtils.findPieces(this.game, opponentColor);
             for (const { piece, coord } of opponentPieces) {
                 // SPECIAL HANDLING FOR PAWNS
+                // Pawns attack diagonally — only highlight if the diagonal square is EMPTY
                 if (piece.type === 'pawn') {
                     const direction = piece.color === 'white' ? 1 : -1;
                     const attackY = coord.y + direction;
@@ -71,8 +72,10 @@ export class GameFacade {
                     const leftAttack = new Coordinate(coord.x - 1, attackY);
                     const rightAttack = new Coordinate(coord.x + 1, attackY);
 
-                    if (leftAttack.isValid()) attackedSquares.add(leftAttack.toString());
-                    if (rightAttack.isValid()) attackedSquares.add(rightAttack.toString());
+                    if (leftAttack.isValid() && !this.game.board.getSquare(leftAttack)?.piece)
+                        attackedSquares.add(leftAttack.toString());
+                    if (rightAttack.isValid() && !this.game.board.getSquare(rightAttack)?.piece)
+                        attackedSquares.add(rightAttack.toString());
                     continue;
                 }
 
@@ -92,7 +95,11 @@ export class GameFacade {
                     if (piece.type === 'king') {
                         if (Math.abs(move.to.x - coord.x) > 1) continue;
                     }
-                    attackedSquares.add(move.to.toString());
+                    // Only highlight EMPTY squares — warning: "don't move here or you'll be captured"
+                    const targetSq = this.game.board.getSquare(move.to);
+                    if (!targetSq?.piece) {
+                        attackedSquares.add(move.to.toString());
+                    }
                 }
             }
         }
@@ -152,7 +159,7 @@ export class GameFacade {
                 y: this.pendingPromotionMove.to.y,
                 color: this.pendingPromotionMove.piece.color
             } : null,
-            winner: this.game.status === 'checkmate' ? (this.game.turn === 'white' ? 'black' : 'white') : undefined,
+            winner: this.game.winner,
             activeAbilityId: this._activeAbilityId,
             pendingTargets: this.pendingTargets.map(c => ({ x: c.x, y: c.y })),
             turnCounters: this.getTurnCounters(),
@@ -519,6 +526,7 @@ export class GameFacade {
         this.game.status = payload.status || 'active';
         this.game.phase = payload.phase || 'playing';
         this.game.totalTurns = payload.totalTurns || 0;
+        this.game.winner = payload.winner;
 
         // Sync Pacts
         if (payload.pacts) {
@@ -546,6 +554,14 @@ export class GameFacade {
 
         if (payload.orientation !== undefined) {
             this.game.orientation = payload.orientation;
+        }
+
+        // Sync PactState — critical for stateful pacts (Phoenix, Alchemist, Diplomat, etc.)
+        if (payload.pactState && typeof payload.pactState === 'object') {
+            for (const key in this.game.pactState) {
+                delete this.game.pactState[key];
+            }
+            Object.assign(this.game.pactState, payload.pactState);
         }
 
         if (payload.lastMove) {

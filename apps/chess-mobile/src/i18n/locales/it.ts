@@ -247,8 +247,8 @@ export const it: Translations = {
             },
             berserker: {
                 frenzy: {
-                    title: "Furia!",
-                    desc: "Una cattura ha scatenato la furia della battaglia! Ottieni una mossa extra con questo pezzo.",
+                    title: "Cacciatore di Pedoni!",
+                    desc: "Un pedone nemico è stato frantumato! Il Berserker imperversa — muovi di nuovo con questo pezzo.",
                 },
             },
             alchemist: {
@@ -330,7 +330,7 @@ export const it: Translations = {
         saboteur: { title: 'Il Sabotatore', description: 'Pedoni rapidi ma rifornimenti tagliati.' },
         heavy_cavalry: { title: 'Cavalleria Pesante', description: 'Cariche devastanti ma manovrabilità ridotta.' },
         changeling: { title: 'Il Mutaforma', description: 'Adattabilità estrema ma identità instabile.' },
-        berserker: { title: 'Il Berserker', description: 'Furia inarrestabile al prezzo della difesa.' },
+        berserker: { title: 'Il Berserker', description: 'Spietato cacciatore di pedoni, ma scende in campo monco.' },
         sniper: { title: 'Il Cecchino', description: 'Colpi a distanza ma tempi di ricarica lunghi.' },
         tidecaller: { title: 'Signore delle Maree', description: 'Controllo del flusso ma opzioni offensive limitate.' },
         blind_seer: { title: 'Veggente Cieco', description: 'Vista oltre i muri ma oscurità circostante.' },
@@ -360,11 +360,11 @@ export const it: Translations = {
     },
     perks: {
         /* BONUS */
-        reclaimer: { name: 'Rianimatore', description: 'Resuscita l\'ultimo pezzo perso sulla sua casella iniziale.' },
+        reclaimer: { name: 'Rianimatore', description: 'Resuscita l\'ultimo pezzo perso sulla sua casella iniziale. (Una sola volta)' },
         diagonal_dash: { name: 'Scatto Diagonale', description: 'I pedoni possono muovere di 1 casella in diagonale avanti senza catturare.' },
         trample: { name: 'Travolgere', description: 'I Cavalli catturano anche i pedoni nemici adiacenti all\'atterraggio.' },
         mimicry: { name: 'Mimica', description: 'Catturando, un pedone assume il movimento della vittima per il prossimo turno.' },
-        frenzy: { name: 'Frenesia', description: 'Dopo una cattura, puoi muovere di nuovo lo stesso pezzo (senza catturare).' },
+        frenzy: { name: 'Cacciatore di Pedoni', description: 'Dopo aver catturato un pedone, muovi di nuovo lo stesso pezzo (senza catturare).' },
         long_sight: { name: 'Vista Lunga', description: 'Le Torri vedono attraverso un ostacolo.' },
         flow: { name: 'Flusso', description: 'I pedoni possono muovere indietro di 1 casella.' },
         echolocation: { name: 'Ecolocalizzazione', description: 'I pezzi vedono e attaccano attraverso i muri.' },
@@ -377,7 +377,7 @@ export const it: Translations = {
         shadow_cloak: { name: 'Mantello d\'Ombra', description: 'I pezzi sul perimetro sono immuni alla cattura da nemici non adiacenti.' },
         hydra: { name: 'Idra', description: 'Quando un pedone muore, ne appare uno nuovo nelle retrovie.' },
         rebirth: { name: 'Rinascita', description: 'Se perdi la Regina, un pedone diventa Regina. (Una sola volta)' },
-        transmutation: { name: 'Trasmutazione', description: 'Scambia la posizione di due tuoi pezzi amici (eccetto il Re).' },
+        transmutation: { name: 'Trasmutazione', description: 'Scambia la posizione di due tuoi pezzi amici (eccetto il Re). (Una sola volta)' },
         bayonet: { name: 'Baionetta', description: 'I pedoni catturano in avanti, non in diagonale.' },
         stone_skin: { name: 'Pelle di Pietra', description: 'Il Re è immune agli attacchi da lontano (> 3 caselle).' },
         incorporeal: { name: 'Incorporeo', description: 'I pezzi non-pedone attraversano i pedoni amici.' },
@@ -390,7 +390,7 @@ export const it: Translations = {
         turret: { name: 'Torretta', description: 'Le Torri attaccano anche in diagonale (1 casella).' },
         high_flyer: { name: 'Volo Alto', description: 'Gli Alfieri possono saltare i pezzi amici.' },
         bloodline: { name: 'Linea di Sangue', description: 'Se la Regina muore, un pezzo minore diventa Regina.' },
-        time_stop: { name: 'Time Stop', description: 'L\'avversario salta un turno.' },
+        time_stop: { name: 'Time Stop', description: 'L\'avversario salta un turno. (Una sola volta)' },
 
 
         /* MALUS */
@@ -398,7 +398,7 @@ export const it: Translations = {
         cut_supplies: { name: 'Rifornimenti Tagliati', description: 'I pedoni non possono promuovere a Regina.' },
         heavy_armor: { name: 'Armatura Pesante', description: 'I Cavalli non possono saltare i propri pedoni.' },
         unstable_identity: { name: 'Identità Instabile', description: 'Se non catturi per 5 turni, perdi un pezzo (diventa pedone).' },
-        defenseless: { name: 'Senza Difesa', description: 'Il Re non può mai arroccare.' },
+        missing_knight: { name: 'Monco', description: 'Inizi la partita con un Cavallo casuale rimosso dalla scacchiera.' },
         reload: { name: 'Ricarica', description: 'Una Torre che cattura salta il prossimo turno.' },
         ebb: { name: 'Riflusso', description: 'I pedoni non possono catturare in diagonale.' },
         darkness: { name: 'Oscurità', description: 'Tutti i tuoi pezzi hanno una portata di movimento massima di 3 caselle.' },

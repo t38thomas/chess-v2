@@ -44,8 +44,8 @@ export const PERK_LIBRARY: Record<string, Perk> = {
     unstable_identity: { id: 'unstable_identity', name: 'unstable_identity', icon: 'alert-circle-outline', description: 'desc_unstable_identity', ranking: -3, category: 'Board Transform' },
 
     // --- 5. IL BERSERKER ---
-    frenzy: { id: 'frenzy', name: 'frenzy', icon: 'axe', description: 'desc_frenzy', ranking: 5, category: 'Turn Economy' },
-    defenseless: { id: 'defenseless', name: 'defenseless', icon: 'shield-remove', description: 'desc_defenseless', ranking: -4, category: 'King Safety' },
+    frenzy: { id: 'frenzy', name: 'frenzy', icon: 'axe', description: 'desc_frenzy', ranking: 4, category: 'Turn Economy' },
+    missing_knight: { id: 'missing_knight', name: 'missing_knight', icon: 'chess-knight', description: 'desc_missing_knight', ranking: -3, category: 'Board Transform' },
 
     // --- 6. IL CECCHINO ---
     long_sight: { id: 'long_sight', name: 'long_sight', icon: 'telescope', description: 'desc_long_sight', ranking: 4, category: 'Capture Rules' },
@@ -153,7 +153,7 @@ export const PACT_CARDS: Pact[] = [
     { id: 'saboteur', title: 'title_saboteur', bonus: PERK_LIBRARY.diagonal_dash, malus: PERK_LIBRARY.cut_supplies, description: 'desc_pact_saboteur' },
     { id: 'heavy_cavalry', title: 'title_heavy_cavalry', bonus: PERK_LIBRARY.trample, malus: PERK_LIBRARY.heavy_armor, description: 'desc_pact_heavy_cavalry' },
     { id: 'changeling', title: 'title_changeling', bonus: PERK_LIBRARY.mimicry, malus: PERK_LIBRARY.unstable_identity, description: 'desc_pact_changeling' },
-    { id: 'berserker', title: 'title_berserker', bonus: PERK_LIBRARY.frenzy, malus: PERK_LIBRARY.defenseless, description: 'desc_pact_berserker' },
+    { id: 'berserker', title: 'title_berserker', bonus: PERK_LIBRARY.frenzy, malus: PERK_LIBRARY.missing_knight, description: 'desc_pact_berserker' },
     { id: 'sniper', title: 'title_sniper', bonus: PERK_LIBRARY.long_sight, malus: PERK_LIBRARY.reload, description: 'desc_pact_sniper' },
     { id: 'tidecaller', title: 'title_tidecaller', bonus: PERK_LIBRARY.flow, malus: PERK_LIBRARY.ebb, description: 'desc_pact_tidecaller' },
     { id: 'blind_seer', title: 'title_blind_seer', bonus: PERK_LIBRARY.echolocation, malus: PERK_LIBRARY.darkness, description: 'desc_pact_blind_seer' },

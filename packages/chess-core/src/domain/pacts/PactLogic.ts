@@ -32,6 +32,7 @@ export interface MoveParams {
     moves: Move[];
     game?: IChessGame;
     perks?: Perk[];
+    orientation?: number; // 0-3 (clockwise 90° steps), matches game.orientation
 }
 
 export interface RuleModifiers {

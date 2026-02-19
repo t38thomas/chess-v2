@@ -6,7 +6,7 @@ export class TurretBonus extends PactLogic {
 
     getRuleModifiers(): RuleModifiers {
         return {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
+            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
                 if (piece.type !== 'rook') return;
 
                 const directions = [
@@ -14,7 +14,7 @@ export class TurretBonus extends PactLogic {
                     { dx: -1, dy: 1 }, { dx: -1, dy: -1 }
                 ];
 
-                PactUtils.addSingleStepMoves(board, piece, from, moves, directions);
+                PactUtils.addSingleStepMoves(board, piece, from, moves, directions, orientation ?? 0);
             }
         };
     }
@@ -25,11 +25,11 @@ export class DesignFlawMalus extends PactLogic {
 
     getRuleModifiers(): RuleModifiers {
         return {
-            onGetPseudoMoves: ({ piece, from, moves }) => {
+            onGetPseudoMoves: ({ piece, from, moves, orientation }) => {
                 if (piece.type !== 'rook') return;
 
-                // Design Flaw: Rooks cannot move horizontally.
-                PactUtils.blockHorizontalMoves(moves, from);
+                // Design Flaw: Rooks cannot move horizontally (relative to board orientation).
+                PactUtils.blockHorizontalMoves(moves, from, orientation ?? 0);
             }
         };
     }

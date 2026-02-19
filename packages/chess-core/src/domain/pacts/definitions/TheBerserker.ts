@@ -1,11 +1,21 @@
 import { PactLogic, RuleModifiers } from '../PactLogic';
 import { PieceColor } from '../../models/Piece';
+import { GameEvent } from '../../GameTypes';
+import { PactContext } from '../PactLogic';
+import { PactUtils } from '../PactUtils';
 
 interface BerserkerState {
     isFrenzyActive: boolean;
     frenzyPieceId: string | null;
 }
 
+/**
+ * BerserkerBonus — "Pawn Hunter" (frenzy)
+ *
+ * When you capture an enemy PAWN, you gain one extra move with the same piece.
+ * The extra move cannot be another capture.
+ * If there are no pawns to capture, the bonus never triggers.
+ */
 export class BerserkerBonus extends PactLogic {
     id = 'frenzy';
 
@@ -24,11 +34,11 @@ export class BerserkerBonus extends PactLogic {
                 const state = this.getState(game, color);
 
                 if (state.isFrenzyActive) {
-                    // Completing the extra move
+                    // The extra move has been played — reset frenzy
                     state.isFrenzyActive = false;
                     state.frenzyPieceId = null;
-                } else if (move.capturedPiece) {
-                    // Initial capture triggered frenzy
+                } else if (move.capturedPiece && move.capturedPiece.type === 'pawn') {
+                    // Only trigger on pawn captures
                     state.isFrenzyActive = true;
                     state.frenzyPieceId = move.piece.id;
 
@@ -36,16 +46,16 @@ export class BerserkerBonus extends PactLogic {
                         pactId: this.id,
                         title: 'pact.toasts.berserker.frenzy.title',
                         description: 'pact.toasts.berserker.frenzy.desc',
-                        icon: 'fire',
+                        icon: 'axe',
                         type: 'bonus'
                     });
                 }
             },
 
-            modifyNextTurn: (game, currentTurn, eventType) => {
+            modifyNextTurn: (game, currentTurn) => {
                 const state = this.getState(game, currentTurn);
                 if (state.isFrenzyActive) {
-                    // Force the turn to stay with the current player
+                    // Keep the same player's turn for the extra move
                     return currentTurn;
                 }
                 return null;
@@ -65,14 +75,11 @@ export class BerserkerBonus extends PactLogic {
                 return true;
             },
 
-            canCapture: (game, attacker, victim, to, from) => {
-                // If game context is missing (e.g. strict analysis), default to allow or restrictive?
-                // Allow capture if we can't check state to avoid breaking generic analysis.
+            canCapture: (game, attacker) => {
+                // During the extra frenzy move, capturing is not allowed
                 if (!game) return true;
-
                 const state = this.getState(game, attacker.color);
                 if (state.isFrenzyActive) {
-                    // Cannot capture during the extra turn
                     return false;
                 }
                 return true;
@@ -81,12 +88,31 @@ export class BerserkerBonus extends PactLogic {
     }
 }
 
+/**
+ * BerserkerMalus — "One-Handed" (missing_knight)
+ *
+ * At the start of the game you are missing one random knight.
+ */
 export class BerserkerMalus extends PactLogic {
-    id = 'defenseless';
+    id = 'missing_knight';
+
+    onEvent(event: GameEvent, _payload: any, context: PactContext): void {
+        const { game, playerId } = context;
+
+        if (event === 'pact_assigned') {
+            const knights = PactUtils.findPieces(game, playerId, 'knight');
+
+            if (knights.length > 0) {
+                // Pick one at random and remove it
+                const [victim] = PactUtils.pickRandom(knights, 1);
+                if (victim) {
+                    PactUtils.removePiece(game, victim.coord);
+                }
+            }
+        }
+    }
 
     getRuleModifiers(): RuleModifiers {
-        return {
-            canCastle: (piece) => false
-        };
+        return {};
     }
 }

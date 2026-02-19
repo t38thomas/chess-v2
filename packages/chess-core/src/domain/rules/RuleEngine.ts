@@ -267,7 +267,8 @@ export class RuleEngine {
         perks.forEach(p => {
             const pactLogic = registry.get(p.id);
             pactLogic?.getRuleModifiers()?.onGetPseudoMoves?.({
-                board, from, piece, moves, game, perks
+                board, from, piece, moves, game, perks,
+                orientation: game?.orientation ?? 0
             });
         });
     }

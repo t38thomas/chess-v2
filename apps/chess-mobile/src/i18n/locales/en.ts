@@ -237,8 +237,8 @@ export const en = {
             },
             berserker: {
                 frenzy: {
-                    title: 'Frenzy!',
-                    desc: 'A capture has triggered a battle frenzy! You gain an extra move with this piece.',
+                    title: 'Pawn Slaughter!',
+                    desc: 'An enemy pawn was crushed! The Berserker rampages — move again with this piece.',
                 },
             },
             alchemist: {
@@ -328,7 +328,7 @@ export const en = {
         saboteur: { title: 'The Saboteur', description: 'Fast pawns but cut supplies.' },
         heavy_cavalry: { title: 'Heavy Cavalry', description: 'Devastating charges but reduced maneuverability.' },
         changeling: { title: 'The Changeling', description: 'Extreme adaptability but unstable identity.' },
-        berserker: { title: 'The Berserker', description: 'Unstoppable fury at the price of defense.' },
+        berserker: { title: 'The Berserker', description: 'Ruthless pawn hunter, but rides into battle short-handed.' },
         sniper: { title: 'The Sniper', description: 'Ranged strikes but long reload times.' },
         tidecaller: { title: 'Tidecaller', description: 'Flow control but limited offensive options.' },
         blind_seer: { title: 'Blind Seer', description: 'Sight beyond walls but surrounding darkness.' },
@@ -358,11 +358,11 @@ export const en = {
     },
     perks: {
         /* BONUS */
-        reclaimer: { name: 'Reclaimer', description: 'Resurrect the last lost piece on its starting square.' },
+        reclaimer: { name: 'Reclaimer', description: 'Resurrect the last lost piece on its starting square. (Single use)' },
         diagonal_dash: { name: 'Diagonal Dash', description: 'Pawns can move 1 square diagonally forward without capturing.' },
         trample: { name: 'Trample', description: 'Knights also capture enemy pawns adjacent to landing.' },
         mimicry: { name: 'Mimicry', description: 'Upon capturing, a pawn assumes the victim\'s movement for the next turn.' },
-        frenzy: { name: 'Frenzy', description: 'After a capture, you can move the same piece again (without capturing).' },
+        frenzy: { name: 'Pawn Hunter', description: 'After capturing a pawn, move the same piece again (without capturing).' },
         long_sight: { name: 'Long Sight', description: 'Rooks see through one obstacle.' },
         flow: { name: 'Flow', description: 'Pawns can move backward 1 square.' },
         echolocation: { name: 'Echolocation', description: 'Pieces see and attack through walls.' },
@@ -375,7 +375,7 @@ export const en = {
         shadow_cloak: { name: 'Shadow Cloak', description: 'Pieces on the perimeter are immune to capture from non-adjacent enemies.' },
         hydra: { name: 'Hydra', description: 'When a pawn dies, a new one appears in the backlines.' },
         rebirth: { name: 'Rebirth', description: 'If you lose the Queen, a pawn becomes Queen. (Single use)' },
-        transmutation: { name: 'Transmutation', description: 'Swap the position of any two of your pieces (except the King).' },
+        transmutation: { name: 'Transmutation', description: 'Swap the position of any two of your pieces (except the King). (Single use)' },
         bayonet: { name: 'Bayonet', description: 'Pawns capture forward, not diagonally.' },
         stone_skin: { name: 'Stone Skin', description: 'The King is immune to attacks from afar (> 3 squares).' },
         incorporeal: { name: 'Incorporeal', description: 'Non-pawn pieces move through friendly pawns.' },
@@ -388,14 +388,14 @@ export const en = {
         turret: { name: 'Turret', description: 'Rooks also attack diagonally (1 square).' },
         high_flyer: { name: 'High Flyer', description: 'Bishops can jump over friendly pieces.' },
         bloodline: { name: 'Bloodline', description: 'If the Queen dies, a minor piece becomes Queen.' },
-        time_stop: { name: 'Time Stop', description: 'Opponent skips a turn.' },
+        time_stop: { name: 'Time Stop', description: 'Opponent skips a turn. (Single use)' },
 
         /* MALUS */
         ascension_cost: { name: 'Ascension Cost', description: 'Promoting costs a turn (enemy moves twice).' },
         cut_supplies: { name: 'Cut Supplies', description: 'Pawns cannot promote to Queen.' },
         heavy_armor: { name: 'Heavy Armor', description: 'Knights cannot jump over their own pawns.' },
         unstable_identity: { name: 'Unstable Identity', description: 'If you don\'t capture for 5 turns, lose a piece (becomes pawn).' },
-        defenseless: { name: 'Defenseless', description: 'The King can never castle.' },
+        missing_knight: { name: 'One-Handed', description: 'You start the game with one random Knight removed from the board.' },
         reload: { name: 'Reload', description: 'A Rook that captures skips the next turn.' },
         ebb: { name: 'Ebb', description: 'Pawns cannot capture diagonally.' },
         darkness: { name: 'Darkness', description: 'All your pieces have a maximum movement range of 3 squares.' },

@@ -62,8 +62,15 @@ export class GigantismMalus extends PactLogic {
         return {
             onGetPseudoMoves: (params) => {
                 if (params.piece.type === 'queen') {
-                    // Filter out moves that land on edge squares
-                    params.moves = params.moves.filter(move => !PactUtils.isEdgeSquare(move.to));
+                    // Remove moves that land on edge squares in-place.
+                    // We must splice rather than reassign params.moves, because the
+                    // RuleEngine holds a reference to the original array and would
+                    // never see a newly allocated array from .filter().
+                    for (let i = params.moves.length - 1; i >= 0; i--) {
+                        if (PactUtils.isEdgeSquare(params.moves[i].to)) {
+                            params.moves.splice(i, 1);
+                        }
+                    }
                 }
             }
         };

@@ -373,16 +373,20 @@ export class PactUtils {
 
     /**
      * Adds single-step moves in given directions if the squares are empty or contain an enemy piece.
+     * Directions are rotated by `orientation` (0-3 clockwise) before use, so pacts remain
+     * correct when the board has been rotated.
      * @param board The board model.
      * @param piece The moving piece.
      * @param from The starting coordinate.
      * @param moves The moves array to append to.
-     * @param directions The directions to check.
+     * @param directions The directions to check (in standard / orientation-0 space).
+     * @param orientation Board orientation (0-3). Defaults to 0.
      */
-    public static addSingleStepMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], directions: { dx: number, dy: number }[]): void {
+    public static addSingleStepMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], directions: { dx: number, dy: number }[], orientation: number = 0): void {
         for (const dir of directions) {
-            const nx = from.x + dir.dx;
-            const ny = from.y + dir.dy;
+            const rotated = MoveGenerator.rotateVector(dir.dx, dir.dy, orientation);
+            const nx = from.x + rotated.dx;
+            const ny = from.y + rotated.dy;
 
             if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
                 const targetCoord = new Coordinate(nx, ny);
@@ -396,28 +400,42 @@ export class PactUtils {
     }
 
     /**
-     * Removes horizontal moves from a moves array.
+     * Removes horizontal moves from a moves array, respecting board orientation.
+     * "Horizontal" is relative to the current board orientation:
+     *   orientation 0/2: horizontal = same Y (dx non-zero, dy=0)
+     *   orientation 1/3: horizontal = same X (dy non-zero, dx=0)
      * @param moves The moves array.
      * @param from The starting coordinate.
+     * @param orientation Board orientation (0-3). Defaults to 0.
      */
-    public static blockHorizontalMoves(moves: Move[], from: Coordinate): void {
+    public static blockHorizontalMoves(moves: Move[], from: Coordinate, orientation: number = 0): void {
+        const isHorizontal = (orientation % 2 === 0)
+            ? (m: Move) => m.to.y === from.y && m.to.x !== from.x   // standard: same row
+            : (m: Move) => m.to.x === from.x && m.to.y !== from.y;  // rotated 90°: same column
+
         for (let i = moves.length - 1; i >= 0; i--) {
-            const m = moves[i];
-            if (m.to.y === from.y && m.to.x !== from.x) {
+            if (isHorizontal(moves[i])) {
                 moves.splice(i, 1);
             }
         }
     }
 
     /**
-     * Removes vertical moves from a moves array.
+     * Removes vertical moves from a moves array, respecting board orientation.
+     * "Vertical" is relative to the current board orientation:
+     *   orientation 0/2: vertical = same X (dy non-zero, dx=0)
+     *   orientation 1/3: vertical = same Y (dx non-zero, dy=0)
      * @param moves The moves array.
      * @param from The starting coordinate.
+     * @param orientation Board orientation (0-3). Defaults to 0.
      */
-    public static blockVerticalMoves(moves: Move[], from: Coordinate): void {
+    public static blockVerticalMoves(moves: Move[], from: Coordinate, orientation: number = 0): void {
+        const isVertical = (orientation % 2 === 0)
+            ? (m: Move) => m.to.x === from.x && m.to.y !== from.y   // standard: same column
+            : (m: Move) => m.to.y === from.y && m.to.x !== from.x;  // rotated 90°: same row
+
         for (let i = moves.length - 1; i >= 0; i--) {
-            const m = moves[i];
-            if (m.to.x === from.x && m.to.y !== from.y) {
+            if (isVertical(moves[i])) {
                 moves.splice(i, 1);
             }
         }

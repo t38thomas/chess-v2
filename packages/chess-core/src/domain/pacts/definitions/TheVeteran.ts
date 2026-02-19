@@ -1,25 +1,30 @@
 import { PactLogic, RuleModifiers } from '../PactLogic';
 import { Move } from '../../models/Move';
 import { Coordinate } from '../../models/Coordinate';
+import { MoveGenerator } from '../../rules/MoveGenerator';
 
 export class VeteranBonus extends PactLogic {
     id = 'bayonet';
 
     getRuleModifiers(): RuleModifiers {
         return {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
+            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
                 if (piece.type !== 'pawn') return;
 
-                const direction = piece.color === 'white' ? 1 : -1;
-                const forwardY = from.y + direction;
+                // Forward direction relative to board orientation
+                const baseDy = piece.color === 'white' ? 1 : -1;
+                const forward = MoveGenerator.rotateVector(0, baseDy, orientation ?? 0);
+
+                const forwardX = from.x + forward.dx;
+                const forwardY = from.y + forward.dy;
 
                 // Check bounds
-                if (forwardY < 0 || forwardY > 7) return;
+                if (forwardX < 0 || forwardX > 7 || forwardY < 0 || forwardY > 7) return;
 
-                const forwardCoord = new Coordinate(from.x, forwardY);
+                const forwardCoord = new Coordinate(forwardX, forwardY);
                 const targetSquare = board.getSquare(forwardCoord);
 
-                // Bayonet: Capture enemy forward
+                // Bayonet: Capture enemy forward (straight ahead, not diagonal)
                 if (targetSquare && targetSquare.piece && targetSquare.piece.color !== piece.color) {
                     moves.push(new Move(from, forwardCoord, piece, targetSquare.piece));
                 }
@@ -27,12 +32,27 @@ export class VeteranBonus extends PactLogic {
             canCapture: (game, attacker, victim, to, from) => {
                 if (attacker.type !== 'pawn') return true;
 
-                const isForward = attacker.color === 'white' ? to.y > from.y : to.y < from.y;
-                const isDiagonal = Math.abs(to.x - from.x) === 1;
-                const isStraight = to.x === from.x;
+                const orientation = game?.orientation ?? 0;
 
-                // Bayonet: Allow forward capture (which we generated above)
-                if (isStraight && isForward) return true;
+                // Forward direction relative to board orientation
+                const baseDy = attacker.color === 'white' ? 1 : -1;
+                const forward = MoveGenerator.rotateVector(0, baseDy, orientation);
+
+                // Project move onto forward and lateral axes
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+
+                // Dot product with forward vector: positive means we're moving forward
+                const forwardComponent = dx * forward.dx + dy * forward.dy;
+
+                // Cross product magnitude: tells us lateral offset
+                const lateralComponent = Math.abs(dx * forward.dy - dy * forward.dx);
+
+                const isStraightForward = forwardComponent > 0 && lateralComponent === 0;
+                const isDiagonal = forwardComponent > 0 && lateralComponent > 0;
+
+                // Bayonet: Allow forward capture (straight)
+                if (isStraightForward) return true;
 
                 // Bayonet: Forbid diagonal capture
                 if (isDiagonal) return false;

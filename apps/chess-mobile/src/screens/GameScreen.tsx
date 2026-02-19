@@ -276,13 +276,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                         fullWidth
                     />
                 )}
-                <Button
-                    label={t('game.leaveMatch')}
-                    variant="destructive"
-                    icon="exit-to-app"
-                    onPress={onNavigateBack || (() => { })}
-                    fullWidth
-                />
                 {resign && (
                     <Button
                         label={t('game.resign')}
