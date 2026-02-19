@@ -9,7 +9,6 @@ import { PactUtils } from '../PactUtils';
 export const TheOracle = definePact('oracle')
     .bonus('prescience', {})
     .malus('inevitable_fate', {
-        initialState: () => [],
         onTurnStart: (context) => {
             const { game, playerId } = context;
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
@@ -17,10 +16,10 @@ export const TheOracle = definePact('oracle')
         },
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
-            if (event === 'move') {
-                const move = payload as any;
-                if (move?.piece?.color !== playerId) return;
+            const move = payload as any;
+            const isPlayerMove = ['move', 'capture', 'check', 'checkmate'].includes(event) && move?.piece?.color === playerId;
 
+            if (isPlayerMove) {
                 const capablePieceIds = game.pactState['oracle_capable'] || [];
                 if (capablePieceIds.length === 0) return;
 
@@ -33,7 +32,6 @@ export const TheOracle = definePact('oracle')
                 if (!satisfied) {
                     let victimId: string;
                     if (capablePieceIds.includes(move.piece.id)) {
-
                         victimId = move.piece.id;
                         PactUtils.removePiece(game, move.to);
                     } else {

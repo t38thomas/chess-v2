@@ -38,10 +38,14 @@ export const TheAlchemist = definePact('alchemist')
     .malus('volatile_reagents', {
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
+            const move = payload as any;
+            const isRelevantEvent = ['move', 'capture', 'check', 'checkmate', 'promotion'].includes(event);
 
-            if ((event === 'capture' || event === 'promotion') && payload) {
-                const move = payload as any;
-                if (move.piece && move.piece.color === playerId && (event === 'promotion' || move.capturedPiece)) {
+            if (isRelevantEvent && move && move.piece && move.piece.color === playerId) {
+                const isCapture = move.capturedPiece || event === 'capture';
+                const isPromotion = move.promotion || event === 'promotion';
+
+                if (isCapture || isPromotion) {
                     game.pieceCooldowns.set(move.piece.id, 2);
                     PactUtils.notifyPactEffect(game, 'alchemist', 'stun', 'malus', 'flask');
                 }

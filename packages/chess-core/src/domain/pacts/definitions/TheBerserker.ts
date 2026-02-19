@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
 
 interface BerserkerState {
@@ -11,13 +12,12 @@ interface BerserkerState {
  * Bonus (Frenzy): Catching a pawn gives an extra non-capture move.
  * Malus (Missing Knight): Start with one less random knight.
  */
-export const TheBerserker = definePact('berserker')
+export const TheBerserker = definePact<BerserkerState>('berserker')
     .bonus('frenzy', {
-        initialState: (): BerserkerState => ({ isFrenzyActive: false, frenzyPieceId: null }),
+        initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null }),
         modifiers: {
             onExecuteMove: (game, move) => {
                 const color = move.piece.color;
-                // Get state manually here because we are in RuleModifiers context
                 const state = game.pactState[`frenzy_${color}`] as BerserkerState;
                 if (!state) return;
 
@@ -51,16 +51,7 @@ export const TheBerserker = definePact('berserker')
         }
     })
     .malus('missing_knight', {
-        onEvent: (event, _payload, context) => {
-            const { game, playerId } = context;
-            if (event === 'pact_assigned') {
-                const knights = PactUtils.findPieces(game, playerId, 'knight');
-                if (knights.length > 0) {
-                    const [victim] = PactUtils.pickRandom(knights, 1);
-                    if (victim) PactUtils.removePiece(game, victim.coord);
-                }
-            }
-        }
+        effects: [Effects.rules.removeRandomPiecesAtStart('knight', 1)]
     })
     .build();
 

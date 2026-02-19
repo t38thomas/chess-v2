@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
@@ -11,7 +12,8 @@ export const TheThief = definePact('thief')
     .bonus('pickpocket', {
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
-            if (event === 'move' || event === 'capture') {
+            const isMoveEvent = ['move', 'capture', 'check', 'checkmate'].includes(event);
+            if (isMoveEvent) {
                 const friendlyPawns = game.board.getAllSquares().filter(sq => sq.piece?.color === playerId && sq.piece.type === 'pawn');
                 friendlyPawns.forEach(pawnSq => {
                     const pawn = pawnSq.piece!;
@@ -55,9 +57,7 @@ export const TheThief = definePact('thief')
         }
     })
     .malus('wanted', {
-        modifiers: {
-            getAllowedPromotionTypes: () => []
-        }
+        effects: [Effects.rules.restrictPromotion([])]
     })
     .build();
 

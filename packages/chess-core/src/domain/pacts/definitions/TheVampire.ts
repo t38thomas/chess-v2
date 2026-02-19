@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
 
 /**
@@ -12,16 +13,14 @@ export const TheVampire = definePact('vampire')
             onExecuteMove: (game, move) => {
                 if (move.capturedPiece?.type === 'queen') {
                     if (PactUtils.resurrectRandomPiece(game, move.piece.color, ['bishop', 'knight'])) {
-                        PactUtils.notifyPactEffect(game, 'vampire', 'life_thirst', 'bonus', 'blood-bag');
+                        PactUtils.notifyPactEffect(game, 'life_thirst', 'life_thirst', 'bonus', 'blood-bag');
                     }
                 }
             }
         }
     })
     .malus('vampire_curse', {
-        modifiers: {
-            canCastle: () => false
-        }
+        effects: [Effects.rules.disableCastling()]
     })
     .build();
 

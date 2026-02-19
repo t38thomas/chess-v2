@@ -12,6 +12,18 @@ export interface PactContext {
 }
 
 /**
+ * Represents a reusable piece of pact logic.
+ */
+export interface PactEffect {
+    modifiers?: RuleModifiers;
+    onEvent?: <K extends keyof GameEventPayloads>(
+        event: K | GameEvent | string,
+        payload: any,
+        context: PactContext
+    ) => void;
+}
+
+/**
  * Strongly typed payloads for game events.
  */
 export interface GameEventPayloads {
@@ -158,7 +170,7 @@ export abstract class PactLogic<T = any> {
 /**
  * A concrete implementation of PactLogic that accepts functions to define its behavior.
  */
-class GenericPact extends PactLogic {
+class GenericPact<T = any> extends PactLogic<T> {
     readonly activeAbility?: ActiveAbilityConfig;
 
     constructor(
@@ -167,7 +179,7 @@ class GenericPact extends PactLogic {
         private readonly eventHandler?: <K extends keyof GameEventPayloads>(event: K | GameEvent | string, payload: any, context: PactContext) => void,
         private readonly turnStart?: (context: PactContext) => void,
         private readonly turnEnd?: (context: PactContext) => void,
-        private readonly initialState?: () => any,
+        private readonly initialState?: () => T,
         activeAbility?: ActiveAbilityConfig,
         private readonly turnCounters?: (context: PactContext) => TurnCounter[]
     ) {
@@ -175,7 +187,7 @@ class GenericPact extends PactLogic {
         this.activeAbility = activeAbility;
     }
 
-    getInitialState() {
+    getInitialState(): T | null {
         return this.initialState ? this.initialState() : null;
     }
 
@@ -214,30 +226,67 @@ class GenericPact extends PactLogic {
 /**
  * Builder for defining pacts declaratively.
  */
-export interface PactLogicOptions {
+export interface PactLogicOptions<T = any> {
+    effects?: PactEffect[];
     modifiers?: RuleModifiers;
     onEvent?: <K extends keyof GameEventPayloads>(event: K | GameEvent | string, payload: any, context: PactContext) => void;
     onTurnStart?: (context: PactContext) => void;
     onTurnEnd?: (context: PactContext) => void;
-    initialState?: () => any;
+    initialState?: () => T;
     activeAbility?: ActiveAbilityConfig;
     getTurnCounters?: (context: PactContext) => TurnCounter[];
 }
 
-export class PactBuilder {
-    private bonusLogic?: { id: string } & PactLogicOptions;
-    private malusLogic?: { id: string } & PactLogicOptions;
+export class PactBuilder<TBonus = any, TMalus = any> {
+    private bonusLogic?: { id: string } & PactLogicOptions<TBonus>;
+    private malusLogic?: { id: string } & PactLogicOptions<TMalus>;
 
     constructor(private readonly pactId: string) { }
 
-    bonus(id: string, options: PactLogicOptions) {
-        this.bonusLogic = { id, ...options };
-        return this;
+    bonus<T = TBonus>(id: string, options: PactLogicOptions<T>): PactBuilder<T, TMalus> {
+        this.bonusLogic = { id, ...options } as any;
+        return this as any;
     }
 
-    malus(id: string, options: PactLogicOptions) {
-        this.malusLogic = { id, ...options };
-        return this;
+    malus<T = TMalus>(id: string, options: PactLogicOptions<T>): PactBuilder<TBonus, T> {
+        this.malusLogic = { id, ...options } as any;
+        return this as any;
+    }
+
+    private createGenericPact(logic: { id: string } & PactLogicOptions<any>): GenericPact {
+        const modifiers: RuleModifiers = { ...(logic.modifiers || {}) };
+        const eventHandlers: Array<PactLogicOptions['onEvent']> = [];
+        if (logic.onEvent) eventHandlers.push(logic.onEvent as any);
+
+        if (logic.effects) {
+            for (const effect of logic.effects) {
+                if (effect.modifiers) {
+                    Object.assign(modifiers, effect.modifiers);
+                }
+                if (effect.onEvent) {
+                    eventHandlers.push(effect.onEvent as any);
+                }
+            }
+        }
+
+        const compositeEventHandler = eventHandlers.length > 0
+            ? (event: any, payload: any, context: PactContext) => {
+                for (const handler of eventHandlers) {
+                    handler?.(event, payload, context);
+                }
+            }
+            : undefined;
+
+        return new GenericPact(
+            logic.id,
+            modifiers,
+            compositeEventHandler as any,
+            logic.onTurnStart,
+            logic.onTurnEnd,
+            logic.initialState,
+            logic.activeAbility,
+            logic.getTurnCounters
+        );
     }
 
     build(): PactDefinition {
@@ -247,32 +296,14 @@ export class PactBuilder {
 
         return {
             id: this.pactId,
-            bonus: new GenericPact(
-                this.bonusLogic.id,
-                this.bonusLogic.modifiers,
-                this.bonusLogic.onEvent,
-                this.bonusLogic.onTurnStart,
-                this.bonusLogic.onTurnEnd,
-                this.bonusLogic.initialState,
-                this.bonusLogic.activeAbility,
-                this.bonusLogic.getTurnCounters
-            ),
-            malus: new GenericPact(
-                this.malusLogic.id,
-                this.malusLogic.modifiers,
-                this.malusLogic.onEvent,
-                this.malusLogic.onTurnStart,
-                this.malusLogic.onTurnEnd,
-                this.malusLogic.initialState,
-                this.malusLogic.activeAbility,
-                this.malusLogic.getTurnCounters
-            ),
+            bonus: this.createGenericPact(this.bonusLogic),
+            malus: this.createGenericPact(this.malusLogic),
         };
     }
 }
 
-export function definePact(id: string): PactBuilder {
-    return new PactBuilder(id);
+export function definePact<TBonus = any, TMalus = any>(id: string): PactBuilder<TBonus, TMalus> {
+    return new PactBuilder<TBonus, TMalus>(id);
 }
 
 export interface TurnCounter {

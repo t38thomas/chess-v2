@@ -1,5 +1,5 @@
 import { definePact } from '../PactLogic';
-import { PactUtils } from '../PactUtils';
+import { Effects } from '../PactEffects';
 
 /**
  * The Gladiator Pact
@@ -8,21 +8,10 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheGladiator = definePact('gladiator')
     .bonus('arena', {
-        modifiers: {
-            canBeCaptured: (game, attacker, victim, to) => {
-                return !(PactUtils.isBlackSquare(to) && attacker.type === 'pawn');
-            }
-        }
+        effects: [Effects.combat.immuneToPawnCapturesOnDarkSquares()]
     })
     .malus('disarmed', {
-        onEvent: (event, payload, context) => {
-            if (event === 'pact_assigned') {
-                const bishops = PactUtils.findPieces(context.game, context.playerId, 'bishop');
-                for (const { coord } of bishops) {
-                    PactUtils.removePiece(context.game, coord);
-                }
-            }
-        }
+        effects: [Effects.rules.removePiecesAtStart('bishop')]
     })
     .build();
 

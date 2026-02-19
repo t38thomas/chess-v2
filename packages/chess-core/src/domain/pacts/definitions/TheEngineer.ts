@@ -1,5 +1,5 @@
 import { definePact } from '../PactLogic';
-import { PactUtils } from '../PactUtils';
+import { Effects } from '../PactEffects';
 
 /**
  * The Engineer Pact
@@ -8,23 +8,10 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheEngineer = definePact('engineer')
     .bonus('turret', {
-        modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
-                if (piece.type === 'rook') {
-                    const directions = [{ dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }];
-                    PactUtils.addSingleStepMoves(board, piece, from, moves, directions, orientation ?? 0);
-                }
-            }
-        }
+        effects: [Effects.movement.addSingleStepMoves('rook', [{ dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }])]
     })
     .malus('design_flaw', {
-        modifiers: {
-            onGetPseudoMoves: ({ piece, from, moves, orientation }) => {
-                if (piece.type === 'rook') {
-                    PactUtils.blockHorizontalMoves(moves, from, orientation ?? 0);
-                }
-            }
-        }
+        effects: [Effects.movement.blockMoves('rook', ['horizontal'])]
     })
     .build();
 

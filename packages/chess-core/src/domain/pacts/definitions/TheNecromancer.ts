@@ -1,5 +1,4 @@
 import { definePact } from '../PactLogic';
-import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
 /**
@@ -31,7 +30,6 @@ export const TheNecromancer = definePact('necromancer')
 
                 const startSquare = PactUtils.getEmptyStartingSquare(game, lostPiece.type, lostPiece.color);
                 if (!startSquare) return false;
-
 
                 game.board.placePiece(startSquare, lostPiece);
                 return true;

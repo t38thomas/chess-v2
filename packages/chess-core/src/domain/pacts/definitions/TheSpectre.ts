@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
@@ -9,11 +10,7 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSpectre = definePact('spectre')
     .bonus('incorporeal', {
-        modifiers: {
-            canMoveThroughFriendlies: (mover, obstacle) => {
-                return mover.type !== 'pawn' && obstacle.type === 'pawn';
-            }
-        }
+        effects: [Effects.movement.canMoveThrough(m => m.type !== 'pawn', o => o.type === 'pawn')]
     })
     .malus('possession', {
         modifiers: {

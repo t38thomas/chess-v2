@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 
 /**
  * The Saboteur Pact
@@ -7,14 +8,10 @@ import { definePact } from '../PactLogic';
  */
 export const TheSaboteur = definePact('saboteur')
     .bonus('diagonal_dash', {
-        modifiers: {
-            canDiagonalDash: (piece) => piece.type === 'pawn'
-        }
+        effects: [Effects.pawn.canDiagonalDash()]
     })
     .malus('cut_supplies', {
-        modifiers: {
-            getAllowedPromotionTypes: () => ['rook', 'bishop', 'knight']
-        }
+        effects: [Effects.rules.restrictPromotion(['rook', 'bishop', 'knight'])]
     })
     .build();
 

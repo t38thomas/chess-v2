@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 
 /**
  * The Golem Pact
@@ -7,26 +8,10 @@ import { definePact } from '../PactLogic';
  */
 export const TheGolem = definePact('golem')
     .bonus('stone_skin', {
-        modifiers: {
-            canBeCaptured: (game, attacker, victim, to, from) => {
-                if (victim.type !== 'king') return true;
-                return from.distanceTo(to) <= 3;
-            }
-        }
+        effects: [Effects.combat.protectKingAgainstRanged(3)]
     })
     .malus('lead_feet', {
-        modifiers: {
-            onGetPseudoMoves: ({ from, piece, moves }) => {
-                if (piece.type === 'king') {
-                    for (let i = moves.length - 1; i >= 0; i--) {
-                        const m = moves[i];
-                        const dx = Math.abs(m.to.x - from.x);
-                        const dy = Math.abs(m.to.y - from.y);
-                        if (dx > 0 && dy > 0 && dx === dy) moves.splice(i, 1);
-                    }
-                }
-            }
-        }
+        effects: [Effects.movement.disableDiagonal('king')]
     })
     .build();
 

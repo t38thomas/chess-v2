@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 
 /**
  * The Blind Seer Pact
@@ -7,14 +8,10 @@ import { definePact } from '../PactLogic';
  */
 export const TheBlindSeer = definePact('blind_seer')
     .bonus('echolocation', {
-        modifiers: {
-            hasEcholocation: (piece) => ['rook', 'bishop', 'queen'].includes(piece.type)
-        }
+        effects: [Effects.movement.hasEcholocation()]
     })
     .malus('darkness', {
-        modifiers: {
-            getMaxRange: () => 3
-        }
+        effects: [Effects.movement.maxRange(3)]
     })
     .build();
 

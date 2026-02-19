@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
 
 /**
@@ -10,8 +11,10 @@ export const ThePhoenix = definePact('phoenix')
     .bonus('rebirth', {
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
-            if (event === 'capture' && payload) {
-                const capturedPiece = (payload as any).capturedPiece;
+            const move = payload as any;
+            const isCapture = event === 'capture' || (move && move.capturedPiece);
+            if (isCapture && move) {
+                const capturedPiece = move.capturedPiece;
                 if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
                     const stateKey = `phoenix_rebirth_used_${playerId}`;
                     if (game.pactState[stateKey]) return;
@@ -30,15 +33,7 @@ export const ThePhoenix = definePact('phoenix')
         }
     })
     .malus('wingless', {
-        onEvent: (event, payload, context) => {
-            const { game, playerId } = context;
-            if (event === 'pact_assigned') {
-                const rooks = PactUtils.findPieces(game, playerId, 'rook');
-                for (const { coord } of rooks) {
-                    PactUtils.removePiece(game, coord);
-                }
-            }
-        }
+        effects: [Effects.rules.removePiecesAtStart('rook')]
     })
     .build();
 

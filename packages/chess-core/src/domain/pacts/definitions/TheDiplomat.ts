@@ -19,8 +19,10 @@ export const TheDiplomat = definePact('diplomat')
         },
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
-            if (event === 'capture' && payload) {
-                const move = payload as any;
+            const move = payload as any;
+            const isCapture = event === 'capture' || (move && move.capturedPiece);
+
+            if (isCapture && move) {
                 if (move.piece && move.piece.color === playerId && PactUtils.isQueen(move.piece)) {
                     if (!game.pactState[HAS_CAPTURED_KEY(playerId)]) {
                         game.pactState[HAS_CAPTURED_KEY(playerId)] = true;

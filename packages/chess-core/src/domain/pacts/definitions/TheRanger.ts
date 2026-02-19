@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { Move } from '../../models/Move';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { Coordinate } from '../../models/Coordinate';

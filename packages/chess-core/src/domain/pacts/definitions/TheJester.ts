@@ -1,6 +1,5 @@
 import { definePact } from '../PactLogic';
-import { MoveGenerator } from '../../rules/MoveGenerator';
-import { RuleEngine } from '../../rules/RuleEngine';
+import { Effects } from '../PactEffects';
 
 /**
  * The Jester Pact
@@ -9,24 +8,9 @@ import { RuleEngine } from '../../rules/RuleEngine';
  */
 export const TheJester = definePact('jester')
     .bonus('chaos', {
-        modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
-                if (piece.type === 'bishop') {
-                    moves.length = 0;
-                    MoveGenerator.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves);
-                }
-            }
-        }
+        effects: [Effects.movement.swapMovement('bishop', 'knight')]
     })
     .malus('jester', {
-        modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, perks, game }) => {
-                if (piece.type === 'knight') {
-                    moves.length = 0;
-                    const range = RuleEngine.getMaxRange(piece, perks || []);
-                    MoveGenerator.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, range, perks || [], game);
-                }
-            }
-        }
+        effects: [Effects.movement.swapMovement('knight', 'bishop')]
     })
     .build();

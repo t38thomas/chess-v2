@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
 
 /**
@@ -35,17 +36,7 @@ export const TheTitan = definePact('titan')
         }
     })
     .malus('gigantism', {
-        modifiers: {
-            onGetPseudoMoves: (params) => {
-                if (params.piece.type === 'queen') {
-                    for (let i = params.moves.length - 1; i >= 0; i--) {
-                        if (PactUtils.isEdgeSquare(params.moves[i].to)) {
-                            params.moves.splice(i, 1);
-                        }
-                    }
-                }
-            }
-        }
+        effects: [Effects.movement.restrictFromEdge('queen')]
     })
     .build();
 

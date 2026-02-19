@@ -1,4 +1,5 @@
 import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 import { Piece } from '../../models/Piece';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
@@ -11,9 +12,11 @@ import { PactUtils } from '../PactUtils';
 export const TheSwarm = definePact('swarm')
     .bonus('hydra', {
         onEvent: (event, payload, context) => {
-            if (event === 'capture' && payload) {
+            const move = payload as any;
+            const isCapture = event === 'capture' || (move && move.capturedPiece);
+            if (isCapture && move) {
                 const { game, playerId } = context;
-                const capturedPiece = (payload as any).capturedPiece;
+                const capturedPiece = move.capturedPiece;
                 if (capturedPiece?.type === 'pawn' && capturedPiece.color === playerId) {
                     const rank = playerId === 'white' ? 1 : 6;
                     const cols = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5);
@@ -31,16 +34,7 @@ export const TheSwarm = definePact('swarm')
         }
     })
     .malus('hive_queen', {
-        onEvent: (event, payload, context) => {
-            if (event === 'capture' && payload) {
-                const { game, playerId } = context;
-                const capturedPiece = (payload as any).capturedPiece;
-                if (capturedPiece?.type === 'queen' && capturedPiece.color === playerId) {
-                    game.status = 'checkmate';
-                    PactUtils.notifyPactEffect(game, 'swarm', 'death', 'malus', 'crown');
-                }
-            }
-        }
+        effects: [Effects.combat.loseOnPieceCapture('queen', 'death', 'crown', 'swarm')]
     })
     .build();
 

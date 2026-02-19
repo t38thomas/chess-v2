@@ -28,7 +28,7 @@ export const TheVoidJumper = definePact('void_jumper')
                     PactUtils.swapPieces(game, params.from, params.to);
                     const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
                     if (victim) {
-                        PactUtils.notifyPactEffect(game, 'void_jumper', 'sacrifice', 'malus', 'skull');
+                        PactUtils.notifyPactEffect(game, 'ritual_sacrifice', 'sacrifice', 'malus', 'skull');
                     }
                     return true;
                 }

@@ -65,12 +65,11 @@ export const TheChangeling = definePact('changeling')
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
             const key = `unstable_identity_${playerId}`;
+            const move = payload as Move;
+            const isCapture = (event === 'capture' || (move && move.capturedPiece)) && move?.piece?.color === playerId;
 
-            if (event === 'capture') {
-                const move = payload as Move;
-                if (move.piece.color === playerId) {
-                    game.pactState[key] = 0;
-                }
+            if (isCapture) {
+                game.pactState[key] = 0;
             } else if (event === 'turn_start' && payload === playerId) {
                 game.pactState[key] = (game.pactState[key] || 0) + 1;
 

@@ -10,8 +10,10 @@ export const TheHeir = definePact('heir')
     .bonus('bloodline', {
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
-            if (event === 'capture' && payload) {
-                const capturedPiece = (payload as any).capturedPiece;
+            const move = payload as any;
+            const isCapture = event === 'capture' || (move && move.capturedPiece);
+            if (isCapture && move) {
+                const capturedPiece = move.capturedPiece;
                 if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
                     const minorPieces = PactUtils.findPiecesByTypes(game, playerId, ['rook', 'bishop', 'knight']);
                     if (minorPieces.length > 0) {

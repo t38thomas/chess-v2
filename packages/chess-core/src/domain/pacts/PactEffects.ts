@@ -1,0 +1,21 @@
+import { PawnEffects, Vector } from './effects/PawnEffects';
+import { UiEffects } from './effects/UiEffects';
+import { MovementEffects } from './effects/MovementEffects';
+import { CombatEffects } from './effects/CombatEffects';
+import { RulesEffects } from './effects/RulesEffects';
+
+/**
+ * Re-exporting modular effects via a centralized Effects object.
+ */
+export const Effects = {
+    pawn: PawnEffects,
+    ui: UiEffects,
+    movement: MovementEffects,
+    combat: CombatEffects,
+    rules: RulesEffects,
+};
+
+/**
+ * Re-exporting Vector utilities for general use in pacts.
+ */
+export { Vector };
