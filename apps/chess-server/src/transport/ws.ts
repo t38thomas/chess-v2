@@ -8,6 +8,7 @@ import { Action } from '../domain/GameEngine';
 import { config } from '../config';
 import { Logger } from '../utils/logger';
 import { TokenBucket, SlidingWindowRateLimiter } from '../utils/rateLimiter';
+import { z } from 'zod';
 
 // Extend WebSocket to include alive status and username
 interface ExtWebSocket extends WebSocket {
@@ -24,6 +25,38 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         config.RATE_LIMIT.CONNECTION.WINDOW_MS,
         config.RATE_LIMIT.CONNECTION.MAX_REQUESTS
     );
+
+    const createMatchLimiter = new SlidingWindowRateLimiter(
+        config.RATE_LIMIT.CREATE_MATCH.WINDOW_MS,
+        config.RATE_LIMIT.CREATE_MATCH.MAX_REQUESTS
+    );
+
+    const joinMatchLimiter = new SlidingWindowRateLimiter(
+        config.RATE_LIMIT.JOIN_MATCH.WINDOW_MS,
+        config.RATE_LIMIT.JOIN_MATCH.MAX_REQUESTS
+    );
+
+    // Schemas
+    const BaseMessageSchema = z.object({
+        type: z.string(),
+        payload: z.any().optional(),
+        requestId: z.string().optional()
+    });
+
+    const HelloPayloadSchema = z.object({
+        sessionToken: z.string().optional(),
+        username: z.string().max(30).optional()
+    });
+
+    const CreateMatchPayloadSchema = z.object({
+        matchConfig: z.any().optional(),
+        username: z.string().max(30).optional()
+    });
+
+    const JoinMatchPayloadSchema = z.object({
+        joinCode: z.string().min(1).max(20),
+        username: z.string().max(30).optional()
+    });
 
     // Clients map: MatchId -> Map<PlayerId, WebSocket>
     const clients = new Map<string, Map<string, ExtWebSocket>>();
@@ -82,13 +115,10 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
             }
 
             try {
-                // 2. Safe Parsing
-                const message = JSON.parse(data.toString());
+                // 2. Safe Parsing & Validation
+                const rawMessage = JSON.parse(data.toString());
+                const message = BaseMessageSchema.parse(rawMessage);
                 const { type, payload, requestId } = message;
-
-                // Basic validation
-                if (!type || typeof type !== 'string') throw new Error("Invalid message type");
-                if (payload && typeof payload !== 'object') throw new Error("Invalid payload");
 
                 Logger.info('WS Message', { type, playerId: ws.playerId, matchId: ws.matchId, requestId });
 
@@ -134,16 +164,17 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
     // --- Handlers ---
 
     async function handleHello(ws: ExtWebSocket, payload: any, requestId?: string) {
+        const parsedPayload = HelloPayloadSchema.parse(payload || {});
         // Validate / Generate Session Token
-        let playerId = payload.sessionToken;
+        let playerId = parsedPayload.sessionToken;
         if (!playerId || typeof playerId !== 'string') {
-            playerId = `p-${uuidv4().substring(0, 8)}`; // Generate new if missing
+            playerId = `p-${uuidv4()}`; // Generate new full UUID
         }
 
         ws.playerId = playerId;
         // Capture username if provided (client sends it in hello)
-        if (payload.username && typeof payload.username === 'string') {
-            ws.username = payload.username;
+        if (parsedPayload.username && typeof parsedPayload.username === 'string') {
+            ws.username = parsedPayload.username;
         }
 
         ws.send(JSON.stringify({
@@ -173,11 +204,17 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
     async function handleCreateMatch(ws: ExtWebSocket, payload: any, requestId?: string) {
         if (!ws.playerId) return sendError(ws, requestId, 'UNAUTHORIZED', 'Say hello first');
 
-        const match = await matchService.createMatch(payload.matchConfig);
+        const ip = ws.remoteAddress || 'unknown';
+        if (!createMatchLimiter.tryConsume(ip)) {
+            return sendError(ws, requestId, 'RATE_LIMIT', 'Too many match creation requests');
+        }
+
+        const parsedPayload = CreateMatchPayloadSchema.parse(payload || {});
+        const match = await matchService.createMatch(parsedPayload.matchConfig);
         await registerClientToMatch(ws, match.id, ws.playerId);
 
         // Auto-join creator, prioritize stored username
-        const username = ws.username || payload.username || 'Creator';
+        const username = ws.username || parsedPayload.username || 'Creator';
         await matchService.joinMatch(match.id, ws.playerId, username);
 
         ws.send(JSON.stringify({
@@ -197,7 +234,13 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
     async function handleJoinMatch(ws: ExtWebSocket, payload: any, requestId?: string) {
         if (!ws.playerId) return sendError(ws, requestId, 'UNAUTHORIZED', 'Say hello first');
 
-        const joinCode = typeof payload.joinCode === 'string' ? payload.joinCode.toUpperCase() : '';
+        const ip = ws.remoteAddress || 'unknown';
+        if (!joinMatchLimiter.tryConsume(ip)) {
+            return sendError(ws, requestId, 'RATE_LIMIT', 'Too many match join requests');
+        }
+
+        const parsedPayload = JoinMatchPayloadSchema.parse(payload || {});
+        const joinCode = parsedPayload.joinCode.toUpperCase();
         if (!joinCode) return sendError(ws, requestId, 'BAD_REQUEST', 'Missing joinCode');
 
         const match = await matchService.getMatchByJoinCode(joinCode);
@@ -205,7 +248,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
 
         // Try to join
         try {
-            const username = ws.username || payload.username || 'Opponent';
+            const username = ws.username || parsedPayload.username || 'Opponent';
             await matchService.joinMatch(match.id, ws.playerId, username);
         } catch (e) {
             return sendError(ws, requestId, 'JOIN_FAILED', (e as Error).message);
@@ -315,7 +358,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         }
     }
 
-    // --- Heartbeat ---
+    // --- Heartbeat & Cleanup ---
     const interval = setInterval(() => {
         wss.clients.forEach((ws) => {
             const extWs = ws as ExtWebSocket;
@@ -327,6 +370,11 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
             extWs.isAlive = false;
             ws.ping();
         });
+
+        // Cleanup rate limiters to prevent memory leaks
+        connectionLimiter.cleanup();
+        createMatchLimiter.cleanup();
+        joinMatchLimiter.cleanup();
     }, config.WS.HEARTBEAT_INTERVAL);
 
     wss.on('close', () => {

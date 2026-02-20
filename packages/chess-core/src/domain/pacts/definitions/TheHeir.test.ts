@@ -61,7 +61,7 @@ describe('The Heir', () => {
             game.board.placePiece(enemyPos, enemyPawn);
 
             // Mark as successor in pactState
-            game.pactState[`heir_successor_${successorQueen.id}`] = true;
+            game.pactState[`bloodline_white`] = { successorIds: { [successorQueen.id]: true } };
 
             const modifiers = youngQueenMalus.getRuleModifiers();
             const canCapture = modifiers.canCapture!(game, successorQueen, enemyPawn, enemyPos, queenPos);
@@ -81,11 +81,11 @@ describe('The Heir', () => {
             game.board.placePiece(new Coordinate(1, 7), knight);
             game.board.placePiece(new Coordinate(2, 7), bishop);
 
-            const context: PactContext = {
+            const context = bloodlineBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'bloodline'
-            };
+            });
 
             const payload = {
                 capturedPiece: queen,
@@ -103,7 +103,7 @@ describe('The Heir', () => {
             expect(whiteQueens.length).toBe(1);
 
             const newQueen = whiteQueens[0].piece!;
-            expect(game.pactState[`heir_successor_${newQueen.id}`]).toBe(true);
+            expect(game.pactState[`bloodline_white`]?.successorIds?.[newQueen.id]).toBe(true);
         });
 
         it('should do nothing if no minor pieces are left', () => {
@@ -112,11 +112,11 @@ describe('The Heir', () => {
             const queenPos = new Coordinate(3, 7);
             game.board.placePiece(queenPos, queen);
 
-            const context: PactContext = {
+            const context = bloodlineBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'bloodline'
-            };
+            });
 
             // Simulate capture: remove Queen first
             game.board.removePiece(queenPos);

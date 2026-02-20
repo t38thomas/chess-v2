@@ -9,31 +9,29 @@ import { PactUtils } from '../PactUtils';
  */
 export const ThePhoenix = definePact('phoenix')
     .bonus('rebirth', {
-        onEvent: (event, payload, context) => {
-            const { game, playerId } = context;
-            const move = payload as any;
-            const isCapture = event === 'capture' || (move && move.capturedPiece);
-            if (isCapture && move) {
-                const capturedPiece = move.capturedPiece;
-                if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
-                    const stateKey = `phoenix_rebirth_used_${playerId}`;
-                    if (game.pactState[stateKey]) return;
-
-                    const pawns = PactUtils.findPieces(game, playerId, 'pawn');
+        effects: [
+            Effects.state.oncePerMatch({
+                key: 'phoenix_rebirth_used',
+                triggerOn: ['capture'],
+                filter: (event, payload, context) => {
+                    const move = payload as any;
+                    const capturedPiece = move.capturedPiece || payload.victim;
+                    return capturedPiece?.color === context.playerId && capturedPiece.type === 'queen';
+                },
+                onTrigger: (context) => {
+                    const pawns = PactUtils.findPieces(context.game, context.playerId, 'pawn');
                     if (pawns.length > 0) {
                         const [victim] = PactUtils.pickRandom(pawns, 1);
                         if (victim) {
-                            PactUtils.promotePiece(game, victim.coord, 'queen');
-                            game.pactState[stateKey] = true;
-                            PactUtils.notifyPactEffect(game, 'phoenix', 'rebirth', 'bonus', 'fire');
+                            PactUtils.promotePiece(context.game, victim.coord, 'queen');
+                            PactUtils.notifyPactEffect(context.game, 'phoenix', 'rebirth', 'bonus', 'fire');
                         }
                     }
                 }
-            }
-        }
+            })
+        ]
     })
     .malus('wingless', {
         effects: [Effects.rules.removePiecesAtStart('rook')]
     })
     .build();
-

@@ -25,9 +25,11 @@ export const TheThief = definePact('thief')
                                 const targetPiece = game.board.getSquare(neighbor)?.piece;
                                 if (targetPiece && targetPiece.color !== playerId && (targetPiece.type === 'rook' || targetPiece.type === 'queen')) {
                                     const historyKey = `pickpocket_${pawn.id}_${targetPiece.id}`;
-                                    if (game.totalTurns - (game.pactState[historyKey] || -10) > 2 && game.pieceCooldowns.get(targetPiece.id) !== 2) {
+                                    const ctx = context as import('../PactLogic').PactContextWithState<any>;
+                                    const state = ctx.state || {};
+                                    if (game.totalTurns - (state[historyKey] || -10) > 2 && game.pieceCooldowns.get(targetPiece.id) !== 2) {
                                         game.pieceCooldowns.set(targetPiece.id, 2);
-                                        game.pactState[historyKey] = game.totalTurns;
+                                        ctx.updateState({ [historyKey]: game.totalTurns });
                                         PactUtils.notifyPactEffect(game, 'thief', 'pickpocket', 'bonus', 'hand-coin');
                                     }
                                 }

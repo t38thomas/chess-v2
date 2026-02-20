@@ -19,16 +19,17 @@ export const TheRanger = definePact('ranger')
             targetType: 'none',
             repeatable: true,
             execute: (context) => {
-                const key = `ranger_snipe_active_${context.playerId}`;
-                context.game.pactState[key] = !context.game.pactState[key];
+                const state = context.state || {};
+                context.updateState({ snipeActive: !state.snipeActive });
                 return true;
             }
         },
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, game }) => {
-                if (piece.type !== 'bishop' || !game) return;
+            onGetPseudoMoves: ({ board, piece, from, moves, game }, context) => {
+                if (piece.type !== 'bishop' || !game || !context) return;
 
-                const isSnipeActive = game.pactState[`ranger_snipe_active_${piece.color}`];
+                const state = context.state || {};
+                const isSnipeActive = state.snipeActive;
                 if (!isSnipeActive) return;
 
                 MoveGenerator.BISHOP_DIRS.forEach(([dx, dy]) => {
@@ -56,19 +57,20 @@ export const TheRanger = definePact('ranger')
                     if (!checkSquare(d1)) checkSquare(d2);
                 });
             },
-            onExecuteMove: (game, move) => {
-                const key = `ranger_snipe_active_${move.piece.color}`;
-                if (move.isSnipe && game.pactState[key]) {
+            onExecuteMove: (game, move, context) => {
+                if (!context) return;
+                const state = context.state || {};
+                if (move.isSnipe && state.snipeActive) {
                     game.board.movePiece(move.to, move.from);
                 }
                 if (move.piece.type === 'bishop') {
-                    game.pactState[key] = false;
+                    context.updateState({ snipeActive: false });
                 }
             }
         },
         getTurnCounters: (context) => {
-            const key = `ranger_snipe_active_${context.playerId}`;
-            if (context.game.pactState[key]) {
+            const state = context.state || {};
+            if (state.snipeActive) {
                 return [{
                     id: 'snipe_ready',
                     label: 'snipe_ready',

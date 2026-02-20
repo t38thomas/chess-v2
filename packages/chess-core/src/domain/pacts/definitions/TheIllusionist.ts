@@ -1,6 +1,7 @@
 import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
+import { Effects } from '../PactEffects';
 
 const DISPLACE_COOLDOWN = 3;
 
@@ -46,23 +47,24 @@ export const TheIllusionist = definePact('illusionist')
         }
     })
     .malus('vanished_illusion', {
-        onEvent: (event, payload, context) => {
-            const { game, playerId } = context;
-            if (event === 'phase_change' && game.phase === 'playing') {
-                const stateKey = `vanished_illusion_applied_${playerId}`;
-                if (game.pactState[stateKey]) return;
-
-                const pawns = PactUtils.findPieces(game, playerId, 'pawn');
-                if (pawns.length > 0) {
-                    const victim = PactUtils.pickRandom(pawns, 1)[0];
-                    if (victim) {
-                        PactUtils.removePiece(game, victim.coord);
-                        PactUtils.notifyPactEffect(game, 'illusionist', 'vanished_illusion', 'malus', 'ghost-off');
-                        game.pactState[stateKey] = true;
+        effects: [
+            Effects.state.oncePerMatch({
+                key: 'vanished_illusion_applied',
+                triggerOn: ['phase_change'],
+                filter: (event, payload, context) => context.game.phase === 'playing',
+                onTrigger: (context) => {
+                    const { game, playerId } = context;
+                    const pawns = PactUtils.findPieces(game, playerId, 'pawn');
+                    if (pawns.length > 0) {
+                        const victim = PactUtils.pickRandom(pawns, 1)[0];
+                        if (victim) {
+                            PactUtils.removePiece(game, victim.coord);
+                            PactUtils.notifyPactEffect(game, 'illusionist', 'vanished_illusion', 'malus', 'ghost-off');
+                        }
                     }
                 }
-            }
-        }
+            })
+        ]
     })
     .build();
 

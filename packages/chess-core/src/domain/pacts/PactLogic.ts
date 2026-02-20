@@ -75,37 +75,37 @@ export interface MoveParams {
 
 export interface RuleModifiers {
     // Movement Hooks
-    onGetPseudoMoves?: (params: MoveParams) => void;
+    onGetPseudoMoves?: (params: MoveParams, context?: PactContextWithState<any>) => void;
 
     // Movement overrides
-    getMaxRange?: (piece: Piece) => number;
-    getFixedDistances?: (piece: Piece) => number[] | null;
-    canDoubleMove?: (piece: Piece, y: number, startY: number) => boolean;
-    canDiagonalDash?: (piece: Piece) => boolean;
-    canSidewaysMove?: (piece: Piece) => boolean;
-    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece) => boolean;
-    canMoveLikeKnight?: (pieceType: PieceType) => boolean;
-    hasEcholocation?: (piece: Piece) => boolean;
-    canMovePiece?: (game: IChessGame, from: Coordinate, board?: BoardModel) => boolean;
+    getMaxRange?: (piece: Piece, context?: PactContextWithState<any>) => number;
+    getFixedDistances?: (piece: Piece, context?: PactContextWithState<any>) => number[] | null;
+    canDoubleMove?: (piece: Piece, y: number, startY: number, context?: PactContextWithState<any>) => boolean;
+    canDiagonalDash?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
+    canSidewaysMove?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
+    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context?: PactContextWithState<any>) => boolean;
+    canMoveLikeKnight?: (pieceType: PieceType, context?: PactContextWithState<any>) => boolean;
+    hasEcholocation?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
+    canMovePiece?: (game: IChessGame, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
 
     // Promotion overrides
-    getAllowedPromotionTypes?: (piece: Piece) => PieceType[];
+    getAllowedPromotionTypes?: (piece: Piece, context?: PactContextWithState<any>) => PieceType[];
 
     // Capture overrides
-    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel) => boolean;
+    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
 
     // King Safety
-    canCastleWhileMoved?: (piece: Piece) => boolean;
-    canCastle?: (piece: Piece) => boolean;
-    mustMoveKingInCheck?: (color: PieceColor) => boolean;
+    canCastleWhileMoved?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
+    canCastle?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
+    mustMoveKingInCheck?: (color: PieceColor, context?: PactContextWithState<any>) => boolean;
 
     // Turn Economy & Special Rules
-    modifyNextTurn?: (game: IChessGame, currentTurn: PieceColor, eventType: GameEvent) => PieceColor | null;
-    onExecuteMove?: (game: IChessGame, move: Move) => void;
+    modifyNextTurn?: (game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, context?: PactContextWithState<any>) => PieceColor | null;
+    onExecuteMove?: (game: IChessGame, move: Move, context?: PactContextWithState<any>) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel) => boolean;
-    isImmuneToCheckmate?: (game: IChessGame) => boolean;
+    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
+    isImmuneToCheckmate?: (game: IChessGame, context?: PactContextWithState<any>) => boolean;
 }
 
 export abstract class PactLogic<T = any> {
@@ -245,7 +245,7 @@ class GenericPact<T = any> extends PactLogic<T> {
 
         // Legacy support
         if (this.options.onEvent) {
-            this.options.onEvent(event as any, payload, context);
+            this.options.onEvent(event as any, payload, ctx);
         }
 
         // New typed hooks
@@ -257,7 +257,7 @@ class GenericPact<T = any> extends PactLogic<T> {
         // Effects hooks
         if (this.options.effects) {
             for (const effect of this.options.effects) {
-                effect.onEvent?.(event, payload, context);
+                effect.onEvent?.(event, payload, ctx);
             }
         }
     }

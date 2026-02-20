@@ -9,7 +9,8 @@ import { PactUtils } from '../PactUtils';
 export const TheShadow = definePact('shadow')
     .bonus('shadow_cloak', {
         modifiers: {
-            canBeCaptured: (game, attacker, victim, to, from) => {
+            canBeCaptured: (game, attacker, victim, to, from, board, context) => {
+                if (context && victim.color !== context.playerId) return true;
                 const isPerimeter = to.x === 0 || to.x === 7 || to.y === 0 || to.y === 7;
                 if (isPerimeter) {
                     const distance = Math.max(Math.abs(from.x - to.x), Math.abs(from.y - to.y));
@@ -21,7 +22,8 @@ export const TheShadow = definePact('shadow')
     })
     .malus('blind_light', {
         modifiers: {
-            canCapture: (game, attacker, victim, to, from) => {
+            canCapture: (game, attacker, victim, to, from, board, context) => {
+                if (context && attacker.color !== context.playerId) return true;
                 return !PactUtils.isCentralSquare(from);
             }
         }

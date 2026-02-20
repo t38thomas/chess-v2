@@ -28,7 +28,8 @@ describe('The Diplomat Pact', () => {
             board.placePiece(pawnPos, blackPawn);
 
             // Setting context for bonus
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos);
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
+            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos, board, context);
             expect(canBeCaptured).toBe(false);
         });
 
@@ -42,7 +43,8 @@ describe('The Diplomat Pact', () => {
             board.placePiece(queenPos, whiteQueen);
             board.placePiece(knightPos, blackKnight);
 
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackKnight, whiteQueen, queenPos, knightPos);
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
+            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackKnight, whiteQueen, queenPos, knightPos, board, context);
             expect(canBeCaptured).toBe(true);
         });
 
@@ -57,9 +59,10 @@ describe('The Diplomat Pact', () => {
             board.placePiece(pawnPos, blackPawn);
 
             // Simulate capture
-            game.pactState[`diplomat_has_captured_white`] = true;
+            game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
 
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos);
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
+            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos, board, context);
             expect(canBeCaptured).toBe(true);
         });
 
@@ -74,10 +77,16 @@ describe('The Diplomat Pact', () => {
                 if (event === 'pact_effect') notifyCount++;
             });
 
-            bonus.onEvent('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, { game, playerId: 'white', pactId: 'diplomat' });
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
 
+            // Invoke the effects hook manually for testing
+            if (bonus['options'].effects) {
+                for (const effect of bonus['options'].effects) {
+                    effect.onEvent?.('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, context);
+                }
+            }
 
-            expect(game.pactState[`diplomat_has_captured_white`]).toBe(true);
+            expect(game.pactState[`diplomatic_immunity_white`]?.has_captured).toBe(true);
             expect(notifyCount).toBe(2); // One for immunity lost, one for sabotage ended
         });
     });
@@ -99,7 +108,7 @@ describe('The Diplomat Pact', () => {
             const knightPos = new Coordinate(1, 0);
             board.placePiece(knightPos, whiteKnight);
 
-            game.pactState[`diplomat_has_captured_white`] = true;
+            game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
 
             const canMove = malus.getRuleModifiers().canMovePiece!(game, knightPos, board);
             expect(canMove).toBe(true);

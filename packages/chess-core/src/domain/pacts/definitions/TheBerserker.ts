@@ -16,37 +16,37 @@ export const TheBerserker = definePact<BerserkerState>('berserker')
     .bonus('frenzy', {
         initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null }),
         modifiers: {
-            onExecuteMove: (game, move) => {
-                const color = move.piece.color;
-                const state = game.pactState[`frenzy_${color}`] as BerserkerState;
-                if (!state) return;
+            onExecuteMove: (game, move, context) => {
+                if (move.piece.color !== context?.playerId) return;
+                const state = context?.state || {};
 
                 if (state.isFrenzyActive) {
-                    state.isFrenzyActive = false;
-                    state.frenzyPieceId = null;
+                    context.updateState({ isFrenzyActive: false, frenzyPieceId: null });
                 } else if (move.capturedPiece && move.capturedPiece.type === 'pawn') {
-                    state.isFrenzyActive = true;
-                    state.frenzyPieceId = move.piece.id;
+                    context.updateState({ isFrenzyActive: true, frenzyPieceId: move.piece.id });
                     PactUtils.notifyPactEffect(game, 'berserker', 'frenzy', 'bonus', 'axe');
                 }
             },
-            modifyNextTurn: (game, currentTurn) => {
-                const state = game.pactState[`frenzy_${currentTurn}`] as BerserkerState;
-                if (state?.isFrenzyActive) return currentTurn;
+            modifyNextTurn: (game, currentTurn, eventType, context) => {
+                if (currentTurn !== context?.playerId) return null;
+                const state = context?.state || {};
+                if (state.isFrenzyActive) return currentTurn;
                 return null;
             },
-            canMovePiece: (game, from) => {
-                const state = game.pactState[`frenzy_${game.turn}`] as BerserkerState;
-                if (state?.isFrenzyActive && state.frenzyPieceId) {
-                    const square = game.board.getSquare(from);
-                    return square?.piece?.id === state.frenzyPieceId;
+            canMovePiece: (game, from, board, context) => {
+                const b = board || game.board;
+                const piece = b.getSquare(from)?.piece;
+                if (piece?.color !== context?.playerId) return true;
+                const state = context?.state || {};
+                if (state.isFrenzyActive && state.frenzyPieceId) {
+                    return piece?.id === state.frenzyPieceId;
                 }
                 return true;
             },
-            canCapture: (game, attacker) => {
-                if (!game) return true;
-                const state = game.pactState[`frenzy_${attacker.color}`] as BerserkerState;
-                return !state?.isFrenzyActive;
+            canCapture: (game, attacker, victim, to, from, board, context) => {
+                if (!game || attacker.color !== context?.playerId) return true;
+                const state = context?.state || {};
+                return !state.isFrenzyActive;
             }
         }
     })

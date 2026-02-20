@@ -20,7 +20,14 @@ export const TheHeir = definePact('heir')
                         const [successor] = PactUtils.pickRandom(minorPieces, 1);
                         if (successor) {
                             PactUtils.promotePiece(game, successor.coord, 'queen');
-                            game.pactState[`heir_successor_${successor.piece.id}`] = true;
+                            const ctx = context as import('../PactLogic').PactContextWithState<any>;
+                            const state = ctx.state || {};
+                            ctx.updateState({
+                                successorIds: {
+                                    ...(state.successorIds || {}),
+                                    [successor.piece.id]: true
+                                }
+                            });
 
                             PactUtils.notifyPactEffect(game, 'heir', 'bloodline', 'bonus', 'crown');
                         }
@@ -31,9 +38,11 @@ export const TheHeir = definePact('heir')
     })
     .malus('young_queen', {
         modifiers: {
-            canCapture: (game, attacker, victim) => {
+            canCapture: (game, attacker, victim, to, from, board, context) => {
+                if (context && attacker.color !== context.playerId) return true;
                 if (attacker.type === 'queen') {
-                    const isSuccessor = game?.pactState[`heir_successor_${attacker.id}`];
+                    const sharedState = game?.pactState[`bloodline_${attacker.color}`] || {};
+                    const isSuccessor = sharedState.successorIds?.[attacker.id];
                     if (!isSuccessor) return victim.type === 'king';
                 }
                 return true;
@@ -43,7 +52,10 @@ export const TheHeir = definePact('heir')
             const { game, playerId } = context;
             const queens = PactUtils.findPieces(game, playerId, 'queen');
             if (queens.length === 0) return [];
-            const isSuccessor = queens.some(q => game.pactState[`heir_successor_${q.piece.id}`]);
+
+            const sharedState = game.pactState[`bloodline_${playerId}`] || {};
+            const isSuccessor = queens.some(q => sharedState.successorIds?.[q.piece.id]);
+
             return [{
                 id: 'queen_status',
                 label: isSuccessor ? 'queen_successor' : 'queen_initial',

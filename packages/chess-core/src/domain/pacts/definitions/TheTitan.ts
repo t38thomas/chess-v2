@@ -10,9 +10,10 @@ import { PactUtils } from '../PactUtils';
 export const TheTitan = definePact('titan')
     .bonus('earthquake', {
         modifiers: {
-            onExecuteMove: (game, move) => {
+            onExecuteMove: (game, move, context) => {
                 const b = game.board;
                 const square = b.getSquare(move.to);
+                if (context && move.piece.color !== context.playerId) return;
                 if (!square || !square.piece || square.piece.type !== 'queen') return;
 
                 const adjacent = PactUtils.getPiecesAdjacentTo(game, move.to);

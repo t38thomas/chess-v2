@@ -50,7 +50,10 @@ describe('The Ranger Pact', () => {
             const moves: Move[] = [];
 
             // Activate Snipe for the test
-            game.pactState['ranger_snipe_active_white'] = true;
+            const initialContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
+            initialContext.updateState({ snipeActive: true });
+
+            const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
 
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.onGetPseudoMoves) {
@@ -60,7 +63,7 @@ describe('The Ranger Pact', () => {
                     from: start,
                     moves,
                     game
-                });
+                }, freshContext);
             }
 
             const snipeMove = moves.find(m => m.to.equals(target) && m.isSnipe);
@@ -79,7 +82,10 @@ describe('The Ranger Pact', () => {
             const moves: Move[] = [];
 
             // Activate Snipe for the test
-            game.pactState['ranger_snipe_active_white'] = true;
+            const initialContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
+            initialContext.updateState({ snipeActive: true });
+
+            const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
 
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.onGetPseudoMoves) {
@@ -89,7 +95,7 @@ describe('The Ranger Pact', () => {
                     from: start,
                     moves,
                     game
-                });
+                }, freshContext);
             }
 
             const snipeMove = moves.find(m => m.to.equals(target) && m.isSnipe);
@@ -106,9 +112,9 @@ describe('The Ranger Pact', () => {
             board.placePiece(target, blackPawn);
 
             // Activate Snipe ability
-            const context = { game, playerId: 'white' as const, pactId: 'snipe' };
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
             bonus.activeAbility!.execute(context, {});
-            expect(game.pactState['ranger_snipe_active_white']).toBe(true);
+            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBe(true);
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);
 
@@ -117,10 +123,12 @@ describe('The Ranger Pact', () => {
             expect(board.getSquare(start)?.piece).toBeNull();
             expect(board.getSquare(target)?.piece).toBe(whiteBishop);
 
+            const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
+
             // Now apply pact effect
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.onExecuteMove) {
-                modifiers.onExecuteMove(game, move);
+                modifiers.onExecuteMove(game, move, freshContext);
             }
 
             // Bishop should be back at start
@@ -128,7 +136,7 @@ describe('The Ranger Pact', () => {
             expect(board.getSquare(target)?.piece).toBeNull();
 
             // Toggle should be reset
-            expect(game.pactState['ranger_snipe_active_white']).toBe(false);
+            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBe(false);
         });
 
         it('should NOT move Bishop back if Snipe is NOT active', () => {
@@ -140,8 +148,10 @@ describe('The Ranger Pact', () => {
             board.placePiece(start, whiteBishop);
             board.placePiece(target, blackPawn);
 
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
+
             // Snipe NOT activated
-            expect(game.pactState['ranger_snipe_active_white']).toBeUndefined();
+            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBeFalsy();
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);
 
@@ -151,7 +161,7 @@ describe('The Ranger Pact', () => {
             // Apply pact effect
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.onExecuteMove) {
-                modifiers.onExecuteMove(game, move);
+                modifiers.onExecuteMove(game, move, context);
             }
 
             // Bishop should stay at target

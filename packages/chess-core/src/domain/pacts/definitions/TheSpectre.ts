@@ -14,7 +14,8 @@ export const TheSpectre = definePact('spectre')
     })
     .malus('possession', {
         modifiers: {
-            onExecuteMove: (game, move) => {
+            onExecuteMove: (game, move, context) => {
+                if (context && move.piece.color !== context.playerId) return;
                 if (move.isCastling || move.isEnPassant || move.isSwap || move.piece.type === 'knight') return;
 
                 const dx = Math.sign(move.to.x - move.from.x);

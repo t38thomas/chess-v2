@@ -20,6 +20,8 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
         game.pactState['frenzy_black'] = { isFrenzyActive: false, frenzyPieceId: null };
     });
 
+    const getContext = () => bonus.createContextWithState({ game, playerId: 'white', pactId: 'frenzy' });
+
     it('should trigger frenzy when capturing an enemy PAWN', () => {
         board.clear();
         const whiteRook = new Piece('rook', 'white', 'w-rook');
@@ -39,7 +41,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.onExecuteMove) {
-            modifiers.onExecuteMove(game, move);
+            modifiers.onExecuteMove(game, move, getContext());
         }
 
         expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(true);
@@ -62,7 +64,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.onExecuteMove) {
-            modifiers.onExecuteMove(game, move);
+            modifiers.onExecuteMove(game, move, getContext());
         }
 
         // Frenzy should NOT be active because we captured a knight, not a pawn
@@ -84,7 +86,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.canCapture) {
-            const canCapture = modifiers.canCapture(game, whiteRook, blackPawn, captureTarget, start);
+            const canCapture = modifiers.canCapture(game, whiteRook, blackPawn, captureTarget, start, board, getContext());
             expect(canCapture).toBe(false);
         } else {
             expect(true).toBe(false);
@@ -107,9 +109,9 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         if (modifiers.canMovePiece) {
             // The frenzy piece can move
-            expect(modifiers.canMovePiece(game, start)).toBe(true);
+            expect(modifiers.canMovePiece(game, start, board, getContext())).toBe(true);
             // Other pieces cannot move
-            expect(modifiers.canMovePiece(game, queenPos)).toBe(false);
+            expect(modifiers.canMovePiece(game, queenPos, board, getContext())).toBe(false);
         }
     });
 
@@ -118,7 +120,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.modifyNextTurn) {
-            expect(modifiers.modifyNextTurn(game, 'white', 'move')).toBe('white');
+            expect(modifiers.modifyNextTurn(game, 'white', 'move', getContext())).toBe('white');
         }
     });
 
@@ -135,7 +137,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.onExecuteMove) {
-            modifiers.onExecuteMove(game, move);
+            modifiers.onExecuteMove(game, move, getContext());
         }
 
         expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(false);

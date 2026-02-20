@@ -12,7 +12,7 @@ export const TheOracle = definePact('oracle')
         onTurnStart: (context) => {
             const { game, playerId } = context;
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
-            game.pactState['oracle_capable'] = capablePieceIds;
+            context.updateState({ capablePieceIds });
         },
         onEvent: (event, payload, context) => {
             const { game, playerId } = context;
@@ -20,7 +20,9 @@ export const TheOracle = definePact('oracle')
             const isPlayerMove = ['move', 'capture', 'check', 'checkmate'].includes(event) && move?.piece?.color === playerId;
 
             if (isPlayerMove) {
-                const capablePieceIds = game.pactState['oracle_capable'] || [];
+                const ctx = context as import('../PactLogic').PactContextWithState<any>;
+                const state = ctx.state || {};
+                const capablePieceIds = state.capablePieceIds || [];
                 if (capablePieceIds.length === 0) return;
 
                 let satisfied = false;

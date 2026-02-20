@@ -20,7 +20,7 @@ describe('The Oracle Pact', () => {
         board.clear(); // Important to start with empty board
     });
 
-    const getContext = () => ({
+    const getContext = () => malus.createContextWithState({
         game,
         playerId,
         pactId: TheOracle.id

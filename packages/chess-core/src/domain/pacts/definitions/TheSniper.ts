@@ -12,7 +12,8 @@ import { PactUtils } from '../PactUtils';
 export const TheSniper = definePact('sniper')
     .bonus('long_sight', {
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
+            onGetPseudoMoves: ({ board, piece, from, moves }, context) => {
+                if (context && piece.color !== context.playerId) return;
                 if (piece.type !== 'rook') return;
 
                 const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -52,15 +53,18 @@ export const TheSniper = definePact('sniper')
     })
     .malus('reload', {
         modifiers: {
-            canMovePiece: (game, from) => {
-                const square = game.board.getSquare(from);
+            canMovePiece: (game, from, board, context) => {
+                const effectiveBoard = board || game.board;
+                const square = effectiveBoard.getSquare(from);
                 if (square?.piece) {
+                    if (context && square.piece.color !== context.playerId) return true;
                     const cooldown = game.pieceCooldowns.get(square.piece.id);
                     if (cooldown && cooldown > 0) return false;
                 }
                 return true;
             },
-            onExecuteMove: (game, move) => {
+            onExecuteMove: (game, move, context) => {
+                if (context && move.piece.color !== context.playerId) return;
                 if (move.piece.type === 'rook' && (move.capturedPiece || move.isEnPassant)) {
                     game.pieceCooldowns.set(move.piece.id, 2);
                     PactUtils.notifyPactEffect(game, 'sniper', 'reload', 'malus', 'reload');

@@ -61,11 +61,11 @@ describe('The Phoenix', () => {
             game.board.placePiece(pawn1Pos, pawn1);
             game.board.placePiece(pawn2Pos, pawn2);
 
-            const context: PactContext = {
+            const context = phoenixBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'rebirth'
-            };
+            });
 
             // Mock emit to check for toast
             const emitSpy = vi.spyOn(game, 'emit');
@@ -108,11 +108,11 @@ describe('The Phoenix', () => {
             const queenPos = new Coordinate(3, 7);
             game.board.placePiece(queenPos, queen);
 
-            const context: PactContext = {
+            const context = phoenixBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'rebirth'
-            };
+            });
 
             // Simulate capture
             game.board.removePiece(queenPos);
@@ -140,11 +140,11 @@ describe('The Phoenix', () => {
             game.board.placePiece(new Coordinate(0, 6), pawn1);
             game.board.placePiece(new Coordinate(1, 6), pawn2);
 
-            const context: PactContext = {
+            const context = phoenixBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'rebirth'
-            };
+            });
 
             // 1st Capture
             game.board.removePiece(queenPos);
@@ -161,7 +161,8 @@ describe('The Phoenix', () => {
 
             // 2nd Capture (Capture the NEW queen)
             game.board.removePiece(newQueenPos);
-            phoenixBonus.onEvent('capture', { capturedPiece: newQueen }, context);
+            const context2 = phoenixBonus.createContextWithState({ game, playerId: 'white', pactId: 'rebirth' });
+            phoenixBonus.onEvent('capture', { capturedPiece: newQueen }, context2);
 
             // Verify NO new promotion happened
             // Should be 0 queens now
@@ -183,11 +184,11 @@ describe('The Phoenix', () => {
             game.board.placePiece(rookPos, rook);
             game.board.placePiece(new Coordinate(0, 1), pawn);
 
-            const context: PactContext = {
+            const context = phoenixBonus.createContextWithState({
                 game: game,
                 playerId: 'white',
                 pactId: 'rebirth'
-            };
+            });
 
             // Simulate capture
             game.board.removePiece(rookPos);

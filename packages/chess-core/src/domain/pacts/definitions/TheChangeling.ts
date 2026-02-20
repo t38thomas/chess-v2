@@ -2,6 +2,7 @@ import { definePact } from '../PactLogic';
 import { Move } from '../../models/Move';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { PactUtils } from '../PactUtils';
+import { Effects } from '../PactEffects';
 
 /**
  * The Changeling Pact
@@ -10,22 +11,38 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheChangeling = definePact('changeling')
     .bonus('mimicry', {
+        effects: [
+            Effects.state.temporaryState<{ type: string }>({
+                key: 'mimicry_activeMimics',
+                durationInTurns: 1,
+                triggerOn: ['capture'],
+                extractData: (payload: any, event) => {
+                    if (event === 'capture' && payload.attacker.type === 'pawn') {
+                        return { recordKey: payload.attacker.id, data: { type: payload.victim.type } };
+                    }
+                    return null;
+                }
+            })
+        ],
         modifiers: {
-            onGetPseudoMoves: (params) => {
-                const game = params.game as any;
-                if (!game?.pactState?.mimicry_activeMimics) return;
+            onGetPseudoMoves: (params, context) => {
+                if (!context || !context.state) return;
+                const state = context.state['mimicry_activeMimics'];
+                if (!state) return;
 
-                const mimicData = game.pactState.mimicry_activeMimics[params.piece.id];
+                const mimicData = state[params.piece.id];
                 if (mimicData) {
                     const phantomPiece = params.piece.clone();
-                    phantomPiece.type = mimicData.type;
+                    phantomPiece.type = mimicData.data.type as any;
 
                     const moves = MoveGenerator.getPseudoLegalMoves(
                         params.board,
                         phantomPiece,
                         params.from,
                         params.game?.enPassantTarget,
-                        []
+                        [],
+                        new Set(),
+                        params.game
                     );
 
                     moves.forEach(m => {
@@ -34,61 +51,41 @@ export const TheChangeling = definePact('changeling')
                         }
                     });
                 }
-            },
-            onExecuteMove: (game: any, move) => {
-                if (move.piece.type === 'pawn' && move.capturedPiece) {
-                    if (!game.pactState) game.pactState = {};
-                    if (!game.pactState.mimicry_activeMimics) game.pactState.mimicry_activeMimics = {};
-
-                    game.pactState.mimicry_activeMimics[move.piece.id] = {
-                        type: move.capturedPiece.type,
-                        expiresAtTurn: game.totalTurns + 1
-                    };
-                    PactUtils.notifyPactEffect(game, 'changeling', 'mimicry', 'bonus', 'cached');
-                }
             }
         },
-        onEvent: (event, payload, context) => {
-            if (event === 'turn_start') {
-                const mimics = (context.game as any).pactState?.mimicry_activeMimics;
-                if (!mimics) return;
-                for (const id in mimics) {
-                    if (context.game.totalTurns > mimics[id].expiresAtTurn) {
-                        delete mimics[id];
-                    }
-                }
+        onCapture: (payload, context) => {
+            if (payload.attacker.type === 'pawn' && payload.attacker.color === context.playerId) {
+                PactUtils.notifyPactEffect(context.game, 'changeling', 'mimicry', 'bonus', 'cached');
             }
         }
     })
     .malus('unstable_identity', {
-        initialState: () => 0,
-        onEvent: (event, payload, context) => {
-            const { game, playerId } = context;
-            const key = `unstable_identity_${playerId}`;
-            const move = payload as Move;
-            const isCapture = (event === 'capture' || (move && move.capturedPiece)) && move?.piece?.color === playerId;
-
-            if (isCapture) {
-                game.pactState[key] = 0;
-            } else if (event === 'turn_start' && payload === playerId) {
-                game.pactState[key] = (game.pactState[key] || 0) + 1;
-
-                if (game.pactState[key] >= 5) {
-                    const myPieces = game.board.getAllSquares()
+        effects: [
+            Effects.state.onStreak({
+                key: 'unstable_identity',
+                maxValue: 5,
+                incrementOn: ['turn_start'],
+                resetOn: ['capture'],
+                filter: (event, payload, context) => {
+                    if (event === 'turn_start' && payload.playerId !== context.playerId) return false;
+                    if (event === 'capture' && payload.attacker.color !== context.playerId) return false;
+                    return true;
+                },
+                onMax: (context) => {
+                    const myPieces = context.game.board.getAllSquares()
                         .map(s => s.piece)
-                        .filter(p => p && p.color === playerId && p.type !== 'pawn' && p.type !== 'king');
+                        .filter(p => p && p.color === context.playerId && p.type !== 'pawn' && p.type !== 'king');
 
                     if (myPieces.length > 0) {
                         const victim = myPieces[Math.floor(Math.random() * myPieces.length)];
                         victim!.type = 'pawn';
-                        PactUtils.notifyPactEffect(game, 'changeling', 'demotion', 'malus', 'dna');
+                        PactUtils.notifyPactEffect(context.game, 'changeling', 'demotion', 'malus', 'dna');
                     }
-                    game.pactState[key] = 0;
                 }
-            }
-        },
+            })
+        ],
         getTurnCounters: (context) => {
-            const val = context.game.pactState[`unstable_identity_${context.playerId}`] || 0;
+            const val = context.state['unstable_identity'] || 0;
             return [{
                 id: 'unstable_identity_counter',
                 label: 'unstable_identity_progress',
@@ -101,4 +98,3 @@ export const TheChangeling = definePact('changeling')
         }
     })
     .build();
-
