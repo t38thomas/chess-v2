@@ -77,14 +77,10 @@ describe('The Diplomat Pact', () => {
                 if (event === 'pact_effect') notifyCount++;
             });
 
-            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
+            const context = { game, playerId: 'white' as const, pactId: 'diplomat' };
 
-            // Invoke the effects hook manually for testing
-            if (bonus['options'].effects) {
-                for (const effect of bonus['options'].effects) {
-                    effect.onEvent?.('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, context);
-                }
-            }
+            // Use the public onEvent method which correctly handles effects
+            bonus.onEvent('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, context);
 
             expect(game.pactState[`diplomatic_immunity_white`]?.has_captured).toBe(true);
             expect(notifyCount).toBe(2); // One for immunity lost, one for sabotage ended
