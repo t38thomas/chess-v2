@@ -1,161 +1,116 @@
 # Guida alla Creazione di Patti in Chess V2
 
-Questa guida spiega come creare nuovi patti (Bonus e Malus) in modo agile e come utilizzare le funzionalità avanzate come counter, toast e abilità attivabili.
+Questa guida spiega come creare nuovi patti utilizzando il nuovo DSL `definePact`, il sistema degli `Effects` e le funzionalità avanzate come lo stato tipizzato e le abilità attive.
 
 ## 1. Struttura di un Patto
 
-Un Patto è composto da due parti:
-- **Bonus**: Vantaggio per il giocatore.
-- **Malus**: Svantaggio per il giocatore.
-
-Entrambi estendono la classe astratta `PactLogic`.
+Un Patto è l'unione di un **Bonus** e di un **Malus**. Utilizziamo `definePact` per creare una definizione completa in modo dichiarativo.
 
 ### Esempio Base
 
-Crea un nuovo file in `src/domain/pacts/definitions/nome_patto.ts`.
+Crea un nuovo file in `packages/chess-core/src/domain/pacts/definitions/NomePatto.ts`.
 
 ```typescript
-import { PactLogic, PactContext, RuleModifiers } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
+import { definePact } from '../PactLogic';
+import { Effects } from '../PactEffects';
 
-export class MyPactBonus extends PactLogic {
-    id = 'my_pact_bonus_id'; // ID univoco per il bonus
-
-    // Modifica le regole del gioco
-    getRuleModifiers(): RuleModifiers {
-        return {
-            // Esempio: i pedoni possono muoversi all'indietro
-            // ...
-        };
-    }
-
-    // Reagisce agli eventi
-    onEvent(event: GameEvent, payload: any, context: PactContext): void {
-        if (event === 'capture') {
-            // Fai qualcosa quando avviene una cattura
+export const TheMyPact = definePact('my_pact_id')
+    .bonus('my_bonus', {
+        // Effects predefiniti (opzionali)
+        effects: [
+            Effects.movement.canMoveThroughFriendlies('knight')
+        ],
+        // Modificatori di regole personalizzati
+        modifiers: {
+            getMaxRange: (piece) => piece.type === 'pawn' ? 2 : undefined
         }
-    }
-}
-
-export class MyPactMalus extends PactLogic {
-    id = 'my_pact_malus_id'; // ID univoco per il malus
-    
-    // Implementazione simile...
-}
+    })
+    .malus('my_malus', {
+        // Hook sugli eventi
+        onCapture: (payload, context) => {
+            // Logica quando avviene una cattura
+        }
+    })
+    .build();
 ```
 
 ## 2. Registrazione del Patto
 
-Per rendere il patto disponibile nel gioco:
+I patti devono essere aggiunti manualmente all'array `PACTS` in `PactFactory.ts`.
 
-1.  Apri `src/domain/pacts/PactFactory.ts`.
-2.  Importa le classi del nuovo patto.
-3.  Aggiungi le istanze nel metodo `initialize`:
+1.  Apri `packages/chess-core/src/domain/pacts/PactFactory.ts`.
+2.  Importa la costante del nuovo patto.
+3.  Aggiungila all'array `PACTS`.
 
 ```typescript
-// ... imports
-import { MyPactBonus, MyPactMalus } from './definitions/MyPact';
+// ...
+import { TheMyPact } from './definitions/TheMyPact';
 
 export class PactFactory {
     // ...
-    public static initialize() {
+    private static readonly PACTS: PactDefinition[] = [
         // ...
-        register(new MyPactBonus());
-        register(new MyPactMalus());
-    }
+        TheMyPact
+    ];
+    // ...
 }
 ```
 
-## 3. Funzionalità Avanzate
+## 3. Sistema degli Effects
 
-### Toast (Notifiche)
+Il sistema `Effects` fornisce blocchi riutilizzabili per le logiche più comuni.
+Puoi trovarli tutti in `PactEffects.ts`.
 
-Per mostrare una notifica in gioco (toast) quando si attiva un effetto, usa `PactUtils.emitPactEffect`.
+Esempi comuni:
+- `Effects.movement.canMoveThrough(moverFilter, obstacleFilter)`
+- `Effects.state.counter(initialValue)`
+- `Effects.rules.extraMoveOnCapture()`
+- `Effects.ui.toast(title, desc, icon)`
 
-```typescript
-import { PactUtils } from '../PactUtils';
+## 4. Gestione dello Stato
 
-// ... dentro onEvent o altra logica
-PactUtils.emitPactEffect(context.game, {
-    pactId: this.id,
-    title: 'Titolo della notifica (o chiave di traduzione)',
-    description: 'Descrizione dell\'effetto (o chiave)',
-    icon: 'icon-name', // Nome icona (es. 'shimmer', 'fire', etc.)
-    type: 'bonus' // o 'malus'
-});
-```
-
-Oppure usa l'helper per le traduzioni automatiche:
+Il nuovo sistema supporta lo stato tipizzato e serializzabile automaticamente.
 
 ```typescript
-PactUtils.notifyPactEffect(context.game, this.id, 'event_key', 'bonus', 'icon-name');
-// Questo cercherà le chiavi:
-// Titolo: pact.toasts.{pactId}.{event_key}.title
-// Desc:   pact.toasts.{pactId}.{event_key}.desc
-```
-
-### Counter (Indicatori Turni/Accumuli)
-
-Se il tuo patto deve mostrare un contatore o un cooldown nell'interfaccia, implementa `getTurnCounters`.
-
-```typescript
-import { TurnCounter } from '../PactLogic';
-
-// ... nella classe PactLogic
-getTurnCounters(context: PactContext): TurnCounter[] {
-    const { game, playerId } = context;
-    
-    // Calcola il valore, ad esempio basato su una variabile di stato
-    const charges = game.pactState[`${this.id}_charges_${playerId}`] || 0;
-
-    if (charges > 0) {
-        return [{
-            id: `${this.id}_counter`,
-            label: 'translation.key.for.label',
-            value: charges,
-            pactId: this.id,
-            type: 'counter', // o 'cooldown'
-            // subLabel: 'optional'
-        }];
-    }
-    return [];
+interface MyState {
+    charges: number;
 }
-```
 
-### Abilità Attivabili (Active Abilities)
-
-Per dare al giocatore un pulsante per attivare un'abilità manualmente.
-
-Definisci la proprietà `activeAbility` nella tua classe `PactLogic`.
-
-```typescript
-import { ActiveAbilityConfig } from '../PactLogic';
-
-export class MyActivePact extends PactLogic {
-    id = 'active_power';
-
-    readonly activeAbility: ActiveAbilityConfig = {
-        id: 'active_power_action',
-        name: 'translation.key.name',
-        description: 'translation.key.desc',
-        icon: 'flash',
-        cooldown: 3, // Turni di ricarica
-        targetType: 'piece', // 'piece', 'square', o 'none'
-        maxTargets: 1,
-        
-        // La funzione che esegue l'abilità
-        execute: (context: PactContext, targetPos: Coordinate): boolean => {
-            const { game } = context;
-            // Logica dell'abilità...
-            // Ritorna true se l'abilità è stata eseguita con successo
-            return true; 
+export const TheChargedPact = definePact<MyState, any>('charged_pact')
+    .bonus('charge_up', {
+        initialState: () => ({ charges: 0 }),
+        onMove: (move, context) => {
+            // context.state è tipizzato
+            // context.updateState({ charges: context.state.charges + 1 });
         }
-    };
-}
+    })
+    // ...
 ```
 
-## 4. Best Practices
+## 5. Abilità Attivabili (Active Abilities)
 
-- **Stato**: Usa `context.game.pactState` per salvare dati persistenti tra i turni (es. cooldown speciali, flag, contatori). Usa chiavi univoche (es. `pactId_variableName_playerId`).
-- **PactUtils**: Usa `PactUtils` per operazioni comuni come trovare pezzi, rimuovere pezzi, spawnare pezzi, controllare adiacenze, etc.
-- **RuleModifiers**: Usa i modifier esistenti in `RuleModifiers` (in `PactLogic.ts`) invece di hackare la logica di gioco se possibile. Se manca un hook, considerane l'aggiunta.
+Puoi definire abilità che il giocatore può attivare manualmente.
+
+```typescript
+    .bonus('active_power', {
+        activeAbility: {
+            id: 'my_action',
+            name: 'pact.ability.name',
+            description: 'pact.ability.desc',
+            icon: 'flash',
+            cooldown: 3,
+            targetType: 'square', // 'none', 'piece', 'square'
+            execute: (context, params) => {
+                // Logica di esecuzione
+                return true; // Ritorna true se l'azione è validata
+            }
+        }
+    })
+```
+
+## 6. Best Practices
+
+- **DSL vs Custom Logic**: Usa gli `Effects` quando possibile. Se la logica è complessa, usa i `modifiers` o gli hook `onEvent` (`onMove`, `onCapture`, etc.).
+- **Localizzazione**: Usa sempre chiavi di traduzione (`pact.toasts...`) invece di stringhe hardcoded.
+- **PactUtils**: Consulta `PactUtils.ts` per funzioni helper (es. `notifyPactEffect`, `findPieces`, `isEdgeSquare`).
+- **Test**: Ogni patto deve avere un file `.test.ts` dedicato che verifichi sia il bonus che il malus.

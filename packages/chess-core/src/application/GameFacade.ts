@@ -566,6 +566,17 @@ export class GameFacade {
             this.game.orientation = payload.orientation;
         }
 
+        if (payload.extraTurns) {
+            this.game.extraTurns.white = payload.extraTurns.white || 0;
+            this.game.extraTurns.black = payload.extraTurns.black || 0;
+        }
+
+        if (payload.enPassantTarget) {
+            this.game.enPassantTarget = new Coordinate(payload.enPassantTarget.x, payload.enPassantTarget.y);
+        } else {
+            this.game.enPassantTarget = null;
+        }
+
         // Sync PactState — critical for stateful pacts (Phoenix, Alchemist, Diplomat, etc.)
         if (payload.pactState && typeof payload.pactState === 'object') {
             for (const key in this.game.pactState) {

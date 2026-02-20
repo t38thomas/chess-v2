@@ -143,6 +143,7 @@ export const useOnlineGame = () => {
             setMatchId(payload.matchId);
             setJoinCode(payload.joinCode);
             setPlayerColor('white');
+            facade.setPlayerColor('white');
             setReversed(false);
         } catch (e) {
             console.error(e);
@@ -154,7 +155,7 @@ export const useOnlineGame = () => {
             const payload = await client.joinMatch(code);
             setMatchId(payload.matchId);
             setPlayerColor(payload.color);
-
+            facade.setPlayerColor(payload.color);
             if (payload.color === 'black') {
                 setReversed(true);
             } else {

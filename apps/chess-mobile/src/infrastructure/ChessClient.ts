@@ -173,7 +173,8 @@ export class ChessClient {
             } else {
                 resolve(payload);
             }
-            return;
+            // Do NOT return here. Allow other listeners (like stateSync, matchJoined)
+            // that might be listening for the same message to process it.
         }
 
         if (type === 'helloAck') {

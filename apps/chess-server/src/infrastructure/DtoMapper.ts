@@ -53,7 +53,9 @@ export class DtoMapper {
             orientation: game.orientation,
             lastMove: game.history.length > 0 ? game.history[game.history.length - 1] : null,
             pactState: game.pactState,
-            winner: game.winner
+            winner: game.winner,
+            extraTurns: game.extraTurns,
+            enPassantTarget: game.enPassantTarget ? { x: game.enPassantTarget.x, y: game.enPassantTarget.y } : null
         };
     }
 }
