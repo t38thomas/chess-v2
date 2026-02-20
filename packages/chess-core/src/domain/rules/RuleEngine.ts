@@ -5,6 +5,7 @@ import { Perk } from '../models/Pact';
 import { Move } from '../models/Move';
 import { IChessGame, GameEvent } from '../GameTypes';
 import { PactRegistry } from '../pacts/PactRegistry';
+import { PactLogic } from '../pacts/PactLogic';
 
 export class RuleEngine {
 
@@ -224,13 +225,15 @@ export class RuleEngine {
         for (const perk of perks) {
             if (perk.id === abilityId) {
                 const pactLogic = registry.get(perk.id);
-                if (pactLogic?.activeAbility) {
+                const ability = pactLogic?.activeAbility;
+                if (ability) {
+                    const typedLogic = pactLogic as PactLogic;
                     const context = {
                         game,
                         playerId: game.turn,
                         pactId: perk.id
                     };
-                    return pactLogic.activeAbility.execute(context, params);
+                    return ability.execute(typedLogic.createContextWithState(context), params);
                 }
             }
         }

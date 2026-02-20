@@ -4,6 +4,9 @@ import { MovementEffects } from './effects/MovementEffects';
 import { CombatEffects } from './effects/CombatEffects';
 import { RulesEffects } from './effects/RulesEffects';
 
+import { BoardEffects } from './effects/BoardEffects';
+import { GameEffects } from './effects/GameEffects';
+
 /**
  * Re-exporting modular effects via a centralized Effects object.
  */
@@ -13,6 +16,8 @@ export const Effects = {
     movement: MovementEffects,
     combat: CombatEffects,
     rules: RulesEffects,
+    board: BoardEffects,
+    game: GameEffects,
 };
 
 /**

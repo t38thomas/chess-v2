@@ -18,8 +18,9 @@ describe('The Alchemist', () => {
             const whitePawn1 = game.board.getSquare(new Coordinate(0, 1))?.piece!;
             const whitePawn2 = game.board.getSquare(new Coordinate(1, 1))?.piece!;
 
+            const context = { game, playerId: 'white', pactId: 'transmutation' };
             const result = bonus.activeAbility?.execute(
-                { game, playerId: 'white', pactId: 'transmutation' },
+                bonus.createContextWithState(context as any),
                 { from: { x: 0, y: 1 }, to: { x: 1, y: 1 } }
             );
 
@@ -29,8 +30,9 @@ describe('The Alchemist', () => {
         });
 
         it('should not swap enemy pieces', () => {
+            const context = { game, playerId: 'white', pactId: 'transmutation' };
             const result = bonus.activeAbility?.execute(
-                { game, playerId: 'white', pactId: 'transmutation' },
+                bonus.createContextWithState(context as any),
                 { from: { x: 0, y: 1 }, to: { x: 0, y: 6 } } // White pawn and black pawn
             );
 
@@ -38,8 +40,9 @@ describe('The Alchemist', () => {
         });
 
         it('should not swap the King', () => {
+            const context = { game, playerId: 'white', pactId: 'transmutation' };
             const result = bonus.activeAbility?.execute(
-                { game, playerId: 'white', pactId: 'transmutation' },
+                bonus.createContextWithState(context as any),
                 { from: { x: 4, y: 0 }, to: { x: 0, y: 1 } } // King and pawn
             );
 

@@ -9,12 +9,10 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheVampire = definePact('vampire')
     .bonus('life_thirst', {
-        modifiers: {
-            onExecuteMove: (game, move) => {
-                if (move.capturedPiece?.type === 'queen') {
-                    if (PactUtils.resurrectRandomPiece(game, move.piece.color, ['bishop', 'knight'])) {
-                        PactUtils.notifyPactEffect(game, 'life_thirst', 'life_thirst', 'bonus', 'blood-bag');
-                    }
+        onCapture: ({ victim, attacker }, { game }) => {
+            if (victim.type === 'queen') {
+                if (PactUtils.resurrectRandomPiece(game, attacker.color, ['bishop', 'knight'])) {
+                    PactUtils.notifyPactEffect(game, 'life_thirst', 'life_thirst', 'bonus', 'blood-bag');
                 }
             }
         }

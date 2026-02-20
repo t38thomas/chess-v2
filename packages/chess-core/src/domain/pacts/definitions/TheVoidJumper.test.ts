@@ -54,7 +54,10 @@ describe('The Void Jumper Pact', () => {
             game.board.placePiece(victimCoord, createMockPiece('pawn', 'white', 'v1'));
 
             const context = createContext('white');
-            const result = bonus.activeAbility?.execute(context, { from: p1Coord, to: p2Coord });
+            const result = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: p1Coord, to: p2Coord }
+            );
 
             expect(result).toBe(true);
 
@@ -87,7 +90,10 @@ describe('The Void Jumper Pact', () => {
             const emitSpy = vi.spyOn(game, 'emit');
 
             // Swap King and Near Pawn
-            const result = bonus.activeAbility?.execute(context, { from: pNear, to: kingCoord });
+            const result = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: pNear, to: kingCoord }
+            );
 
             expect(result).toBe(true);
 
@@ -120,7 +126,10 @@ describe('The Void Jumper Pact', () => {
             const context = createContext('white');
 
             // Swap pawnPos (0,5) and pawn2Pos (1,2)
-            const res = bonus.activeAbility?.execute(context, { from: pawnPos, to: pawn2Pos });
+            const res = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: pawnPos, to: pawn2Pos }
+            );
             expect(res).toBe(true);
 
             // State after swap:
@@ -164,7 +173,10 @@ describe('The Void Jumper Pact', () => {
 
             // Trigger ability (dummy swap safePawn with itself or phantom move just to trigger execute logic if possible? 
             // No, must swap 2 pieces. Swap safePawn and p1.)
-            const result = bonus.activeAbility?.execute(context, { from: safePawn, to: p1 });
+            const result = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: safePawn, to: p1 }
+            );
 
             expect(result).toBe(true);
 
@@ -202,7 +214,10 @@ describe('The Void Jumper Pact', () => {
             const blackPawn = new Coordinate(0, 6);
 
             const context = createContext('white');
-            const result = bonus.activeAbility?.execute(context, { from: whitePawn, to: blackPawn });
+            const result = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: whitePawn, to: blackPawn }
+            );
 
             expect(result).toBe(false);
         });

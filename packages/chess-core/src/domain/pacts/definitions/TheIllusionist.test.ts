@@ -20,7 +20,7 @@ describe('The Illusionist Pact', () => {
             game.assignPact('white', {
                 id: 'illusionist',
                 bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'vanished_illusion', category: 'Passive' }
+                malus: { id: 'dummy_m', category: 'Passive' }
             } as any);
             game.assignPact('black', {
                 id: 'dummy',
@@ -64,7 +64,7 @@ describe('The Illusionist Pact', () => {
             game.assignPact('white', {
                 id: 'illusionist',
                 bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'vanished_illusion', category: 'Passive' }
+                malus: { id: 'dummy_m', category: 'Passive' }
             } as any);
             game.assignPact('black', {
                 id: 'dummy',

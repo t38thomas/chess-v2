@@ -46,11 +46,8 @@ describe('The Vampire', () => {
             // Mock emit
             const emitSpy = vi.spyOn(game, 'emit');
 
-            // Execute the trigger
-            const modifiers = vampireBonus.getRuleModifiers();
-            if (modifiers.onExecuteMove) {
-                modifiers.onExecuteMove(game, move);
-            }
+            const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
+            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id });
 
             // Verify resurrection: Should be at (2,0) or (5,0)
             const unitsOnBoard = game.board.getAllSquares()
@@ -81,10 +78,8 @@ describe('The Vampire', () => {
             const move = new Move(myQueenPos, enemyQueenPos, myQueen, enemyQueen);
             const emitSpy = vi.spyOn(game, 'emit');
 
-            const modifiers = vampireBonus.getRuleModifiers();
-            if (modifiers.onExecuteMove) {
-                modifiers.onExecuteMove(game, move);
-            }
+            const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
+            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id });
 
             const unitsOnBoard = game.board.getAllSquares()
                 .filter(s => s.piece && s.piece.color === 'white' && (s.piece.type === 'bishop' || s.piece.type === 'knight'));
