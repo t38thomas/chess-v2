@@ -45,6 +45,11 @@ export const useOnlineGame = () => {
         (event) => {
             // Handle game events for sounds/vibrations
             playGameEvent(event as any);
+        },
+        (abilityId, params) => {
+            client.useAbility(abilityId, params).catch(err => {
+                console.error("Ability rejected by server", err);
+            });
         }
     ));
 
@@ -226,7 +231,8 @@ export const useOnlineGame = () => {
         completePromotion,
         pendingPromotion,
         assignPact,
-        useAbility: (id: string, params?: any) => client.useAbility(id, params),
+        useAbility: (id: string, params?: any) => facade.useAbility(id, params),
+        cancelAbility: () => facade.cancelAbility(),
         availableAbilities,
         phase: viewModel.phase,
         pacts: viewModel.pacts,

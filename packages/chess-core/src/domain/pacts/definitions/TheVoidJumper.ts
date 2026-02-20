@@ -21,11 +21,14 @@ export const TheVoidJumper = definePact('void_jumper')
                 const { game, playerId } = context;
                 if (!params?.from || !params?.to) return false;
 
-                const sq1 = game.board.getSquare(params.from);
-                const sq2 = game.board.getSquare(params.to);
+                const fromCoord = new Coordinate(params.from.x, params.from.y);
+                const toCoord = new Coordinate(params.to.x, params.to.y);
+
+                const sq1 = game.board.getSquare(fromCoord);
+                const sq2 = game.board.getSquare(toCoord);
 
                 if (sq1?.piece?.color === playerId && sq2?.piece?.color === playerId) {
-                    PactUtils.swapPieces(game, params.from, params.to);
+                    PactUtils.swapPieces(game, fromCoord, toCoord);
                     const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
                     if (victim) {
                         PactUtils.notifyPactEffect(game, 'ritual_sacrifice', 'sacrifice', 'malus', 'skull');

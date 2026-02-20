@@ -221,5 +221,29 @@ describe('The Void Jumper Pact', () => {
 
             expect(result).toBe(false);
         });
+
+        it('should work with plain objects as params (online simulation)', () => {
+            clearBoard();
+
+            const p1Coord = new Coordinate(0, 1);
+            const p2Coord = new Coordinate(0, 0);
+            const victimCoord = new Coordinate(7, 6);
+
+            game.board.placePiece(p1Coord, createMockPiece('pawn', 'white', 'p1'));
+            game.board.placePiece(p2Coord, createMockPiece('rook', 'white', 'r1'));
+            game.board.placePiece(victimCoord, createMockPiece('pawn', 'white', 'v1'));
+
+            const context = createContext('white');
+            // Simulation of what comes from JSON: { x, y } instead of Coordinate class
+            const result = bonus.activeAbility?.execute(
+                bonus.createContextWithState(context),
+                { from: { x: 0, y: 1 } as any, to: { x: 0, y: 0 } as any }
+            );
+
+            expect(result).toBe(true);
+            expect(game.board.getSquare(p1Coord)?.piece?.type).toBe('rook');
+            expect(game.board.getSquare(p2Coord)?.piece?.type).toBe('pawn');
+            expect(game.board.getSquare(victimCoord)?.piece).toBeNull();
+        });
     });
 });

@@ -114,7 +114,7 @@ describe('The Ranger Pact', () => {
             // Activate Snipe ability
             const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
             bonus.activeAbility!.execute(context, {});
-            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBe(true);
+            expect(bonus.createContextWithState({ game, playerId: 'white', pactId: bonus.id }).state?.snipeActive).toBe(true);
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);
 
@@ -136,7 +136,7 @@ describe('The Ranger Pact', () => {
             expect(board.getSquare(target)?.piece).toBeNull();
 
             // Toggle should be reset
-            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBe(false);
+            expect(bonus.createContextWithState({ game, playerId: 'white', pactId: bonus.id }).state?.snipeActive).toBe(false);
         });
 
         it('should NOT move Bishop back if Snipe is NOT active', () => {
@@ -151,7 +151,7 @@ describe('The Ranger Pact', () => {
             const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
 
             // Snipe NOT activated
-            expect((bonus.getState(game, 'white') as any)?.snipeActive).toBeFalsy();
+            expect(bonus.createContextWithState({ game, playerId: 'white', pactId: bonus.id }).state?.snipeActive).toBeFalsy();
 
             const move = new Move(start, target, whiteBishop, blackPawn, false, false, false, true);
 

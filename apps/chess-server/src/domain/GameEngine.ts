@@ -118,7 +118,10 @@ export class GameEngine {
         if (!player) throw new Error("Player not in match");
         if (player.color !== game.turn) throw new Error("Not your turn");
 
-        const success = game.useAbility(payload.abilityId, payload.params);
+        // Hydrate coordinates in params if any
+        const hydratedParams = this.hydrateCoordinates(payload.params);
+
+        const success = game.useAbility(payload.abilityId, hydratedParams);
         if (!success) {
             throw new Error("Failed to use ability");
         }
@@ -126,6 +129,27 @@ export class GameEngine {
         return {
             events: ['abilityActivated']
         };
+    }
+
+    /**
+     * Recursively find {x, y} objects and turn them into Coordinate instances.
+     */
+    private static hydrateCoordinates(obj: any): any {
+        if (!obj || typeof obj !== 'object') return obj;
+
+        if (typeof obj.x === 'number' && typeof obj.y === 'number' && Object.keys(obj).length === 2) {
+            return new Coordinate(obj.x, obj.y);
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.hydrateCoordinates(item));
+        }
+
+        const hydrated: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+            hydrated[key] = this.hydrateCoordinates(value);
+        }
+        return hydrated;
     }
 
     private static handleRotateBoard(match: Match, playerId: string): GameEngineResult {

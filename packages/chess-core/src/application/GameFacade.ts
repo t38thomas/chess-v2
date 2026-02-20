@@ -26,7 +26,8 @@ export class GameFacade {
     constructor(
         private matchConfig: MatchConfig = DEFAULT_MATCH_CONFIG,
         private onMove?: (move: Move) => void,
-        private onEvent?: (event: GameEvent, payload?: any) => void
+        private onEvent?: (event: GameEvent, payload?: any) => void,
+        private onUseAbility?: (abilityId: string, params?: any) => void
     ) {
         this.game = new ChessGame(matchConfig);
         this.game.subscribe((event, payload) => {
@@ -335,7 +336,7 @@ export class GameFacade {
     }
 
     private executeMove(move: Move, promotion?: PieceType) {
-        if (this.onMove) {
+        if (this.onMove && this.playerColor) {
             this.onMove(move);
             this.deselect();
             return;
@@ -367,6 +368,15 @@ export class GameFacade {
             this._activeAbilityId = id;
             this.pendingTargets = [];
             this.deselect(); // Clear piece selection
+            this.notify();
+            return true;
+        }
+
+        // Online handling: if we have onUseAbility, delegate to it
+        if (this.onUseAbility && this.playerColor) {
+            this.onUseAbility(id, params);
+            this._activeAbilityId = null;
+            this.pendingTargets = [];
             this.notify();
             return true;
         }
@@ -422,7 +432,7 @@ export class GameFacade {
                 params = this.pendingTargets[0];
             }
 
-            const success = this.game.useAbility(this._activeAbilityId, params);
+            const success = this.useAbility(this._activeAbilityId, params);
             if (success) {
                 this._activeAbilityId = null;
                 this.pendingTargets = [];
