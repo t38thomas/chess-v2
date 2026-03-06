@@ -65,10 +65,15 @@ export class PactUtils {
     public static blockDiagonalMoves = MovementUtils.blockDiagonalMoves;
 
     // Common helpers
-    public static pickRandom<T>(items: T[], count: number): T[] {
+    public static pickRandom<T>(items: T[], count: number, rng: () => number = Math.random): T[] {
         if (items.length === 0) return [];
-        const shuffled = [...items].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, count);
+        // Fisher-Yates shuffle (unbiased, works correctly with seeded rng)
+        const arr = [...items];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(rng() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.slice(0, count);
     }
 
     static isPawn(piece: Piece): boolean {
@@ -105,12 +110,14 @@ export class PactUtils {
 
     // High-level presets
     public static stunPiece(game: IChessGame, pieceId: string, turns: number = 2): void {
-        game.pieceCooldowns.set(pieceId, turns);
+        // Use domain command instead of direct mutation if available
+        game.applyCooldown!(pieceId, turns);
     }
 
     public static grantExtraTurn(game: IChessGame, playerId: string, count: number = 1): void {
         const color = playerId as any as PieceColor;
-        game.extraTurns[color] = (game.extraTurns[color] || 0) + count;
+        // Use domain command instead of direct mutation if available
+        game.grantExtraTurn!(color, count);
     }
 
     public static removeRandomPieces(game: IChessGame, color: string, type: PieceType, count: number): void {

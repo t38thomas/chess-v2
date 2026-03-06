@@ -3,6 +3,7 @@ import { TheHeir } from './TheHeir';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
+import { Move } from '../../models/Move';
 import { PactContext } from '../PactLogic';
 
 describe('The Heir', () => {
@@ -97,16 +98,10 @@ describe('The Heir', () => {
                 pactId: 'bloodline'
             });
 
-            const payload = {
-                victim: queen,
-                attacker: new Piece('rook', 'black', 'black-rook'),
-                from: new Coordinate(3, 7),
-                to: new Coordinate(3, 7)
-            };
-
             // Simulate capture: remove Queen first
             game.board.removePiece(new Coordinate(3, 7));
-            bloodlineBonus.onEvent('capture', payload, context);
+            const move = new Move(new Coordinate(3, 7), new Coordinate(3, 7), new Piece('rook', 'black', 'black-rook'), queen);
+            bloodlineBonus.onEvent('capture', move, context);
 
             // One of the minor pieces should now be a Queen
             const whiteQueens = game.board.getAllSquares()
@@ -132,7 +127,7 @@ describe('The Heir', () => {
 
             // Simulate capture: remove Queen first
             game.board.removePiece(new Coordinate(3, 7));
-            bloodlineBonus.onEvent('capture', { victim: queen, attacker: new Piece('pawn', 'black', 'pawn'), from: new Coordinate(3, 7), to: new Coordinate(3, 7) }, context);
+            bloodlineBonus.onEvent('capture', new Move(new Coordinate(3, 7), new Coordinate(3, 7), new Piece('pawn', 'black', 'pawn'), queen), context);
 
             const whiteQueens = game.board.getAllSquares()
                 .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'queen');

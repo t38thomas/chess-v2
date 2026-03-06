@@ -1,6 +1,7 @@
 import { definePact } from '../PactLogic';
 import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
+import { Move } from '../../models/Move';
 
 /**
  * The Phoenix Pact
@@ -14,8 +15,8 @@ export const ThePhoenix = definePact('phoenix')
                 key: 'phoenix_rebirth_used',
                 triggerOn: ['capture'],
                 filter: (event, payload, context) => {
-                    const move = payload as any;
-                    const capturedPiece = move.capturedPiece || payload.victim;
+                    const move = payload as Move;
+                    const capturedPiece = move.capturedPiece;
                     return capturedPiece?.color === context.playerId && capturedPiece.type === 'queen';
                 },
                 onTrigger: (context) => {

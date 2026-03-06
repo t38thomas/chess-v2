@@ -162,9 +162,6 @@ export class GameEngine {
             throw new Error("Turn rotation not enabled in this match");
         }
 
-        console.log('DEBUG: game object keys:', Object.keys(game));
-        console.log('DEBUG: game instance of ChessGame:', game instanceof ChessGame);
-        console.log('DEBUG: rotateBoard type:', typeof (game as any).rotateBoard);
         const success = game.rotateBoard();
         if (!success) {
             // Could strictly be "Game rejected it" (e.g. causes check?)

@@ -98,12 +98,35 @@ describe('The Sniper Pact', () => {
         });
 
         it('should block move if cooldown is active', () => {
+            // The cooldown blocking is handled globally by RuleEngine.canMovePiece,
+            // not by a modifier in TheSniper itself. We test it via game.makeMove.
+            board.clear();
             const whiteRook = new Piece('rook', 'white', 'white-rook-1');
-            board.placePiece(new Coordinate(0, 0), whiteRook);
-            game.pieceCooldowns.set(whiteRook.id, 1);
+            const whiteKing = new Piece('king', 'white', 'white-king');
+            const blackKing = new Piece('king', 'black', 'black-king');
 
-            const canMove = malus.getRuleModifiers().canMovePiece!({ game, from: new Coordinate(0, 0), board: game.board }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
-            expect(canMove).toBe(false);
+            board.placePiece(new Coordinate(0, 0), whiteRook);
+            board.placePiece(new Coordinate(7, 7), whiteKing);
+            board.placePiece(new Coordinate(7, 0), blackKing);
+
+            // Assign reload malus so RuleEngine applies cooldown blocking
+            game.pacts.white = [
+                // @ts-ignore
+                { id: 'sniper', name: 'The Sniper', bonus: { id: bonus.id, name: 'Long Sight', description: '' }, malus: { id: malus.id, name: 'Reload', description: '' }, category: 'Passive', description: '' }
+            ];
+            game.pacts.black = [];
+            game.phase = 'playing';
+            game.turn = 'white';
+
+            // Set cooldown on the rook
+            game.pieceCooldowns.set(whiteRook.id, 2);
+
+            // Attempt to move the rook — should be blocked by RuleEngine due to cooldown
+            const success = game.makeMove(new Coordinate(0, 0), new Coordinate(0, 5));
+            expect(success).toBe(false);
+
+            // Verify cooldown is still set (was not consumed)
+            expect(game.pieceCooldowns.get(whiteRook.id)).toBe(2);
         });
     });
 

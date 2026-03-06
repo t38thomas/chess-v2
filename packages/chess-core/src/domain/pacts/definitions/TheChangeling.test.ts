@@ -34,7 +34,7 @@ describe('The Changeling Pact', () => {
             // Execute capture
             game.turn = 'white';
             const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'mimicry' });
-            bonus.onEvent('capture', { attacker: whitePawn, victim: blackPawn, capturedPiece: blackPawn }, context);
+            bonus.onEvent('capture', new Move(start, captureTarget, whitePawn, blackPawn), context);
 
             // Check if activeMimics has entry
             const contextWithState = bonus.createContextWithState({ game, playerId: 'white', pactId: 'changeling' });
@@ -56,7 +56,7 @@ describe('The Changeling Pact', () => {
 
             game.turn = 'white';
             const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'mimicry' });
-            bonus.onEvent('capture', { attacker: whitePawn, victim: blackBishop, capturedPiece: blackBishop }, context);
+            bonus.onEvent('capture', new Move(start, captureTarget, whitePawn, blackBishop), context);
 
             // Verify it mimicked a BISHOP specifically
             const contextWithState = bonus.createContextWithState({ game, playerId: 'white', pactId: 'changeling' });
@@ -127,7 +127,7 @@ describe('The Changeling Pact', () => {
         });
 
         it('should increment turns counter on turn start', () => {
-            malus.onEvent('turn_start', { playerId: 'white' }, context);
+            malus.onEvent('turn_start', 'white', context);
             const contextWithState = malus.createContextWithState({ game, playerId: 'white', pactId: 'changeling' });
             expect(contextWithState.state.unstable_identity).toBe(1);
 
@@ -136,7 +136,7 @@ describe('The Changeling Pact', () => {
         it('should reset turns counter on capture', () => {
             context.updateState({ unstable_identity: 3 });
             const move = new Move(new Coordinate(0, 0), new Coordinate(0, 1), new Piece('pawn', 'white', 'p1'), new Piece('pawn', 'black', 'p2'), false, false, false, false);
-            malus.onEvent('capture', { attacker: move.piece, victim: move.capturedPiece!, to: move.to, from: move.from }, context);
+            malus.onEvent('capture', move, context);
 
             const contextWithState = malus.createContextWithState({ game, playerId: 'white', pactId: 'changeling' });
             expect(contextWithState.state.unstable_identity).toBe(0);
@@ -153,7 +153,7 @@ describe('The Changeling Pact', () => {
 
 
             // Trigger the 5th turn
-            malus.onEvent('turn_start', { playerId: 'white' }, context);
+            malus.onEvent('turn_start', 'white', context);
 
             const piece = board.getSquare(new Coordinate(0, 0))?.piece;
             expect(piece?.type).toBe('pawn');
@@ -173,7 +173,7 @@ describe('The Changeling Pact', () => {
             let freshContext = malus.createContextWithState({ game, playerId: 'white', pactId: 'changeling' });
 
 
-            malus.onEvent('turn_start', { playerId: 'white' }, context);
+            malus.onEvent('turn_start', 'white', context);
 
             expect(board.getSquare(new Coordinate(0, 0))?.piece?.type).toBe('king');
             expect(board.getSquare(new Coordinate(1, 1))?.piece?.type).toBe('pawn');

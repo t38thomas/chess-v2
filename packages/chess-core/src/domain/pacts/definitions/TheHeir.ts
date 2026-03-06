@@ -11,7 +11,7 @@ export const TheHeir = definePact('heir')
         target: 'self',
         onCapture: (payload, context) => {
             const { game, playerId } = context;
-            const capturedPiece = payload.victim;
+            const capturedPiece = payload.capturedPiece;
             if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
                 const minorPieces = context.query.pieces().ofTypes(['rook', 'bishop', 'knight']);
                 if (minorPieces.length > 0) {

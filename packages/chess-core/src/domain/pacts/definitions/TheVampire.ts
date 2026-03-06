@@ -10,8 +10,9 @@ import { PactUtils } from '../PactUtils';
 export const TheVampire = definePact('vampire')
     .bonus('life_thirst', {
         onCapture: (params, context) => {
-            const { victim, attacker } = params;
-            if (victim.type === 'queen') {
+            const victim = params.capturedPiece;
+            const attacker = params.piece;
+            if (victim && victim.type === 'queen') {
                 if (PactUtils.resurrectRandomPiece(context.game, attacker.color, ['bishop', 'knight'])) {
                     PactUtils.notifyPactEffect(context.game, 'vampire', 'life_thirst', 'bonus', 'blood-bag');
                 }

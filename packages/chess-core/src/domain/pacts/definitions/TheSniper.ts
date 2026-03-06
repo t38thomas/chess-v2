@@ -54,7 +54,8 @@ export const TheSniper = definePact('sniper')
         modifiers: {
             onExecuteMove: (game, move) => {
                 if (move.piece.type === 'rook' && (move.capturedPiece || move.isEnPassant)) {
-                    game.pieceCooldowns.set(move.piece.id, 2);
+                    // Apply cooldown through domain command
+                    game.applyCooldown!(move.piece.id, 2);
                     PactUtils.notifyPactEffect(game, 'sniper', 'reload', 'malus', 'reload');
                 }
             }

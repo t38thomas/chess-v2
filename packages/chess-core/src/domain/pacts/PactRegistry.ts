@@ -29,5 +29,12 @@ export class PactRegistry {
     public getAll(): PactLogic[] {
         return Array.from(this.pacts.values());
     }
+
+    /**
+     * Resets the singleton instance. Use only in test environments.
+     */
+    public static reset(): void {
+        PactRegistry.instance = new PactRegistry();
+    }
 }
 

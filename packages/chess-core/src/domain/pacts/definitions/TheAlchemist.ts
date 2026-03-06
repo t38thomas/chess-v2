@@ -17,12 +17,13 @@ export const TheAlchemist = definePact('alchemist')
             maxUses: 1,
             targetType: 'square',
             consumesTurn: true,
-            execute: (context, params?: { from: Coordinate, to: Coordinate }) => {
+            execute: (context, params) => {
                 const { game, playerId } = context;
-                if (!params || !params.from || !params.to) return false;
+                const p = params as { from: Coordinate; to: Coordinate } | undefined;
+                if (!p || !p.from || !p.to) return false;
 
-                const fromCoord = new Coordinate(params.from.x, params.from.y);
-                const toCoord = new Coordinate(params.to.x, params.to.y);
+                const fromCoord = new Coordinate(p.from.x, p.from.y);
+                const toCoord = new Coordinate(p.to.x, p.to.y);
 
                 const sq1 = game.board.getSquare(fromCoord);
                 const sq2 = game.board.getSquare(toCoord);

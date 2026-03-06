@@ -76,7 +76,9 @@ export const CombatEffects = {
                 const { game, playerId } = context;
                 const capturedPiece = move.capturedPiece;
                 if (capturedPiece?.type === pieceType && capturedPiece.color === playerId) {
-                    game.status = 'checkmate';
+                    const winner: import('../../models/Piece').PieceColor = playerId === 'white' ? 'black' : 'white';
+                    // End match through domain command
+                    game.endMatch!(winner, 'checkmate');
                     PactUtils.notifyPactEffect(game, pactIdOverride || context.pactId, notificationId, 'malus', sound);
                 }
             }

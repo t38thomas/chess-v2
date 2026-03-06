@@ -9,7 +9,7 @@ import { PactFactory } from './pacts/PactFactory';
 import { Pact } from './models/Pact';
 import { PactRegistry } from './pacts/PactRegistry';
 
-import { IChessGame, GameEvent, GameStatus, GamePhase } from './GameTypes';
+import { IChessGame, GameEvent, GameStatus, GamePhase, GameEventPayloads } from './GameTypes';
 import { MatchConfig, DEFAULT_MATCH_CONFIG } from './models/MatchConfig';
 
 export class ChessGame implements IChessGame {
@@ -31,7 +31,7 @@ export class ChessGame implements IChessGame {
     public lastMovedPiecePos: Coordinate | null = null;
     public enPassantTarget: Coordinate | null; // Square vulnerable to en passant
     public orientation: number = 0; // 0, 1, 2, 3 (clockwise)
-    private listeners: ((event: GameEvent, payload?: any) => void)[] = [];
+    private listeners: ((event: GameEvent, payload?: unknown) => void)[] = [];
     constructor(config: MatchConfig = DEFAULT_MATCH_CONFIG) {
         PactFactory.initialize();
         this.matchConfig = config;
@@ -106,6 +106,38 @@ export class ChessGame implements IChessGame {
 
 
 
+    /**
+     * Ends the match with a winner and reason.
+     * Preferred over setting `game.status` directly from pact logic.
+     */
+    public endMatch(winner: PieceColor | null, reason: 'checkmate' | 'stalemate' | 'draw' | 'resignation'): void {
+        if (this.status !== 'active') return; // already game over
+        this.status = reason === 'stalemate' || reason === 'draw' ? reason : 'checkmate';
+        if (winner) this.winner = winner;
+        this.phase = 'game_over';
+        this.emit('checkmate');
+    }
+
+    /**
+     * Applies a cooldown to a piece.
+     * Preferred over `game.pieceCooldowns.set(pieceId, turns)` from pact logic.
+     */
+    public applyCooldown(pieceId: string, turns: number): void {
+        if (turns <= 0) {
+            this.pieceCooldowns.delete(pieceId);
+        } else {
+            this.pieceCooldowns.set(pieceId, turns);
+        }
+    }
+
+    /**
+     * Grants extra turns to a player.
+     * Preferred over direct mutation of `game.extraTurns[color]` from pact logic.
+     */
+    public grantExtraTurn(color: PieceColor, count: number = 1): void {
+        this.extraTurns[color] = (this.extraTurns[color] || 0) + count;
+    }
+
     public useAbility(abilityId: string, params?: any): boolean {
         if (this.phase !== 'playing') return false;
 
@@ -146,15 +178,17 @@ export class ChessGame implements IChessGame {
             .map(p => p.id);
     }
 
-    public subscribe(listener: (event: GameEvent, payload?: any) => void): () => void {
+    public subscribe(listener: (event: GameEvent, payload?: unknown) => void): () => void {
         this.listeners.push(listener);
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
         };
     }
 
-    // Overload emit to support payload
-    public emit(event: GameEvent, payload?: any) {
+    // Overload emit to support typed payloads
+    public emit<E extends keyof GameEventPayloads>(event: E, payload: GameEventPayloads[E]): void;
+    public emit(event: GameEvent, payload?: unknown): void;
+    public emit(event: GameEvent, payload?: unknown) {
         this.listeners.forEach(l => l(event, payload));
 
         // Notify active pacts

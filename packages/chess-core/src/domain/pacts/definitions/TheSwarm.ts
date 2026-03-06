@@ -12,9 +12,9 @@ import { PactUtils } from '../PactUtils';
 export const TheSwarm = definePact('swarm')
     .bonus('hydra', {
         onCapture: (params, context) => {
-            const { victim } = params;
+            const victim = params.capturedPiece;
             const { game, playerId } = context;
-            if (victim.type === 'pawn' && victim.color === playerId) {
+            if (victim && victim.type === 'pawn' && victim.color === playerId) {
                 const rank = playerId === 'white' ? 1 : 6;
                 const cols = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5);
                 for (const x of cols) {

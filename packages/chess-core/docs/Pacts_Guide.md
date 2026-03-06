@@ -72,12 +72,12 @@ export interface PactLogicOptions<T = any> {
     modifiers?: RuleModifiers;
 
     // --- Event Hooks (logica imperativa a runtime) ---
-    onMove?:     (payload: GameEventPayloads['move'],     ctx: PactContextWithState<T>) => void;
-    onCapture?:  (payload: GameEventPayloads['capture'],  ctx: PactContextWithState<T>) => void;
-    onPromotion?:(payload: GameEventPayloads['promotion'],ctx: PactContextWithState<T>) => void;
-    onTurnStart?:(ctx: PactContextWithState<T>) => void;
-    onTurnEnd?:  (ctx: PactContextWithState<T>) => void;
-    onCheckmate?:(payload: GameEventPayloads['checkmate'],ctx: PactContextWithState<T>) => void;
+    onMove?:     (payload: Move,     ctx: PactContextWithState<T>) => void;
+    onCapture?:  (payload: Move,     ctx: PactContextWithState<T>) => void;
+    onPromotion?:(payload: { piece: Piece, type: PieceType, coord: Coordinate }, ctx: PactContextWithState<T>) => void;
+    onTurnStart?:(payload: PieceColor, ctx: PactContextWithState<T>) => void;
+    onTurnEnd?:  (payload: PieceColor, ctx: PactContextWithState<T>) => void;
+    onCheckmate?:(payload: { winner: PieceColor }, ctx: PactContextWithState<T>) => void;
 
     // --- Effetti Riutilizzabili (dal namespace Effects.*) ---
     effects?: PactEffect[];
@@ -258,10 +258,10 @@ Chiamati da `game.emit(event, payload)`. Ogni `PactLogic` attiva riceve l'evento
 | Trigger | Quando | Payload |
 |---|---|---|
 | `'move'` → `onMove` | Dopo che una mossa è stata eseguita | `Move` |
-| `'capture'` → `onCapture` | Quando un pezzo viene catturato | `{ attacker, victim, from, to }` |
+| `'capture'` → `onCapture` | Quando un pezzo viene catturato | `Move` (con `capturedPiece` popolato) |
 | `'promotion'` → `onPromotion` | Quando un pedone promuove | `{ piece, type, coord }` |
-| `'turn_start'` → `onTurnStart` | All'inizio di ogni turno | `{ playerId }` |
-| `'turn_end'` → `onTurnEnd` | Alla fine di ogni turno | `{ playerId }` |
+| `'turn_start'` → `onTurnStart` | All'inizio di ogni turno | `PieceColor` |
+| `'turn_end'` → `onTurnEnd` | Alla fine di ogni turno | `PieceColor` |
 | `'checkmate'` → `onCheckmate` | Quando viene dichiarato scacco matto | `{ winner }` |
 
 #### Hook Rule-Based (`RuleModifiers`)
@@ -378,7 +378,13 @@ class RuleEngine {
 }
 ```
 
-Ogni hook nei `RuleModifiers` è **opzionale** — il RuleEngine lo invoca solo se definito. Questo elimina if/else infiniti: ogni Patto è responsabile solo della propria logica.
+Ogni hook nei `RuleModifiers` è **opzionale** — il RuleEngine lo invoca solo se definito. 
+
+> [!NOTE]
+> **Chain Composition**: Se più Patti definiscono lo stesso modifier (es. `canCapture`), il sistema li **compone** automaticamente. 
+> - I modifier booleani sono in AND (se uno nega l'azione, l'azione è negata).
+> - I modifier che tornano array/void sono eseguiti in sequenza.
+> Questo garantisce che nessun Patto sovrascriva silenziosamente un altro.
 
 ---
 

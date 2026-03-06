@@ -1,4 +1,4 @@
-import { IChessGame, GameEvent } from '../GameTypes';
+import { IChessGame, GameEvent, GameEventPayloads, PactEffectNotification } from '../GameTypes';
 import { PieceColor, Piece, PieceType } from '../models/Piece';
 import { Move } from '../models/Move';
 import { BoardModel } from '../models/BoardModel';
@@ -52,20 +52,7 @@ export interface PactEffect {
     ) => void;
 }
 
-/**
- * Strongly typed payloads for game events.
- */
-export interface GameEventPayloads {
-    'move': Move;
-    'turn_start': { playerId: PieceColor };
-    'turn_end': { playerId: PieceColor };
-    'capture': { attacker: Piece; victim: Piece; to: Coordinate; from: Coordinate };
-    'pact_effect': any;
-    'checkmate': { winner: PieceColor };
-    'draw': { reason: string };
-    'promotion': { piece: Piece; type: PieceType; coord: Coordinate };
-    // Add other event types as needed
-}
+// Moved to GameTypes.ts
 
 export interface PactDefinition {
     id: string; // The UI/Meta ID for the pact (e.g. 'berserker')
@@ -73,7 +60,7 @@ export interface PactDefinition {
     malus: PactLogic;
 }
 
-export interface ActiveAbilityConfig<T = any> {
+export interface ActiveAbilityConfig<TState = any, TParams = unknown> {
     id: string;
     name: string; // Internal name or key for translation
     description: string; // Internal desc or key
@@ -84,7 +71,7 @@ export interface ActiveAbilityConfig<T = any> {
     consumesTurn?: boolean;
     repeatable?: boolean;
     maxTargets?: number;
-    execute: (context: PactContextWithState<T>, params: any) => boolean;
+    execute: (context: PactContextWithState<TState>, params: TParams) => boolean;
 }
 
 export interface MoveParams {
@@ -205,7 +192,6 @@ export abstract class PactLogic<T = any> {
                 const nextState = typeof update === 'function'
                     ? (update as Function)(currentState)
                     : { ...currentState, ...update };
-                console.log(`Updating state for ${this.id}_${context.playerId}:`, nextState);
                 this.setState(context.game, context.playerId, nextState);
             },
 
@@ -338,7 +324,7 @@ class GenericPact<T = any> extends PactLogic<T> {
 
         if (effectModifiers.length === 0) return base;
 
-        return Object.assign({}, ...effectModifiers, base);
+        return composeRuleModifiers([...effectModifiers, base]);
     }
 
 
@@ -442,6 +428,70 @@ export class PactBuilder<TBonus = any, TMalus = any> {
     }
 }
 
+
+// ---------------------------------------------------------------------------
+// Modifier Composition
+// ---------------------------------------------------------------------------
+
+type ModifierFn = (...args: any[]) => any;
+
+/**
+ * Boolean modifier keys — these use AND-chain semantics.
+ * Returning `false` from any one handler blocks the action.
+ * Returning `undefined` (not expressed) does not block.
+ */
+const BOOLEAN_MODIFIERS: ReadonlySet<keyof RuleModifiers> = new Set([
+    'canMovePiece', 'canCapture', 'canBeCaptured',
+    'canCastleWhileMoved', 'canCastle', 'mustMoveKingInCheck',
+    'canDoubleMove', 'canDiagonalDash', 'canSidewaysMove',
+    'canMoveThroughFriendlies', 'canMoveLikeKnight', 'hasEcholocation',
+    'isImmuneToCheckmate',
+] as const satisfies (keyof RuleModifiers)[]);
+
+/**
+ * Composes multiple RuleModifiers sources into a single object.
+ * - Boolean modifier keys: AND-chain (any `false` result blocks)
+ * - Void/array modifier keys: sequential execution (all handlers called)
+ *
+ * This replaces the previous `Object.assign({}, ...sources)` which silently
+ * discarded all but the last handler for duplicate keys.
+ */
+export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleModifiers {
+    const result: Record<string, ModifierFn> = {};
+    const allKeys = new Set(sources.flatMap(s => Object.keys(s))) as Set<keyof RuleModifiers>;
+
+    for (const key of allKeys) {
+        const fns = sources
+            .map(s => (s as any)[key])
+            .filter((f): f is ModifierFn => typeof f === 'function');
+
+        if (fns.length === 0) continue;
+        if (fns.length === 1) {
+            result[key as string] = fns[0];
+            continue;
+        }
+
+        if (BOOLEAN_MODIFIERS.has(key)) {
+            // AND-chain: false from any handler blocks; undefined is neutral
+            result[key as string] = (...args: any[]) => {
+                for (const fn of fns) {
+                    const res = fn(...args);
+                    if (res === false) return false;
+                }
+                return true;
+            };
+        } else {
+            // Sequential: all handlers called, last return value propagated
+            result[key as string] = (...args: any[]) => {
+                let last: any;
+                for (const fn of fns) last = fn(...args);
+                return last;
+            };
+        }
+    }
+
+    return result as RuleModifiers;
+}
 
 export function definePact<TBonus = any, TMalus = any>(id: string): PactBuilder<TBonus, TMalus> {
     return new PactBuilder<TBonus, TMalus>(id);

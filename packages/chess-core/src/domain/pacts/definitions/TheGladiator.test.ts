@@ -4,6 +4,8 @@ import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { PactContext } from '../PactLogic';
+import { createGameMock } from '../__test-utils__/pactTestHelpers';
+import { IChessGame } from '../../GameTypes';
 
 describe('The Gladiator', () => {
     let game: ChessGame;
@@ -45,10 +47,13 @@ describe('The Gladiator', () => {
     });
 
     describe('Arena (Bonus)', () => {
-        const whiteContext: PactContext = {
-            game: {} as any, // not used by canBeCaptured in this impl but required by interface
+        const whiteContext: any = {
+            game: createGameMock(),
             playerId: 'white',
-            pactId: 'arena'
+            pactId: 'arena',
+            state: {},
+            updateState: vi.fn(),
+            query: { pieces: vi.fn(() => ({ friendly: vi.fn(() => ({ ofTypes: vi.fn(() => []) })) })) }
         };
 
         it('should prevent pawn from capturing a piece on a dark square', () => {

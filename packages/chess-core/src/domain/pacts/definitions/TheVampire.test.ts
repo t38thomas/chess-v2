@@ -46,8 +46,8 @@ describe('The Vampire', () => {
             // Mock emit
             const emitSpy = vi.spyOn(game, 'emit');
 
-            const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
-            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
+            const captureMove = new Move(myQueenPos, enemyQueenPos, myQueen, enemyQueen);
+            vampireBonus.onEvent('capture', captureMove, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
 
             // Verify resurrection: Should be at (2,0) or (5,0)
             const unitsOnBoard = game.board.getAllSquares()
@@ -79,8 +79,8 @@ describe('The Vampire', () => {
             const move = new Move(myQueenPos, enemyQueenPos, myQueen, enemyQueen);
             const emitSpy = vi.spyOn(game, 'emit');
 
-            const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
-            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
+            const captureMove = new Move(myQueenPos, enemyQueenPos, myQueen, enemyQueen);
+            vampireBonus.onEvent('capture', captureMove, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
 
             const unitsOnBoard = game.board.getAllSquares()
                 .filter(s => s.piece && s.piece.color === 'white' && (s.piece.type === 'bishop' || s.piece.type === 'knight'));

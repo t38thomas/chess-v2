@@ -4,6 +4,9 @@ import { MoveGenerator } from '../../rules/MoveGenerator';
 import { RuleEngine } from '../../rules/RuleEngine';
 import { MovementUtils } from '../utils/MovementUtils';
 import { PactUtils } from '../PactUtils';
+import { Coordinate } from '../../models/Coordinate';
+import { Move } from '../../models/Move';
+import { Vector } from './PawnEffects';
 
 export const MovementEffects = {
     /**
@@ -159,10 +162,6 @@ export const MovementEffects = {
         modifiers: {
             onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
                 if (piece.type !== pieceType) return;
-
-                const { Coordinate } = require('../../models/Coordinate');
-                const { Move } = require('../../models/Move');
-                const { Vector } = require('./PawnEffects');
 
                 let dx = 0;
                 let dy = 0;

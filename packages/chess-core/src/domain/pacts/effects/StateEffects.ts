@@ -1,5 +1,5 @@
-import { PactEffect, PactContextWithState, GameEventPayloads } from '../PactLogic';
-import { GameEvent } from '../../GameTypes';
+import { PactEffect, PactContextWithState } from '../PactLogic';
+import { GameEvent, GameEventPayloads } from '../../GameTypes';
 
 export interface CounterOptions {
     key: string;

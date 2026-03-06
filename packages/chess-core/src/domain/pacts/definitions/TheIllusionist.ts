@@ -21,8 +21,9 @@ export const TheIllusionist = definePact('illusionist')
             cooldown: DISPLACE_COOLDOWN,
             targetType: 'piece',
             maxTargets: 1,
-            execute: (context, targetPos) => {
+            execute: (context, params) => {
                 const { game } = context;
+                const targetPos = params as Coordinate;
                 const targetSquare = game.board.getSquare(targetPos);
                 if (!targetSquare?.piece) return false;
 

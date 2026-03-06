@@ -16,9 +16,9 @@ export const TheChangeling = definePact('changeling')
                 key: 'mimicry_activeMimics',
                 durationInTurns: 1,
                 triggerOn: ['capture'],
-                extractData: (payload: any, event) => {
-                    if (event === 'capture' && payload.attacker.type === 'pawn') {
-                        return { recordKey: payload.attacker.id, data: { type: payload.victim.type } };
+                extractData: (payload: Move, event) => {
+                    if (event === 'capture' && payload.piece.type === 'pawn') {
+                        return { recordKey: payload.piece.id, data: { type: payload.capturedPiece?.type || 'pawn' } };
                     }
                     return null;
                 }
@@ -53,7 +53,7 @@ export const TheChangeling = definePact('changeling')
             }
         },
         onCapture: (payload, context) => {
-            if (payload.attacker.type === 'pawn' && payload.attacker.color === context.playerId) {
+            if (payload.piece.type === 'pawn' && payload.piece.color === context.playerId) {
                 PactUtils.notifyPactEffect(context.game, 'changeling', 'mimicry', 'bonus', 'cached');
             }
         }
@@ -66,8 +66,8 @@ export const TheChangeling = definePact('changeling')
                 incrementOn: ['turn_start'],
                 resetOn: ['capture'],
                 filter: (event, payload, context) => {
-                    if (event === 'turn_start' && payload.playerId !== context.playerId) return false;
-                    if (event === 'capture' && payload.attacker.color !== context.playerId) return false;
+                    if (event === 'turn_start' && payload !== context.playerId) return false;
+                    if (event === 'capture' && payload.piece.color !== context.playerId) return false;
                     return true;
                 },
                 onMax: (context) => {
