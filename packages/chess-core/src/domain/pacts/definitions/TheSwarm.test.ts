@@ -29,13 +29,16 @@ describe('The Swarm Pact', () => {
             });
 
             // Simulate capture of our own pawn (e.g. by sniper or something)
-            const context = { game, playerId: 'white' as any, pactId: 'hydra' };
-            const move = { capturedPiece: whitePawn };
+            const rawContext = { game, playerId: 'white' as any, pactId: 'swarm' };
+            const context = bonus.createContextWithState(rawContext);
+            const capturePayload = { attacker: new Piece('rook', 'black', 'b-rook'), victim: whitePawn };
 
-            bonus.onEvent('move', move as any, context as any);
+            bonus.onEvent('capture', capturePayload, context);
+
 
             expect(events.length).toBe(1);
-            expect(events[0].title).toBe('pact.toasts.swarm.spawn.title');
+            expect(events[0].title).toBe('pact.toasts.swarm.hydra.title');
+
         });
     });
 
@@ -53,12 +56,16 @@ describe('The Swarm Pact', () => {
             game.pacts.black = [{ id: TheSwarm.id, title: 'Swarm', bonus: { id: 'hydra', name: 'hydra', icon: '', description: '', ranking: 5, category: 'Other' }, malus: { id: 'hive_queen', name: 'hive_queen', icon: '', description: '', ranking: -5, category: 'Other' }, description: '' }];
 
             // Simulate loss of queen
-            game.board.removePiece(new Coordinate(0, 0));
-            game.emit('capture', { piece: new Piece('pawn', 'white', 'white-pawn'), capturedPiece: blackQueen });
+            const capturePayload = { attacker: new Piece('pawn', 'white', 'white-pawn'), victim: blackQueen, capturedPiece: blackQueen };
+            const rawContext = { game, playerId: 'black' as const, pactId: 'swarm' };
+            const context = malus.createContextWithState(rawContext);
+
+            malus.onEvent('capture', capturePayload, context);
 
             expect(events.length).toBe(1);
             expect(events[0].title).toBe('pact.toasts.swarm.death.title');
             expect(game.status).toBe('checkmate');
+
         });
     });
 });

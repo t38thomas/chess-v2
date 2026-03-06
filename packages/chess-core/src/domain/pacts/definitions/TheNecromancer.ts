@@ -32,6 +32,7 @@ export const TheNecromancer = definePact('necromancer')
                 if (!startSquare) return false;
 
                 game.board.placePiece(startSquare, lostPiece);
+                PactUtils.notifyPactEffect(game, 'necromancer', 'reclaimer', 'bonus', 'refresh');
                 return true;
             }
         }
@@ -40,13 +41,14 @@ export const TheNecromancer = definePact('necromancer')
         modifiers: {
             modifyNextTurn: (params, context) => {
                 if (params.eventType === 'promotion') {
-                    const opponent = params.currentTurn === 'white' ? 'black' : 'white';
-                    params.game.extraTurns[opponent] = (params.game.extraTurns[opponent] || 0) + 1;
-                    PactUtils.notifyPactEffect(params.game, 'necromancer', 'cost', 'malus', 'trending-up');
+                    const opponentColor = context.playerId === 'white' ? 'black' : 'white';
+                    params.game.extraTurns[opponentColor] = (params.game.extraTurns[opponentColor] || 0) + 1;
+                    PactUtils.notifyPactEffect(params.game, 'necromancer', 'ascension_cost', 'malus', 'trending-up');
                 }
                 return null;
             }
         }
     })
     .build();
+
 

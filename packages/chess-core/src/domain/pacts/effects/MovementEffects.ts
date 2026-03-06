@@ -146,5 +146,50 @@ export const MovementEffects = {
                 return moverFilter(mover) && obstacleFilter(obstacle);
             }
         }
+    }),
+
+    /**
+     * Allows movement in a specific direction (relative to orientation) for certain piece types.
+     */
+    allowDirection: (
+        pieceType: PieceType,
+        direction: 'forward' | 'backward' | 'left' | 'right',
+        options: { capture?: boolean, canMoveToOccupied?: boolean } = { capture: false, canMoveToOccupied: false }
+    ): PactEffect => ({
+        modifiers: {
+            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
+                if (piece.type !== pieceType) return;
+
+                const { Coordinate } = require('../../models/Coordinate');
+                const { Move } = require('../../models/Move');
+                const { Vector } = require('./PawnEffects');
+
+                let dx = 0;
+                let dy = 0;
+
+                if (direction === 'forward') dy = piece.color === 'white' ? 1 : -1;
+                else if (direction === 'backward') dy = piece.color === 'white' ? -1 : 1;
+                else if (direction === 'left') dx = piece.color === 'white' ? -1 : 1;
+                else if (direction === 'right') dx = piece.color === 'white' ? 1 : -1;
+
+                const vector = Vector.rotate(dx, dy, orientation ?? 0);
+                const targetCoord = new Coordinate(from.x + vector.dx, from.y + vector.dy);
+
+                if (targetCoord.isValid()) {
+                    const targetSquare = board.getSquare(targetCoord);
+                    const occupant = targetSquare?.piece;
+
+                    if (!occupant) {
+                        moves.push(new Move(from, targetCoord, piece, null));
+                    } else if (options.capture && occupant.color !== piece.color) {
+                        moves.push(new Move(from, targetCoord, piece, occupant));
+                    } else if (options.canMoveToOccupied) {
+                        // Special cases where moving onto occupied square is allowed but not a capture
+                        moves.push(new Move(from, targetCoord, piece, null));
+                    }
+                }
+            }
+        }
     })
 };
+

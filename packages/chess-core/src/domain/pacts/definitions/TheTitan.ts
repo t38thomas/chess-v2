@@ -11,11 +11,10 @@ export const TheTitan = definePact('titan')
     .bonus('earthquake', {
         modifiers: {
             onExecuteMove: (game, move, context) => {
-                const b = game.board;
-                const square = b.getSquare(move.to);
+                const square = game.board.getSquare(move.to);
                 const piece = move.piece || square?.piece;
-                if (context && piece?.color !== context.playerId) return;
-                if (!square || !square.piece || square.piece.type !== 'queen') return;
+                if (!context || piece?.color !== context.playerId) return;
+                if (piece.type !== 'queen') return;
 
                 const adjacent = PactUtils.getPiecesAdjacentTo(game, move.to);
                 let pushedAny = false;
@@ -41,4 +40,5 @@ export const TheTitan = definePact('titan')
         effects: [Effects.movement.restrictFromEdge('queen')]
     })
     .build();
+
 

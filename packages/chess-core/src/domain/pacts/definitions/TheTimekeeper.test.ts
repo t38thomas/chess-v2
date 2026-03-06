@@ -19,16 +19,15 @@ describe('The Timekeeper', () => {
     it('should grant an extra turn when Time Stop is activated', () => {
         const initialExtraTurns = game.extraTurns['white'] || 0;
 
-        const context = {
+        const rawContext = {
             game: game,
             playerId: 'white' as const,
-            pactId: TheTimekeeper.id,
-            state: {},
-            updateState: () => { }
+            pactId: TheTimekeeper.id
         };
+        const context = timeStop.createContextWithState(rawContext);
 
-        // Mock execute if needed, but we are testing the class providing execute
         const result = timeStop.activeAbility!.execute(context, {});
+
 
         expect(result).toBe(true);
         expect(game.extraTurns['white']).toBe(initialExtraTurns + 1);
@@ -47,15 +46,15 @@ describe('The Timekeeper', () => {
             .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'pawn');
         expect(whitePawns.length).toBe(4);
 
-        const context = {
+        const rawContext = {
             game: game,
             playerId: 'white' as const,
-            pactId: 'time_stop',
-            state: {},
-            updateState: () => { }
+            pactId: 'timekeeper'
         };
+        const context = timeStop.createContextWithState(rawContext);
 
         timeStop.activeAbility!.execute(context, {});
+
 
         // Should have 1 pawn left (4 - 3 = 1)
         whitePawns = game.board.getAllSquares()
@@ -73,15 +72,15 @@ describe('The Timekeeper', () => {
             .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'pawn');
         expect(whitePawns.length).toBe(2);
 
-        const context = {
+        const rawContext = {
             game: game,
             playerId: 'white' as const,
-            pactId: 'time_stop',
-            state: {},
-            updateState: () => { }
+            pactId: 'timekeeper'
         };
+        const context = timeStop.createContextWithState(rawContext);
 
         timeStop.activeAbility!.execute(context, {});
+
 
         // Should have 0 pawns left
         whitePawns = game.board.getAllSquares()

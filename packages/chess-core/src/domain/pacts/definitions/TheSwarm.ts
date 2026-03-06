@@ -11,26 +11,25 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSwarm = definePact('swarm')
     .bonus('hydra', {
-        onMove: (move, context) => {
-            if (move.capturedPiece) {
-                const { game, playerId } = context;
-                const capturedPiece = move.capturedPiece;
-                if (capturedPiece?.type === 'pawn' && capturedPiece.color === playerId) {
-                    const rank = playerId === 'white' ? 1 : 6;
-                    const cols = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5);
-                    for (const x of cols) {
-                        const coord = new Coordinate(x, rank);
-                        if (!game.board.getSquare(coord)?.piece) {
-                            const id = `${playerId}-pawn-hydra-${Date.now()}-${x}`;
-                            game.board.placePiece(coord, new Piece('pawn', playerId, id));
-                            PactUtils.notifyPactEffect(game, 'swarm', 'spawn', 'bonus', 'auto-fix');
-                            break;
-                        }
+        onCapture: (params, context) => {
+            const { victim } = params;
+            const { game, playerId } = context;
+            if (victim.type === 'pawn' && victim.color === playerId) {
+                const rank = playerId === 'white' ? 1 : 6;
+                const cols = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - 0.5);
+                for (const x of cols) {
+                    const coord = new Coordinate(x, rank);
+                    if (!game.board.getSquare(coord)?.piece) {
+                        const id = `${playerId}-pawn-hydra-${Date.now()}-${x}`;
+                        game.board.placePiece(coord, new Piece('pawn', playerId, id));
+                        PactUtils.notifyPactEffect(game, 'swarm', 'hydra', 'bonus', 'auto-fix');
+                        break;
                     }
                 }
             }
         }
     })
+
     .malus('hive_queen', {
         effects: [Effects.combat.loseOnPieceCapture('queen', 'death', 'crown', 'swarm')]
     })

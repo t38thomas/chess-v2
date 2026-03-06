@@ -27,9 +27,10 @@ describe('The Heir', () => {
             game.board.placePiece(enemyPos, enemyPawn);
 
             const modifiers = youngQueenMalus.getRuleModifiers();
+            const context = youngQueenMalus.createContextWithState({ playerId: queen.color, game, pactId: 'heir' });
             const canCapture = modifiers.canCapture!({
                 game, board: game.board, attacker: queen, victim: enemyPawn, from: queenPos, to: enemyPos
-            }, { playerId: queen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
+            }, context);
 
             expect(canCapture).toBe(false);
         });
@@ -46,9 +47,10 @@ describe('The Heir', () => {
             game.board.placePiece(enemyPos, enemyKing);
 
             const modifiers = youngQueenMalus.getRuleModifiers();
+            const context = youngQueenMalus.createContextWithState({ playerId: queen.color, game, pactId: 'heir' });
             const canCapture = modifiers.canCapture!({
                 game, board: game.board, attacker: queen, victim: enemyKing, from: queenPos, to: enemyPos
-            }, { playerId: queen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
+            }, context);
 
             expect(canCapture).toBe(true);
         });
@@ -68,12 +70,14 @@ describe('The Heir', () => {
             game.pactState[`bloodline_white`] = { successorIds: { [successorQueen.id]: true } };
 
             const modifiers = youngQueenMalus.getRuleModifiers();
+            const context = youngQueenMalus.createContextWithState({ playerId: successorQueen.color, game, pactId: 'heir' });
             const canCapture = modifiers.canCapture!({
                 game, board: game.board, attacker: successorQueen, victim: enemyPawn, from: queenPos, to: enemyPos
-            }, { playerId: successorQueen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
+            }, context);
 
             expect(canCapture).toBe(true);
         });
+
     });
 
     describe('Bloodline (Bonus)', () => {

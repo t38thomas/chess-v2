@@ -29,7 +29,10 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 1));
 
-            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer', state: {}, updateState: () => { } } as any, {});
+            const rawContext = { game, playerId: 'white' as const, pactId: 'necromancer' };
+            const context = bonus.createContextWithState(rawContext);
+            const success = bonus.activeAbility!.execute(context, {});
+
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 1))?.piece?.id).toBe('white-pawn-0');
@@ -46,7 +49,10 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(0, 0));
 
-            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer', state: {}, updateState: () => { } } as any, {});
+            const rawContext = { game, playerId: 'white' as const, pactId: 'necromancer' };
+            const context = bonus.createContextWithState(rawContext);
+            const success = bonus.activeAbility!.execute(context, {});
+
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(0, 0))?.piece?.id).toBe('white-rook-0');
@@ -63,7 +69,10 @@ describe('The Necromancer Pact', () => {
 
             board.removePiece(new Coordinate(7, 0));
 
-            const success = bonus.activeAbility!.execute({ game, playerId: 'white', pactId: 'reclaimer', state: {}, updateState: () => { } } as any, {});
+            const rawContext = { game, playerId: 'white' as const, pactId: 'necromancer' };
+            const context = bonus.createContextWithState(rawContext);
+            const success = bonus.activeAbility!.execute(context, {});
+
 
             expect(success).toBe(true);
             expect(board.getSquare(new Coordinate(7, 0))?.piece?.id).toBe('white-rook-7');
@@ -78,13 +87,18 @@ describe('The Necromancer Pact', () => {
             });
 
             // Trigger the malus effect
+            const rawContext = { game, playerId: 'white' as const, pactId: 'necromancer' };
+            const context = malus.createContextWithState(rawContext);
+            // Trigger the malus effect
             const modifiers = malus.getRuleModifiers();
             if (modifiers.modifyNextTurn) {
-                modifiers.modifyNextTurn({ game, currentTurn: 'white', eventType: 'promotion' }, { playerId: 'white', game, updateState: () => { }, state: {}, pactId: 'necromancer' } as any);
+                modifiers.modifyNextTurn({ game, currentTurn: 'white', eventType: 'promotion' }, context);
             }
 
+
             expect(events.length).toBe(1);
-            expect(events[0].title).toBe('pact.toasts.necromancer.cost.title');
+            expect(events[0].title).toBe('pact.toasts.necromancer.ascension_cost.title');
+
             expect(game.extraTurns['black']).toBe(1);
         });
     });

@@ -11,7 +11,7 @@ export const TheHeavyCavalry = definePact('heavy_cavalry')
     .bonus('trample', {
         target: 'self',
         modifiers: {
-            onExecuteMove: (game, move, context) => {
+            onExecuteMove: (game, move) => {
                 if (move.piece.type !== 'knight') return;
 
                 const directions = [
@@ -70,3 +70,4 @@ export const TheHeavyCavalry = definePact('heavy_cavalry')
         }
     })
     .build();
+

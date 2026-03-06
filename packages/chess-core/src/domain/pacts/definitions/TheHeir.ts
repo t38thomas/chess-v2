@@ -13,19 +13,17 @@ export const TheHeir = definePact('heir')
             const { game, playerId } = context;
             const capturedPiece = payload.victim;
             if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
-                const minorPieces = PactUtils.findPiecesByTypes(game, playerId, ['rook', 'bishop', 'knight']);
+                const minorPieces = context.query.pieces().ofTypes(['rook', 'bishop', 'knight']);
                 if (minorPieces.length > 0) {
                     const [successor] = PactUtils.pickRandom(minorPieces, 1);
                     if (successor) {
                         PactUtils.promotePiece(game, successor.coord, 'queen');
-                        const ctx = context as import('../PactLogic').PactContextWithState<any>;
-                        const state = ctx.state || {};
-                        ctx.updateState({
+                        context.updateState((prev: any) => ({
                             successorIds: {
-                                ...(state.successorIds || {}),
+                                ...(prev?.successorIds || {}),
                                 [successor.piece.id]: true
                             }
-                        });
+                        }));
 
                         PactUtils.notifyPactEffect(game, 'heir', 'bloodline', 'bonus', 'crown');
                     }
@@ -38,7 +36,7 @@ export const TheHeir = definePact('heir')
         modifiers: {
             canCapture: (params, context) => {
                 if (params.attacker.type === 'queen') {
-                    const sharedState = params.game?.pactState[`bloodline_${params.attacker.color}`] || {};
+                    const sharedState = context.getSiblingState<any>() || {};
                     const isSuccessor = sharedState.successorIds?.[params.attacker.id];
                     if (!isSuccessor) return params.victim.type === 'king';
                 }
@@ -46,11 +44,11 @@ export const TheHeir = definePact('heir')
             }
         },
         getTurnCounters: (context) => {
-            const { game, playerId } = context;
-            const queens = PactUtils.findPieces(game, playerId, 'queen');
+            const { playerId } = context;
+            const queens = context.query.pieces().ofTypes(['queen']);
             if (queens.length === 0) return [];
 
-            const sharedState = game.pactState[`bloodline_${playerId}`] || {};
+            const sharedState = context.getSiblingState<any>() || {};
             const isSuccessor = queens.some(q => sharedState.successorIds?.[q.piece.id]);
 
             return [{
@@ -63,4 +61,5 @@ export const TheHeir = definePact('heir')
         }
     })
     .build();
+
 

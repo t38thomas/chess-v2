@@ -55,8 +55,8 @@ export const TheIllusionist = definePact('illusionist')
                 triggerOn: ['phase_change'],
                 filter: (event, payload, context) => context.game.phase === 'playing',
                 onTrigger: (context) => {
-                    const { game, playerId } = context;
-                    const pawns = PactUtils.findPieces(game, playerId, 'pawn');
+                    const { game } = context;
+                    const pawns = context.query.pieces().ofTypes(['pawn']);
                     if (pawns.length > 0) {
                         const victim = PactUtils.pickRandom(pawns, 1)[0];
                         if (victim) {
@@ -69,4 +69,5 @@ export const TheIllusionist = definePact('illusionist')
         ]
     })
     .build();
+
 

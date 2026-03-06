@@ -61,9 +61,10 @@ describe('The Vampire', () => {
 
             // Verify toast
             expect(emitSpy).toHaveBeenCalledWith('pact_effect', expect.objectContaining({
-                pactId: TheVampire.bonus.id,
+                pactId: 'vampire',
                 type: 'bonus'
             }));
+
         });
 
         it('should NOT resurrect if no minor pieces are captured', () => {

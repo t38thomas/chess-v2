@@ -19,7 +19,7 @@ export const ThePhoenix = definePact('phoenix')
                     return capturedPiece?.color === context.playerId && capturedPiece.type === 'queen';
                 },
                 onTrigger: (context) => {
-                    const pawns = PactUtils.findPieces(context.game, context.playerId, 'pawn');
+                    const pawns = context.query.pieces().ofTypes(['pawn']);
                     if (pawns.length > 0) {
                         const [victim] = PactUtils.pickRandom(pawns, 1);
                         if (victim) {
@@ -35,3 +35,4 @@ export const ThePhoenix = definePact('phoenix')
         effects: [Effects.rules.removePiecesAtStart('rook')]
     })
     .build();
+

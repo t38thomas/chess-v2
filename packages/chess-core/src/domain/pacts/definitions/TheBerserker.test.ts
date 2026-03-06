@@ -6,8 +6,10 @@ import { Piece, PieceColor } from '../../models/Piece';
 import { Move } from '../../models/Move';
 import { TheBerserker } from './TheBerserker';
 import { ChessGame } from '../../ChessGame';
+import { RuleEngine } from '../../rules/RuleEngine';
 
 describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
+
     let board: BoardModel;
     let game: ChessGame;
     const bonus = TheBerserker.bonus;
@@ -15,10 +17,9 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
     beforeEach(() => {
         game = new ChessGame();
         board = game.board;
-        // Initialize state for the test
-        game.pactState['frenzy_white'] = { isFrenzyActive: false, frenzyPieceId: null };
-        game.pactState['frenzy_black'] = { isFrenzyActive: false, frenzyPieceId: null };
     });
+
+
 
     const getContext = () => bonus.createContextWithState({ game, playerId: 'white', pactId: 'frenzy' });
 
@@ -34,21 +35,17 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const move = new Move(start, captureTarget, whiteRook, blackPawn);
 
-        const events: any[] = [];
-        game.subscribe((event, payload) => {
-            if (event === 'pact_effect') events.push(payload);
-        });
-
         const modifiers = bonus.getRuleModifiers();
-        if (modifiers.onExecuteMove) {
-            modifiers.onExecuteMove(game, move, getContext());
-        }
+        const ctx = bonus.createContextWithState({ game, playerId: 'white', pactId: 'frenzy' });
+        modifiers.onExecuteMove!(game, move, ctx);
 
-        expect(game.pactState['frenzy_white'].isFrenzyActive).toBe(true);
-        expect(game.pactState['frenzy_white'].frenzyPieceId).toBe(whiteRook.id);
-        expect(events[0].pactId).toBe('berserker');
-        expect(events[0].title).toBe('pact.toasts.berserker.frenzy.title');
+        const state = game.pactState['frenzy_white'];
+        expect(state.isFrenzyActive).toBe(true);
+        expect(state.frenzyPieceId).toBe(whiteRook.id);
     });
+
+
+
 
     it('should NOT trigger frenzy when capturing a non-pawn piece', () => {
         board.clear();

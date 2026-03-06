@@ -9,14 +9,16 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheVampire = definePact('vampire')
     .bonus('life_thirst', {
-        onCapture: ({ victim, attacker }, { game }) => {
+        onCapture: (params, context) => {
+            const { victim, attacker } = params;
             if (victim.type === 'queen') {
-                if (PactUtils.resurrectRandomPiece(game, attacker.color, ['bishop', 'knight'])) {
-                    PactUtils.notifyPactEffect(game, 'life_thirst', 'life_thirst', 'bonus', 'blood-bag');
+                if (PactUtils.resurrectRandomPiece(context.game, attacker.color, ['bishop', 'knight'])) {
+                    PactUtils.notifyPactEffect(context.game, 'vampire', 'life_thirst', 'bonus', 'blood-bag');
                 }
             }
         }
     })
+
     .malus('vampire_curse', {
         effects: [Effects.rules.disableCastling()]
     })

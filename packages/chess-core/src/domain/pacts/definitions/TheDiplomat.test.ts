@@ -17,6 +17,9 @@ describe('The Diplomat Pact', () => {
         board = game.board;
     });
 
+
+
+
     describe('DiplomaticImmunityBonus', () => {
         it('should protect Queen from Pawn capture when she has not captured yet', () => {
             board.clear();
@@ -77,7 +80,7 @@ describe('The Diplomat Pact', () => {
                 if (event === 'pact_effect') notifyCount++;
             });
 
-            const context = { game, playerId: 'white' as const, pactId: 'diplomat' };
+            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomatic_immunity' });
 
             // Use the public onEvent method which correctly handles effects
             bonus.onEvent('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, context);
@@ -85,6 +88,7 @@ describe('The Diplomat Pact', () => {
             expect(game.pactState[`diplomatic_immunity_white`]?.has_captured).toBe(true);
             expect(notifyCount).toBe(2); // One for immunity lost, one for sabotage ended
         });
+
     });
 
     describe('InternalSabotageMalus', () => {

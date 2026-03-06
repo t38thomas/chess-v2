@@ -1,20 +1,13 @@
 import { definePact } from '../PactLogic';
-import { PactUtils } from '../PactUtils';
+import { BoardUtils } from '../utils/BoardUtils';
 
-/**
- * The Shadow Pact
- * Bonus (Shadow Cloak): Pieces on the perimeter are immune to ranged captures.
- * Malus (Blind Light): Pieces in the center cannot capture.
- */
 export const TheShadow = definePact('shadow')
     .bonus('shadow_cloak', {
         modifiers: {
-            canBeCaptured: (params, context) => {
-                if (context && params.victim.color !== context.playerId) return true;
-                const isPerimeter = params.to.x === 0 || params.to.x === 7 || params.to.y === 0 || params.to.y === 7;
-                if (isPerimeter) {
-                    const distance = Math.max(Math.abs(params.from.x - params.to.x), Math.abs(params.from.y - params.to.y));
-                    if (distance > 1) return false;
+            canBeCaptured: (params) => {
+                if (BoardUtils.isEdgeSquare(params.to)) {
+                    const distance = params.from.distanceTo(params.to);
+                    if (distance > 1.5) return false;
                 }
                 return true;
             }
@@ -22,11 +15,12 @@ export const TheShadow = definePact('shadow')
     })
     .malus('blind_light', {
         modifiers: {
-            canCapture: (params, context) => {
-                if (context && params.attacker.color !== context.playerId) return true;
-                return !PactUtils.isCentralSquare(params.from);
+            canCapture: (params) => {
+                return !BoardUtils.isCentralSquare(params.from);
             }
         }
     })
     .build();
+
+
 

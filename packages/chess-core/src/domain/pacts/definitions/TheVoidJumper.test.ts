@@ -109,9 +109,10 @@ describe('The Void Jumper Pact', () => {
 
             // Toast should be emitted
             expect(emitSpy).toHaveBeenCalledWith('pact_effect', expect.objectContaining({
-                pactId: TheVoidJumper.malus.id,
+                pactId: 'void_jumper',
                 type: 'malus'
             }));
+
         });
 
         it('should NOT sacrifice the King even if it is most advanced', () => {

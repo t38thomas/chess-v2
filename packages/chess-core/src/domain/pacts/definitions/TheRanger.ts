@@ -19,18 +19,14 @@ export const TheRanger = definePact('ranger')
             targetType: 'none',
             repeatable: true,
             execute: (context) => {
-                const state = context.state || {};
-                context.updateState({ snipeActive: !state.snipeActive });
+                context.updateState((prev: any) => ({ snipeActive: !prev?.snipeActive }));
                 return true;
             }
         },
         modifiers: {
             onGetPseudoMoves: ({ board, piece, from, moves, game }, context) => {
-                if (piece.type !== 'bishop' || !game || !context) return;
-
-                const state = context.state || {};
-                const isSnipeActive = state.snipeActive;
-                if (!isSnipeActive) return;
+                if (piece.type !== 'bishop') return;
+                if (!context.state.snipeActive) return;
 
                 MoveGenerator.BISHOP_DIRS.forEach(([dx, dy]) => {
                     const d1 = new Coordinate(from.x + dx, from.y + dy);
@@ -58,9 +54,7 @@ export const TheRanger = definePact('ranger')
                 });
             },
             onExecuteMove: (game, move, context) => {
-                if (!context) return;
-                const state = context.state || {};
-                if (move.isSnipe && state.snipeActive) {
+                if (move.isSnipe && context.state.snipeActive) {
                     game.board.movePiece(move.to, move.from);
                 }
                 if (move.piece.type === 'bishop') {
@@ -69,8 +63,7 @@ export const TheRanger = definePact('ranger')
             }
         },
         getTurnCounters: (context) => {
-            const state = context.state || {};
-            if (state.snipeActive) {
+            if (context.state.snipeActive) {
                 return [{
                     id: 'snipe_ready',
                     label: 'snipe_ready',
@@ -86,8 +79,9 @@ export const TheRanger = definePact('ranger')
     })
     .malus('short_sighted', {
         modifiers: {
-            getMaxRange: (piece, context) => piece.type === 'bishop' ? 4 : 8
+            getMaxRange: (piece) => piece.type === 'bishop' ? 4 : 8
         }
     })
     .build();
+
 

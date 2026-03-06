@@ -12,10 +12,10 @@ export const TheDiplomat = definePact('diplomat')
         target: 'self',
         modifiers: {
             canBeCaptured: (params, context) => {
-                if (!params.game || !PactUtils.isQueen(params.victim)) return true;
+                if (params.victim.type !== 'queen') return true;
 
                 const hasCaptured = (context.state || {})['has_captured'];
-                return !!(hasCaptured || !PactUtils.isPawn(params.attacker));
+                return !!(hasCaptured || params.attacker.type !== 'pawn');
             }
         },
         effects: [
@@ -24,12 +24,13 @@ export const TheDiplomat = definePact('diplomat')
                 triggerOn: ['capture'],
                 filter: (event, payload, context) => {
                     const move = payload as any;
-                    return move && move.piece && move.piece.color === context.playerId && PactUtils.isQueen(move.piece);
+                    return move && move.piece && move.piece.color === context.playerId && move.piece.type === 'queen';
                 },
                 onTrigger: (context) => {
                     PactUtils.notifyPactEffect(context.game, 'diplomat', 'immunity_lost', 'malus', 'shield-off');
                     PactUtils.notifyPactEffect(context.game, 'diplomat', 'sabotage_ended', 'bonus', 'horse-variant');
                 }
+
             })
         ],
         getTurnCounters: (context) => {
@@ -50,8 +51,8 @@ export const TheDiplomat = definePact('diplomat')
             canMovePiece: (params, context) => {
                 const b = params.board;
                 const piece = b.getSquare(params.from)?.piece;
-                if (piece && PactUtils.isKnight(piece)) {
-                    const sharedState = params.game.pactState[`diplomatic_immunity_${piece.color}`] || {};
+                if (piece?.type === 'knight') {
+                    const sharedState = context.getSiblingState<any>() || {};
                     return !!(sharedState['has_captured']);
                 }
                 return true;
@@ -59,4 +60,5 @@ export const TheDiplomat = definePact('diplomat')
         }
     })
     .build();
+
 

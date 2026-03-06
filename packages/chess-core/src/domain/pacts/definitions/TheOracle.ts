@@ -19,8 +19,7 @@ export const TheOracle = definePact('oracle')
             const isPlayerMove = move?.piece?.color === playerId;
 
             if (isPlayerMove) {
-                const ctx = context;
-                const state = ctx.state || {};
+                const state = context.state || {};
                 const capablePieceIds = state.capablePieceIds || [];
                 if (capablePieceIds.length === 0) return;
 
@@ -37,8 +36,8 @@ export const TheOracle = definePact('oracle')
                         PactUtils.removePiece(game, move.to);
                     } else {
                         victimId = capablePieceIds[Math.floor(Math.random() * capablePieceIds.length)];
-                        const victimSquare = game.board.getAllSquares().find(s => s.piece?.id === victimId);
-                        if (victimSquare) PactUtils.removePiece(game, victimSquare.coordinate);
+                        const victim = context.query.pieces().friendly().byId(victimId);
+                        if (victim) PactUtils.removePiece(game, victim.coord);
                     }
                     PactUtils.notifyPactEffect(game, 'oracle', 'punishment', 'malus', 'skull');
                 }
@@ -46,4 +45,5 @@ export const TheOracle = definePact('oracle')
         }
     })
     .build();
+
 

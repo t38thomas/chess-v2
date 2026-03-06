@@ -31,7 +31,7 @@ export const TheVoidJumper = definePact('void_jumper')
                     PactUtils.swapPieces(game, fromCoord, toCoord);
                     const victim = PactUtils.sacrificeMostAdvancedPiece(game, playerId, []);
                     if (victim) {
-                        PactUtils.notifyPactEffect(game, 'ritual_sacrifice', 'sacrifice', 'malus', 'skull');
+                        PactUtils.notifyPactEffect(game, 'void_jumper', 'sacrifice', 'malus', 'skull');
                     }
                     return true;
                 }
@@ -41,4 +41,5 @@ export const TheVoidJumper = definePact('void_jumper')
     })
     .malus('ritual_sacrifice', {})
     .build();
+
 

@@ -20,7 +20,7 @@ export const TheTimekeeper = definePact('timekeeper')
                 game.extraTurns[playerId] = (game.extraTurns[playerId] || 0) + 1;
                 PactUtils.notifyPactEffect(game, 'timekeeper', 'time_stop', 'bonus', 'clock-stop');
 
-                const pawns = PactUtils.findPieces(game, playerId, 'pawn');
+                const pawns = context.query.pieces().ofTypes(['pawn']);
                 const victims = PactUtils.pickRandom(pawns, Math.min(pawns.length, 3));
                 victims.forEach(v => PactUtils.removePiece(game, v.coord));
 
@@ -33,4 +33,5 @@ export const TheTimekeeper = definePact('timekeeper')
     })
     .malus('paradox', {})
     .build();
+
 

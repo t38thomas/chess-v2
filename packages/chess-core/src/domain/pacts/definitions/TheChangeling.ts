@@ -26,7 +26,6 @@ export const TheChangeling = definePact('changeling')
         ],
         modifiers: {
             onGetPseudoMoves: (params, context) => {
-                if (!context || !context.state) return;
                 const state = context.state['mimicry_activeMimics'];
                 if (!state) return;
 
@@ -72,14 +71,14 @@ export const TheChangeling = definePact('changeling')
                     return true;
                 },
                 onMax: (context) => {
-                    const myPieces = context.game.board.getAllSquares()
-                        .map(s => s.piece)
-                        .filter(p => p && p.color === context.playerId && p.type !== 'pawn' && p.type !== 'king');
+                    const myPieces = context.query.pieces().friendly().filter(p => p.piece.type !== 'pawn' && p.piece.type !== 'king');
 
                     if (myPieces.length > 0) {
-                        const victim = myPieces[Math.floor(Math.random() * myPieces.length)];
-                        victim!.type = 'pawn';
-                        PactUtils.notifyPactEffect(context.game, 'changeling', 'demotion', 'malus', 'dna');
+                        const victim = PactUtils.pickRandom(myPieces, 1)[0];
+                        if (victim) {
+                            victim.piece.type = 'pawn';
+                            PactUtils.notifyPactEffect(context.game, 'changeling', 'demotion', 'malus', 'dna');
+                        }
                     }
                 }
             })
@@ -90,7 +89,7 @@ export const TheChangeling = definePact('changeling')
                 id: 'unstable_identity_counter',
                 label: 'unstable_identity_progress',
                 value: val,
-                pactId: 'unstable_identity',
+                pactId: 'changeling',
                 type: 'counter',
                 maxValue: 5,
                 subLabel: `${val}/5`
@@ -98,3 +97,4 @@ export const TheChangeling = definePact('changeling')
         }
     })
     .build();
+

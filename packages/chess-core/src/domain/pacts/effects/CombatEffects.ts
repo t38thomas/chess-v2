@@ -81,5 +81,20 @@ export const CombatEffects = {
                 }
             }
         }
+    }),
+
+    /**
+     * Restricts a piece from capturing certain targets based on a predicate.
+     */
+    restrictCaptureTarget: (attackerType: PieceType, filter: (params: import('../PactLogic').CaptureContext) => boolean): PactEffect => ({
+        modifiers: {
+            canCapture: (params) => {
+                if (params.attacker.type === attackerType) {
+                    return filter(params);
+                }
+                return true;
+            }
+        }
     })
 };
+

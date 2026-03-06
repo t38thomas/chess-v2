@@ -4,8 +4,15 @@ import { Move } from '../models/Move';
 import { BoardModel } from '../models/BoardModel';
 import { Coordinate } from '../models/Coordinate';
 import { Perk } from '../models/Pact';
+import { BoardUtils } from './utils/BoardUtils';
+
+export interface PieceQueryResult extends Array<{ piece: Piece; coord: Coordinate }> {
+    ofTypes(types: PieceType[]): PieceQueryResult;
+    byId(id: string): { piece: Piece; coord: Coordinate } | undefined;
+}
 
 export interface PactContext {
+
     game: IChessGame;
     playerId: PieceColor;
     pactId: string;
@@ -14,6 +21,23 @@ export interface PactContext {
 export interface PactContextWithState<T> extends PactContext {
     state: T;
     updateState: (update: Partial<T> | ((prev: T) => T)) => void;
+    /**
+     * Gets the state of the sibling logic (bonus if this is malus, or vice-versa).
+     */
+    getSiblingState: <TSibling = any>() => TSibling | null;
+    /**
+     * Fluent query API for common board/piece operations.
+     */
+    query: {
+        pieces: (color?: PieceColor) => {
+            all: () => PieceQueryResult;
+            friendly: () => PieceQueryResult;
+            enemy: () => PieceQueryResult;
+            ofTypes: (types: PieceType[]) => PieceQueryResult;
+            byId: (id: string) => { piece: Piece; coord: Coordinate } | undefined;
+        };
+    };
+
 }
 
 /**
@@ -132,6 +156,7 @@ export interface RuleModifiers {
 export abstract class PactLogic<T = any> {
     abstract id: string;
     public target: 'self' | 'enemy' | 'global' = 'self';
+    public siblingId?: string;
 
     /**
      * Returns the initial state for this pact.
@@ -144,17 +169,19 @@ export abstract class PactLogic<T = any> {
     /**
      * Helper to get or initialize the state for this pact from the game instance.
      */
-    protected getState(game: any, color: PieceColor): T {
-        const key = `${this.id}_${color}`;
+    protected getState(game: any, color: PieceColor, pactId?: string): T {
+        const id = pactId || this.id;
+        const key = `${id}_${color}`;
         if (!game.pactState) {
             game.pactState = {};
         }
-        if (game.pactState[key] === undefined) {
+        if (game.pactState[key] === undefined || game.pactState[key] === null) {
             const initial = this.getInitialState();
-            game.pactState[key] = initial;
+            game.pactState[key] = initial !== null ? initial : {};
         }
-        return game.pactState[key];
+        return game.pactState[key] || {};
     }
+
 
     /**
      * Helper to update the state for this pact.
@@ -169,6 +196,7 @@ export abstract class PactLogic<T = any> {
 
     public createContextWithState(context: PactContext): PactContextWithState<T> {
         const state = this.getState(context.game, context.playerId);
+
         return {
             ...context,
             state,
@@ -177,10 +205,39 @@ export abstract class PactLogic<T = any> {
                 const nextState = typeof update === 'function'
                     ? (update as Function)(currentState)
                     : { ...currentState, ...update };
+                console.log(`Updating state for ${this.id}_${context.playerId}:`, nextState);
                 this.setState(context.game, context.playerId, nextState);
+            },
+
+            getSiblingState: <TSibling = any>() => {
+                if (!this.siblingId) return null;
+                return this.getState(context.game, context.playerId, this.siblingId) as unknown as TSibling;
+            },
+            query: {
+                pieces: (colorOverride?: PieceColor) => {
+                    const color = colorOverride || context.playerId;
+                    const getPieces = (c: PieceColor) => BoardUtils.findPieces(context.game, c);
+
+                    const wrap = (pieces: { piece: Piece, coord: Coordinate }[]) => Object.assign(pieces, {
+                        ofTypes: (types: PieceType[]) => wrap(pieces.filter(p => types.includes(p.piece.type))),
+                        byId: (id: string) => pieces.find(p => p.piece.id === id)
+                    }) as PieceQueryResult;
+
+
+                    return {
+                        all: () => wrap(getPieces(color)),
+                        friendly: () => wrap(getPieces(color)),
+                        enemy: () => wrap(getPieces(color === 'white' ? 'black' : 'white')),
+                        ofTypes: (types: PieceType[]) => wrap(BoardUtils.findPiecesByTypes(context.game, color, types)),
+                        byId: (id: string) => wrap(getPieces(color)).byId(id)
+                    };
+                }
             }
+
         };
     }
+
+
 
     // Hooks primarily for RuleEngine integration
     getRuleModifiers(): RuleModifiers {
@@ -197,8 +254,8 @@ export abstract class PactLogic<T = any> {
         if (event === 'move') this.onMove?.(payload, ctx);
         if (event === 'capture') this.onCapture?.(payload, ctx);
         if (event === 'checkmate') this.onCheckmate?.(payload, ctx);
-        if (event === 'turn_start') this.onTurnStart?.(ctx);
-        if (event === 'turn_end') this.onTurnEnd?.(ctx);
+        if (event === 'turn_start') this.onTurnStart?.(ctx as any);
+        if (event === 'turn_end') this.onTurnEnd?.(ctx as any);
         if (event === 'promotion') this.onPromotion?.(payload, ctx);
     }
 
@@ -249,15 +306,41 @@ class GenericPact<T = any> extends PactLogic<T> {
     }
 
     getRuleModifiers(): RuleModifiers {
-        const base = this.options.modifiers || {};
+        const wrapModifier = (fn: Function) => {
+            return (...args: any[]) => {
+                const lastArg = args[args.length - 1];
+                // Check if the last argument is a PactContext
+                if (lastArg && typeof lastArg === 'object' && lastArg.game && lastArg.pactId) {
+                    args[args.length - 1] = this.createContextWithState(lastArg);
+                }
+                return fn(...args);
+            };
+        };
+
+        const wrapAll = (mods: RuleModifiers): RuleModifiers => {
+            const result: any = {};
+            for (const key in mods) {
+                const val = (mods as any)[key];
+                if (typeof val === 'function') {
+                    result[key] = wrapModifier(val);
+                } else {
+                    result[key] = val;
+                }
+            }
+            return result;
+        };
+
+        const base = wrapAll(this.options.modifiers || {});
         const effectModifiers = (this.options.effects || [])
             .map(e => e.modifiers)
-            .filter(m => m !== undefined) as RuleModifiers[];
+            .filter(m => m !== undefined)
+            .map(m => wrapAll(m!));
 
         if (effectModifiers.length === 0) return base;
 
         return Object.assign({}, ...effectModifiers, base);
     }
+
 
     onEvent<K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
@@ -344,13 +427,21 @@ export class PactBuilder<TBonus = any, TMalus = any> {
             throw new Error(`Pact ${this.pactId} must have both a bonus and a malus defined.`);
         }
 
+        const bonus = new GenericPact(this.bonusLogic.id, this.bonusLogic);
+        const malus = new GenericPact(this.malusLogic.id, this.malusLogic);
+
+        // Link siblings
+        bonus.siblingId = malus.id;
+        malus.siblingId = bonus.id;
+
         return {
             id: this.pactId,
-            bonus: new GenericPact(this.bonusLogic.id, this.bonusLogic),
-            malus: new GenericPact(this.malusLogic.id, this.malusLogic),
+            bonus,
+            malus,
         };
     }
 }
+
 
 export function definePact<TBonus = any, TMalus = any>(id: string): PactBuilder<TBonus, TMalus> {
     return new PactBuilder<TBonus, TMalus>(id);
