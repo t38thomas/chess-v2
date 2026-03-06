@@ -36,7 +36,7 @@ export interface BoardViewModel {
     phase: GamePhase;
     pacts: Record<PieceColor, PactDefinition[]>;
     pendingPromotion?: { x: number; y: number; color: PieceColor } | null;
-    winner?: PieceColor;
+    winner?: PieceColor | null;
     activeAbilityId?: string | null;
     pendingTargets?: { x: number; y: number }[];
     turnCounters?: Record<PieceColor | 'both', TurnCounter[]>;

@@ -1,6 +1,10 @@
 import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
+interface OracleMalusState {
+    capablePieceIds: string[];
+}
+
 /**
  * The Oracle Pact
  * Bonus (Prescience): (No active logic yet)
@@ -10,8 +14,9 @@ export const TheOracle = definePact('oracle')
     .bonus('prescience', {
         target: 'self',
     })
-    .malus('inevitable_fate', {
+    .malus<OracleMalusState>('inevitable_fate', {
         target: 'self',
+        initialState: () => ({ capablePieceIds: [] }),
         onTurnStart: (context) => {
             const { game, playerId } = context;
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
@@ -22,8 +27,7 @@ export const TheOracle = definePact('oracle')
             const isPlayerMove = move?.piece?.color === playerId;
 
             if (isPlayerMove) {
-                const state = context.state || {};
-                const capablePieceIds = state.capablePieceIds || [];
+                const capablePieceIds = context.state.capablePieceIds;
                 if (capablePieceIds.length === 0) return;
 
                 let satisfied = false;

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MatchService } from '../application/MatchService';
 import { DtoMapper } from '../infrastructure/DtoMapper';
 import { Action } from '../domain/GameEngine';
+import { Match } from '../domain/Match';
 import { config } from '../config';
 import { Logger } from '../utils/logger';
 import { TokenBucket, SlidingWindowRateLimiter } from '../utils/rateLimiter';
@@ -39,7 +40,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
     // Schemas
     const BaseMessageSchema = z.object({
         type: z.string(),
-        payload: z.any().optional(),
+        payload: z.unknown().optional(),
         requestId: z.string().optional()
     });
 
@@ -49,7 +50,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
     });
 
     const CreateMatchPayloadSchema = z.object({
-        matchConfig: z.any().optional(),
+        matchConfig: z.record(z.string(), z.unknown()).optional(),
         username: z.string().max(30).optional()
     });
 
@@ -163,7 +164,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
 
     // --- Handlers ---
 
-    async function handleHello(ws: ExtWebSocket, payload: any, requestId?: string) {
+    async function handleHello(ws: ExtWebSocket, payload: unknown, requestId?: string) {
         const parsedPayload = HelloPayloadSchema.parse(payload || {});
         // Validate / Generate Session Token
         let playerId = parsedPayload.sessionToken;
@@ -201,7 +202,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         }
     }
 
-    async function handleCreateMatch(ws: ExtWebSocket, payload: any, requestId?: string) {
+    async function handleCreateMatch(ws: ExtWebSocket, payload: unknown, requestId?: string) {
         if (!ws.playerId) return sendError(ws, requestId, 'UNAUTHORIZED', 'Say hello first');
 
         const ip = ws.remoteAddress || 'unknown';
@@ -231,7 +232,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         broadcastState(match.id, match);
     }
 
-    async function handleJoinMatch(ws: ExtWebSocket, payload: any, requestId?: string) {
+    async function handleJoinMatch(ws: ExtWebSocket, payload: unknown, requestId?: string) {
         if (!ws.playerId) return sendError(ws, requestId, 'UNAUTHORIZED', 'Say hello first');
 
         const ip = ws.remoteAddress || 'unknown';
@@ -267,13 +268,19 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         broadcastState(match.id, match);
     }
 
-    async function handleGameAction(ws: ExtWebSocket, type: string, payload: any, requestId?: string) {
+    async function handleGameAction(ws: ExtWebSocket, type: string, payload: unknown, requestId?: string) {
         if (!ws.matchId || !ws.playerId) return sendError(ws, requestId, 'UNAUTHORIZED', 'Not joined to a match');
 
         try {
+            // Validate that payload is an object before passing to action
+            const safePayload = (payload !== null && typeof payload === 'object' && !Array.isArray(payload))
+                ? payload as Record<string, unknown>
+                : {};
+
             const action: Action = {
-                type: type as any,
-                payload,
+                // WHY: type is already validated by the switch/case above; cast to typed Action union.
+                type: type as Action['type'],
+                payload: safePayload as never,
                 playerId: ws.playerId
             };
 
@@ -330,7 +337,7 @@ export function setupWebSocket(wss: WebSocketServer, httpServer: Server, matchSe
         }
     }
 
-    function broadcastState(matchId: string, match: any) {
+    function broadcastState(matchId: string, match: Match) {
         const matchClients = clients.get(matchId);
         if (!matchClients) return;
 

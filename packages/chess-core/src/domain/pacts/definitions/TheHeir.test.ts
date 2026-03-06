@@ -6,6 +6,7 @@ import { Piece } from '../../models/Piece';
 import { Move } from '../../models/Move';
 import { PactContext } from '../PactLogic';
 
+
 describe('The Heir', () => {
     let game: ChessGame;
     const bloodlineBonus = TheHeir.bonus;
@@ -110,7 +111,9 @@ describe('The Heir', () => {
             expect(whiteQueens.length).toBe(1);
 
             const newQueen = whiteQueens[0].piece!;
-            expect(game.pactState[`bloodline_white`]?.successorIds?.[newQueen.id]).toBe(true);
+            // WHY test: pactState is Record<string, unknown>; cast to HeirBonusState for verification.
+            const bonusState = game.pactState['bloodline_white'] as { successorIds: Record<string, boolean> } | undefined;
+            expect(bonusState?.successorIds?.[newQueen.id]).toBe(true);
         });
 
         it('should do nothing if no minor pieces are left', () => {

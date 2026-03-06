@@ -59,6 +59,7 @@ export interface IChessGame {
     kingMoves: Record<PieceColor, number>;
     enPassantTarget: Coordinate | null;
     orientation: number; // 0, 1, 2, 3 (clockwise rotations)
+    winner?: PieceColor | null;
 
     emit<E extends keyof GameEventPayloads>(event: E, payload: GameEventPayloads[E]): void;
     emit(event: GameEvent, payload?: unknown): void;
@@ -70,6 +71,7 @@ export interface IChessGame {
     endMatch?(winner: PieceColor | null, reason: 'checkmate' | 'stalemate' | 'draw' | 'resignation'): void;
     applyCooldown?(pieceId: string, turns: number): void;
     grantExtraTurn?(color: PieceColor, count?: number): void;
+    useAbility?: (abilityId: string, params?: unknown) => boolean;
     /**
      * A seedable random number generator function. Returns a float in [0, 1).
      * Preferred over direct `Math.random()` calls in pact logic to allow

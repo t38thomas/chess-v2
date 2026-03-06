@@ -2,14 +2,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { InMemoryMatchStore } from '../infrastructure/InMemoryMatchStore';
 import { Match, createMatch } from '../domain/Match';
 import { Action, GameEngine } from '../domain/GameEngine';
-import { MatchConfig } from 'chess-core';
 
 export class MatchService {
     constructor(private store: InMemoryMatchStore) { }
 
-    async createMatch(matchConfig?: MatchConfig): Promise<Match> {
+    async createMatch(matchConfig?: Record<string, unknown>): Promise<Match> {
         const id = uuidv4();
         const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        // WHY: matchConfig arrives from WS JSON boundary as Record<string, unknown>.
+        // createMatch() merges it with DEFAULT_MATCH_CONFIG, so the types used at runtime
+        // will always be the correctly-typed fields from MatchConfig.
         const match = createMatch(id, joinCode, { matchConfig });
         await this.store.save(match);
         return match;

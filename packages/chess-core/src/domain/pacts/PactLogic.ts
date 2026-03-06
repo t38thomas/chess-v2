@@ -25,8 +25,10 @@ export interface PactContextWithState<T> extends PactContext {
     updateState: (update: Partial<T> | ((prev: Readonly<T>) => Readonly<T>)) => void;
     /**
      * Gets the state of the sibling logic (bonus if this is malus, or vice-versa).
+     * WHY: sibling pact state type cannot be known statically at the call site;
+     * callers must narrow the result themselves.
      */
-    getSiblingState: <TSibling = any>() => Readonly<TSibling> | null;
+    getSiblingState: <TSibling = Record<string, unknown>>() => Readonly<TSibling> | null;
     /**
      * Fluent query API for common board/piece operations.
      */
@@ -54,12 +56,12 @@ export enum PactPriority {
 /**
  * Represents a reusable piece of pact logic.
  */
-export interface PactEffect<T = any> {
+export interface PactEffect<T = Record<string, unknown>> {
     modifiers?: RuleModifiers<T>;
     priority?: number; // Defines execution order (higher priority runs earlier), default 0
     onEvent?: <K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
-        payload: any,
+        payload: K extends keyof GameEventPayloads ? GameEventPayloads[K] : unknown,
         context: PactContextWithState<T>
     ) => void;
 }
@@ -72,7 +74,7 @@ export interface PactDefinition {
     malus: PactLogic;
 }
 
-export interface ActiveAbilityConfig<TState = any, TParams = unknown> {
+export interface ActiveAbilityConfig<TState = Record<string, unknown>, TParams = unknown> {
     id: string;
     name: string; // Internal name or key for translation
     description: string; // Internal desc or key
@@ -117,7 +119,7 @@ export interface TurnModifierContext {
     eventType: GameEvent;
 }
 
-export interface RuleModifiers<T = any> {
+export interface RuleModifiers<T = Record<string, unknown>> {
     // Movement Hooks - Now pure functions passing through a pipeline
     onModifyMoves?: (currentMoves: Move[], params: MoveParams, context: PactContextWithState<T>) => Move[];
 
@@ -152,12 +154,15 @@ export interface RuleModifiers<T = any> {
     isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<T>) => boolean;
 }
 
-export abstract class PactLogic<T = any> {
+export abstract class PactLogic<T = Record<string, unknown>> {
     abstract id: string;
     public target: 'self' | 'enemy' | 'global' = 'self';
     public siblingId?: string;
     public validateState?: (state: T) => boolean;
-    public options?: any; // To allow RuleEngine access to effects; properly implemented in GenericPact
+    /**
+     * Used by RuleEngine to access effects. Properly typed via PactLogicOptions in GenericPact.
+     */
+    public options?: PactLogicOptions<T>;
 
     /**
      * Returns the initial state for this pact.
@@ -169,28 +174,33 @@ export abstract class PactLogic<T = any> {
 
     /**
      * Helper to get or initialize the state for this pact from the game instance.
+     * WHY: pactState is a heterogeneous map keyed by pact+color. The cast to T is
+     * unavoidable at this single boundary point; all callers inside the domain
+     * receive properly-typed PactContextWithState<T>.
      */
-    protected getState(game: any, color: PieceColor, pactId?: string): T {
+    protected getState(game: IChessGame, color: PieceColor, pactId?: string): T {
         const id = pactId || this.id;
         const key = `${id}_${color}`;
         if (!game.pactState) {
-            game.pactState = {};
+            (game as IChessGame & { pactState: Record<string, unknown> }).pactState = {};
         }
         if (game.pactState[key] === undefined || game.pactState[key] === null) {
             const initial = this.getInitialState();
             game.pactState[key] = initial !== null ? initial : {};
         }
-        return game.pactState[key] || {};
+        // WHY: pactState is a heterogeneous Record<string, unknown>. This is the
+        // single narrowing point where we assert the correct generic type T.
+        return game.pactState[key] as T;
     }
 
 
     /**
      * Helper to update the state for this pact.
      */
-    protected setState(game: any, color: PieceColor, state: T): void {
+    protected setState(game: IChessGame, color: PieceColor, state: T): void {
         const key = `${this.id}_${color}`;
         if (!game.pactState) {
-            game.pactState = {};
+            (game as IChessGame & { pactState: Record<string, unknown> }).pactState = {};
         }
         game.pactState[key] = state;
     }
@@ -204,7 +214,7 @@ export abstract class PactLogic<T = any> {
             updateState: (update) => {
                 const currentState = this.getState(context.game, context.playerId);
                 const nextState = typeof update === 'function'
-                    ? (update as Function)(currentState)
+                    ? update(currentState)
                     : { ...currentState, ...update };
 
                 if (this.validateState && !this.validateState(nextState)) {
@@ -214,8 +224,9 @@ export abstract class PactLogic<T = any> {
                 this.setState(context.game, context.playerId, nextState);
             },
 
-            getSiblingState: <TSibling = any>() => {
+            getSiblingState: <TSibling = Record<string, unknown>>() => {
                 if (!this.siblingId) return null;
+                // WHY: sibling type TSibling is unknown at this point; callers narrow it.
                 return this.getState(context.game, context.playerId, this.siblingId) as unknown as TSibling;
             },
             query: {
@@ -259,16 +270,16 @@ export abstract class PactLogic<T = any> {
     // Typed Event Handling (Supports both new and legacy styles)
     onEvent<K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
-        payload: any,
+        payload: K extends keyof GameEventPayloads ? GameEventPayloads[K] : unknown,
         context: PactContext
     ): void {
         const ctx = this.createContextWithState(context);
-        if (event === 'move') this.onMove?.(payload, ctx);
-        if (event === 'capture') this.onCapture?.(payload, ctx);
-        if (event === 'checkmate') this.onCheckmate?.(payload, ctx);
-        if (event === 'turn_start') this.onTurnStart?.(ctx as any);
-        if (event === 'turn_end') this.onTurnEnd?.(ctx as any);
-        if (event === 'promotion') this.onPromotion?.(payload, ctx);
+        if (event === 'move') this.onMove?.(payload as GameEventPayloads['move'], ctx);
+        if (event === 'capture') this.onCapture?.(payload as GameEventPayloads['capture'], ctx);
+        if (event === 'checkmate') this.onCheckmate?.(payload as GameEventPayloads['checkmate'], ctx);
+        if (event === 'turn_start') this.onTurnStartHook?.(ctx);
+        if (event === 'turn_end') this.onTurnEndHook?.(ctx);
+        if (event === 'promotion') this.onPromotion?.(payload as GameEventPayloads['promotion'], ctx);
     }
 
     // Typed Hooks (Override these for cleaner logic)
@@ -303,7 +314,7 @@ export abstract class PactLogic<T = any> {
 /**
  * A concrete implementation of PactLogic that accepts functions to define its behavior.
  */
-class GenericPact<T = any> extends PactLogic<T> {
+class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
     constructor(
         public readonly id: string,
         public readonly options: PactLogicOptions<T>
@@ -318,8 +329,8 @@ class GenericPact<T = any> extends PactLogic<T> {
     }
 
     getRuleModifiers(): RuleModifiers<T> {
-        const wrapModifier = (fn: Function) => {
-            return (...args: any[]) => {
+        const wrapModifier = (fn: ModifierFn): ModifierFn => {
+            return (...args: unknown[]) => {
                 const context = args[args.length - 1] as PactContext;
                 args[args.length - 1] = this.createContextWithState(context);
                 return fn(...args);
@@ -327,16 +338,16 @@ class GenericPact<T = any> extends PactLogic<T> {
         };
 
         const wrapAll = (mods: RuleModifiers<T>): RuleModifiers<T> => {
-            const result: any = {};
-            for (const key in mods) {
-                const val = (mods as any)[key];
+            const result: Partial<RuleModifiers<T>> = {};
+            (Object.keys(mods) as Array<keyof RuleModifiers<T>>).forEach((key) => {
+                const val = mods[key];
                 if (typeof val === 'function') {
-                    result[key] = wrapModifier(val);
+                    (result as Record<keyof RuleModifiers<T>, ModifierFn>)[key] = wrapModifier(val as ModifierFn);
                 } else {
                     result[key] = val;
                 }
-            }
-            return result;
+            });
+            return result as RuleModifiers<T>;
         };
 
         const base = wrapAll(this.options.modifiers || {});
@@ -352,27 +363,29 @@ class GenericPact<T = any> extends PactLogic<T> {
 
         if (effectModifiers.length === 0) return base;
 
-        return composeRuleModifiers([...effectModifiers, base]) as RuleModifiers<T>;
+        // WHY: composeRuleModifiers operates on ModifierFn (erased types) internally.
+        // The cast is safe because wrapAll already wrapped all functions in the correct context.
+        return composeRuleModifiers([...effectModifiers, base] as Partial<RuleModifiers>[]) as RuleModifiers<T>;
     }
 
 
     onEvent<K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
-        payload: any,
+        payload: K extends keyof GameEventPayloads ? GameEventPayloads[K] : unknown,
         context: PactContext
     ): void {
         const ctx = this.createContextWithState(context);
 
         // New typed hooks
-        if (event === 'move' && this.options.onMove) this.options.onMove(payload, ctx);
-        if (event === 'capture' && this.options.onCapture) this.options.onCapture(payload, ctx);
-        if (event === 'checkmate' && this.options.onCheckmate) this.options.onCheckmate(payload, ctx);
-        if (event === 'promotion' && this.options.onPromotion) this.options.onPromotion(payload, ctx);
+        if (event === 'move' && this.options.onMove) this.options.onMove(payload as GameEventPayloads['move'], ctx);
+        if (event === 'capture' && this.options.onCapture) this.options.onCapture(payload as GameEventPayloads['capture'], ctx);
+        if (event === 'checkmate' && this.options.onCheckmate) this.options.onCheckmate(payload as GameEventPayloads['checkmate'], ctx);
+        if (event === 'promotion' && this.options.onPromotion) this.options.onPromotion(payload as GameEventPayloads['promotion'], ctx);
 
         // Effects hooks
         if (this.options.effects) {
             for (const effect of this.options.effects) {
-                effect.onEvent?.(event, payload, ctx);
+                effect.onEvent?.(event, payload as never, ctx);
             }
         }
     }
@@ -405,7 +418,7 @@ class GenericPact<T = any> extends PactLogic<T> {
 /**
  * Builder for defining pacts declaratively.
  */
-export interface PactLogicOptions<T = any> {
+export interface PactLogicOptions<T = Record<string, unknown>> {
     target?: 'self' | 'enemy' | 'global';
     effects?: PactEffect<T>[];
     modifiers?: RuleModifiers<T>;
@@ -427,20 +440,23 @@ export interface PactLogicOptions<T = any> {
     getTurnCounters?: (context: PactContextWithState<T>) => TurnCounter[];
 }
 
-export class PactBuilder<TBonus = any, TMalus = any> {
+export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<string, unknown>> {
     private bonusLogic?: { id: string } & PactLogicOptions<TBonus>;
     private malusLogic?: { id: string } & PactLogicOptions<TMalus>;
 
     constructor(private readonly pactId: string) { }
 
     bonus<T = TBonus>(id: string, options: PactLogicOptions<T>): PactBuilder<T, TMalus> {
-        this.bonusLogic = { id, ...options } as any;
-        return this as any;
+        this.bonusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TBonus>;
+        // WHY: TypeScript cannot narrow the return type of the builder when TBonus changes.
+        // The cast is safe because GenericPact enforces the type at construction time.
+        return this as unknown as PactBuilder<T, TMalus>;
     }
 
     malus<T = TMalus>(id: string, options: PactLogicOptions<T>): PactBuilder<TBonus, T> {
-        this.malusLogic = { id, ...options } as any;
-        return this as any;
+        this.malusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TMalus>;
+        // WHY: same as bonus() — fluent builder pattern requires this cast when redefining TMalus.
+        return this as unknown as PactBuilder<TBonus, T>;
     }
 
     build(): PactDefinition {
@@ -451,14 +467,16 @@ export class PactBuilder<TBonus = any, TMalus = any> {
         const bonus = new GenericPact(this.bonusLogic.id, this.bonusLogic);
         const malus = new GenericPact(this.malusLogic.id, this.malusLogic);
 
-        // Link siblings
+        // Links siblings
         bonus.siblingId = malus.id;
         malus.siblingId = bonus.id;
 
         return {
             id: this.pactId,
-            bonus,
-            malus,
+            // WHY: PactDefinition uses PactLogic (erased T) to allow heterogeneous pact collections.
+            // GenericPact<TBonus/TMalus> is always a valid PactLogic at runtime.
+            bonus: bonus as PactLogic,
+            malus: malus as PactLogic,
         };
     }
 }
@@ -468,7 +486,7 @@ export class PactBuilder<TBonus = any, TMalus = any> {
 // Modifier Composition
 // ---------------------------------------------------------------------------
 
-type ModifierFn = (...args: any[]) => any;
+type ModifierFn = (...args: unknown[]) => unknown;
 
 /**
  * Boolean modifier keys — these use AND-chain semantics.
@@ -497,12 +515,12 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
 
     for (const key of allKeys) {
         const fns = sources
-            .map(s => (s as any)[key])
+            .map(s => (s as Record<keyof RuleModifiers, ModifierFn | undefined>)[key])
             .filter((f): f is ModifierFn => typeof f === 'function');
 
         if (fns.length === 0) continue;
         if (fns.length === 1) {
-            result[key as string] = (...args: any[]) => {
+            result[key as string] = (...args: unknown[]) => {
                 try {
                     const res = fns[0](...args);
                     return res !== undefined ? res : args[0];
@@ -519,7 +537,7 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
 
         if (BOOLEAN_MODIFIERS.has(key)) {
             // AND-chain: false from any handler blocks; undefined is neutral
-            result[key as string] = (...args: any[]) => {
+            result[key as string] = (...args: unknown[]) => {
                 for (const fn of fns) {
                     try {
                         const res = fn(...args);
@@ -532,7 +550,7 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
             };
         } else if (key === 'onModifyMoves') {
             // Pipeline (Reduce): Each handler processes the result of the previous one
-            result[key as string] = (...args: any[]) => {
+            result[key as string] = (...args: unknown[]) => {
                 let current = args[0]; // The Move[] array
                 for (const fn of fns) {
                     try {
@@ -549,8 +567,8 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
             };
         } else {
             // Sequential: all handlers called, last non-undefined return value propagated
-            result[key as string] = (...args: any[]) => {
-                let last: any = undefined;
+            result[key as string] = (...args: unknown[]) => {
+                let last: unknown = undefined;
                 for (const fn of fns) {
                     try {
                         const res = fn(...args);
@@ -571,7 +589,7 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
     return result as RuleModifiers;
 }
 
-export function definePact<TBonus = any, TMalus = any>(id: string): PactBuilder<TBonus, TMalus> {
+export function definePact<TBonus = Record<string, unknown>, TMalus = Record<string, unknown>>(id: string): PactBuilder<TBonus, TMalus> {
     return new PactBuilder<TBonus, TMalus>(id);
 }
 
@@ -584,4 +602,3 @@ export interface TurnCounter {
     maxValue?: number; // Optional for progress bars
     subLabel?: string; // Optional sub-label (e.g. "turns left")
 }
-

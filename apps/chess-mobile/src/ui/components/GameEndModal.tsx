@@ -13,7 +13,7 @@ interface GameEndModalProps {
     onPlayAgain?: () => void;
     onGoHome?: () => void;
     status?: string;
-    winner?: string;
+    winner?: string | null;
     message?: string;
 }
 

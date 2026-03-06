@@ -18,12 +18,12 @@ export class ChessGame implements IChessGame {
     public turn: PieceColor;
     public history: Move[];
     public status: GameStatus;
-    public winner?: PieceColor; // Added winner property
+    public winner?: PieceColor | null; // Added winner property
     public phase: GamePhase;
     public readonly pacts: Record<PieceColor, PactDefinition[]> = { white: [], black: [] };
     public readonly perkUsage: Record<PieceColor, Set<string>> = { white: new Set(), black: new Set() };
     public readonly pieceCooldowns: Map<string, number> = new Map(); // pieceId -> turnCount to unlock
-    public readonly pactState: Record<string, any> = {}; // Generic storage for pact-specific state
+    public readonly pactState: Record<string, unknown> = {}; // Generic storage for pact-specific state
     public readonly capturedPieces: Record<PieceColor, Piece[]> = { white: [], black: [] };
     public totalTurns: number = 0;
     public extraTurns: Record<PieceColor, number> = { white: 0, black: 0 };
@@ -143,7 +143,7 @@ export class ChessGame implements IChessGame {
         this.extraTurns[color] = (this.extraTurns[color] || 0) + count;
     }
 
-    public useAbility(abilityId: string, params?: any): boolean {
+    public useAbility(abilityId: string, params?: unknown): boolean {
         if (this.phase !== 'playing') return false;
 
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
@@ -204,7 +204,9 @@ export class ChessGame implements IChessGame {
                 // Check bonus
                 let logic = registry.get(pact.bonus.id);
                 if (logic) {
-                    logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.bonus.id });
+                    // WHY: payload type at emit() boundary is already validated by the overloaded emit();
+                    // casting to GameEventPayloads[K] is safe here as the same payload is forwarded.
+                    logic.onEvent(event, payload as GameEventPayloads[typeof event], { game: this, playerId: color, pactId: pact.bonus.id });
                     if (event === 'turn_start' && payload === color) {
                         try {
                             logic.onTurnStart({ game: this, playerId: color, pactId: pact.bonus.id });
@@ -217,7 +219,8 @@ export class ChessGame implements IChessGame {
                 // Check malus
                 logic = registry.get(pact.malus.id);
                 if (logic) {
-                    logic.onEvent(event, payload, { game: this, playerId: color, pactId: pact.malus.id });
+                    // WHY: same as above — payload forwarded from typed emit() overload.
+                    logic.onEvent(event, payload as GameEventPayloads[typeof event], { game: this, playerId: color, pactId: pact.malus.id });
                     if (event === 'turn_start' && payload === color) {
                         try {
                             logic.onTurnStart({ game: this, playerId: color, pactId: pact.malus.id });

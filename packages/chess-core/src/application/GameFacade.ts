@@ -2,7 +2,7 @@ import { ChessGame } from '../domain/ChessGame';
 import { GameEvent } from '../domain/GameTypes';
 import { Coordinate } from '../domain/models/Coordinate';
 import { Move } from '../domain/models/Move';
-import { PieceType, PieceColor } from '../domain/models/Piece';
+import { Piece, PieceType, PieceColor } from '../domain/models/Piece';
 import { MoveGenerator } from '../domain/rules/MoveGenerator';
 import { CheckDetector } from '../domain/rules/CheckDetector';
 import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
@@ -10,6 +10,7 @@ import { PactDefinition } from '../domain/pacts/PactLogic';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
 import { PactUtils } from '../domain/pacts/PactUtils';
 import { MatchConfig, DEFAULT_MATCH_CONFIG } from '../domain/models/MatchConfig';
+import { StateSyncPayload } from '../types/protocol';
 
 export class GameFacade {
     private game: ChessGame;
@@ -26,8 +27,8 @@ export class GameFacade {
     constructor(
         private matchConfig: MatchConfig = DEFAULT_MATCH_CONFIG,
         private onMove?: (move: Move) => void,
-        private onEvent?: (event: GameEvent, payload?: any) => void,
-        private onUseAbility?: (abilityId: string, params?: any) => void
+        private onEvent?: (event: GameEvent, payload?: unknown) => void,
+        private onUseAbility?: (abilityId: string, params?: unknown) => void
     ) {
         this.game = new ChessGame(matchConfig);
         this.game.subscribe((event, payload) => {
@@ -37,7 +38,7 @@ export class GameFacade {
         });
     }
 
-    public subscribeToGameEvents(listener: (event: GameEvent, payload?: any) => void): () => void {
+    public subscribeToGameEvents(listener: (event: GameEvent, payload?: unknown) => void): () => void {
         this.gameEventListeners.push(listener);
         return () => {
             this.gameEventListeners = this.gameEventListeners.filter(l => l !== listener);
@@ -357,7 +358,7 @@ export class GameFacade {
         this.notify();
     }
 
-    public useAbility(id: string, params?: any) {
+    public useAbility(id: string, params?: unknown) {
         const playerPacts = this.game.pacts[this.game.turn].map(p => [p.bonus, p.malus]).flat();
         const perk = playerPacts.find(p => p.id === id);
         const registry = PactRegistry.getInstance();
@@ -422,12 +423,12 @@ export class GameFacade {
         }
 
         if (this.pendingTargets.length === requiredTargets) {
-            let params: any = {};
+            let params: unknown = undefined;
             if (requiredTargets === 2) {
                 params = {
                     from: this.pendingTargets[0],
                     to: this.pendingTargets[1]
-                };
+                } as Record<string, unknown>;
             } else if (requiredTargets === 1) {
                 params = this.pendingTargets[0];
             }
@@ -521,7 +522,7 @@ export class GameFacade {
         this.notify();
     }
 
-    public syncState(payload: any) {
+    public syncState(payload: StateSyncPayload) {
         if (!payload || !payload.board) return;
 
         this.game.board.clear();
@@ -538,10 +539,23 @@ export class GameFacade {
         this.game.totalTurns = payload.totalTurns || 0;
         this.game.winner = payload.winner;
 
-        // Sync Pacts
+        // Sync Pacts: map DTOs back to Logic objects using Registry
         if (payload.pacts) {
-            this.game.pacts.white = payload.pacts.white || [];
-            this.game.pacts.black = payload.pacts.black || [];
+            const registry = PactRegistry.getInstance();
+            const hydratePacts = (color: 'white' | 'black') => {
+                const list: PactDefinition[] = [];
+                payload.pacts[color].forEach(dto => {
+                    const bonus = registry.get(dto.bonus.id);
+                    const malus = registry.get(dto.malus.id);
+                    if (bonus && malus) {
+                        list.push({ id: dto.id, bonus, malus });
+                    }
+                });
+                return list;
+            };
+
+            this.game.pacts.white = hydratePacts('white');
+            this.game.pacts.black = hydratePacts('black');
         }
 
         // Sync Perk Usage
@@ -556,6 +570,12 @@ export class GameFacade {
             Object.entries(payload.pieceCooldowns).forEach(([id, turn]) => {
                 this.game.pieceCooldowns.set(id, turn as number);
             });
+        }
+
+        // Sync Captured Pieces
+        if (payload.capturedPieces) {
+            this.game.capturedPieces.white = (payload.capturedPieces.white || []).map((p: any) => new Piece(p.type, p.color, p.id));
+            this.game.capturedPieces.black = (payload.capturedPieces.black || []).map((p: any) => new Piece(p.type, p.color, p.id));
         }
 
         if (payload.matchConfig) {

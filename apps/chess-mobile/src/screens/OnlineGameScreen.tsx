@@ -7,7 +7,7 @@ import { WaitingView } from '../ui/components/WaitingView';
 import { ActiveGameView } from '../ui/components/ActiveGameView';
 import { MatchConfigScreen } from './MatchConfigScreen';
 
-import { MatchConfig } from 'chess-core';
+import { MatchConfig, PactRegistry } from 'chess-core';
 
 interface OnlineGameScreenProps {
     onNavigateBack?: () => void;
@@ -127,7 +127,10 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
             onLeaveMatch={handleBack}
             onUseAbility={useAbility}
             onCompletePromotion={completePromotion}
-            onAssignPact={assignPact}
+            onAssignPact={(pact) => {
+                const pactDef = PactRegistry.getInstance().getDefinition(pact.id);
+                if (pactDef) assignPact(pactDef);
+            }}
             onResign={players[playerColor || 'white']?.connected ? resign : undefined}
         />
     );

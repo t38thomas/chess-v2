@@ -1,4 +1,4 @@
-import { Coordinate, PieceType, ChessGame } from 'chess-core';
+import { Coordinate, PieceType, ChessGame, PieceColor } from 'chess-core';
 import { PactRegistry } from 'chess-core';
 import { Match } from './Match';
 
@@ -29,7 +29,7 @@ export interface AssignPactAction {
 
 export interface UseAbilityAction {
     type: 'useAbility';
-    payload: { abilityId: string; params?: any };
+    payload: { abilityId: string; params?: Record<string, unknown> };
     playerId: string;
 }
 
@@ -64,8 +64,9 @@ export class GameEngine {
         const { game } = match;
         const player = match.players.find(p => p.id === playerId);
         if (!player) throw new Error("Player not in match");
+        if (!player.color) throw new Error("Player color not assigned");
 
-        game.resign(player.color as any); // cast if needed, but match.players should have color
+        game.resign(player.color as PieceColor);
 
         return {
             events: ['resignation', 'game_over']
@@ -113,7 +114,7 @@ export class GameEngine {
         };
     }
 
-    private static handleUseAbility(match: Match, payload: { abilityId: string; params?: any }, playerId: string): GameEngineResult {
+    private static handleUseAbility(match: Match, payload: { abilityId: string; params?: Record<string, unknown> }, playerId: string): GameEngineResult {
         const { game } = match;
         const player = match.players.find(p => p.id === playerId);
         if (!player) throw new Error("Player not in match");
@@ -134,20 +135,23 @@ export class GameEngine {
 
     /**
      * Recursively find {x, y} objects and turn them into Coordinate instances.
+     * WHY: boundary function — receives raw JSON-parsed data via WS message.
+     * Must accept unknown input; returns a typed structure or the same unknown value.
      */
-    private static hydrateCoordinates(obj: any): any {
+    private static hydrateCoordinates(obj: unknown): unknown {
         if (!obj || typeof obj !== 'object') return obj;
 
-        if (typeof obj.x === 'number' && typeof obj.y === 'number' && Object.keys(obj).length === 2) {
-            return new Coordinate(obj.x, obj.y);
+        const o = obj as Record<string, unknown>;
+        if (typeof o['x'] === 'number' && typeof o['y'] === 'number' && Object.keys(o).length === 2) {
+            return new Coordinate(o['x'], o['y']);
         }
 
         if (Array.isArray(obj)) {
             return obj.map(item => this.hydrateCoordinates(item));
         }
 
-        const hydrated: any = {};
-        for (const [key, value] of Object.entries(obj)) {
+        const hydrated: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(o)) {
             hydrated[key] = this.hydrateCoordinates(value);
         }
         return hydrated;

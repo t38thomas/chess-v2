@@ -1,20 +1,23 @@
 import {
     Envelope, ServerEnvelope, MessageType, ServerMessageType,
     MatchCreatedPayload, MatchJoinedPayload, MoveAcceptedPayload,
-    MatchConfig
+    MatchConfig, HelloAckPayload, ErrorPayload
 } from 'chess-core';
 
-type MessageHandler<T = any> = (payload: T) => void;
+type MessageHandler<T = unknown> = (payload: T) => void;
+
+/** Internal untyped handler for storage; callers receive typed T via on<T>(). */
+type AnyMessageHandler = (payload: unknown) => void;
 
 interface PendingRequest {
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
-    timer: NodeJS.Timeout;
+    resolve: (value: unknown) => void;
+    reject: (reason?: unknown) => void;
+    timer: ReturnType<typeof setTimeout>;
 }
 
 export class ChessClient {
     private ws: WebSocket | null = null;
-    private listeners: Map<ServerMessageType, MessageHandler[]> = new Map();
+    private listeners: Map<ServerMessageType, AnyMessageHandler[]> = new Map();
     private sessionToken: string | null = null;
     private requestIdCounter = 0;
     private pendingRequests: Map<string, PendingRequest> = new Map();
@@ -99,11 +102,13 @@ export class ChessClient {
         if (!this.listeners.has(type)) {
             this.listeners.set(type, []);
         }
-        this.listeners.get(type)!.push(handler);
+        // WHY: internal map uses AnyMessageHandler (unknown) to avoid contravariance issues;
+        // callers get typed T via the public generic on<T>() signature.
+        this.listeners.get(type)!.push(handler as AnyMessageHandler);
         return () => {
             const handlers = this.listeners.get(type);
             if (handlers) {
-                this.listeners.set(type, handlers.filter(h => h !== handler));
+                this.listeners.set(type, handlers.filter(h => h !== (handler as AnyMessageHandler)));
             }
         };
     }
@@ -124,7 +129,7 @@ export class ChessClient {
         return this.request<void>('assignPact', { pactId });
     }
 
-    async useAbility(abilityId: string, params?: any): Promise<void> {
+    async useAbility(abilityId: string, params?: unknown): Promise<void> {
         return this.request<void>('useAbility', { abilityId, params });
     }
 
@@ -145,7 +150,7 @@ export class ChessClient {
         }
     }
 
-    private request<TResponse>(type: MessageType, payload: any): Promise<TResponse> {
+    private request<TResponse>(type: MessageType, payload: Record<string, unknown>): Promise<TResponse> {
         const requestId = `${Date.now()}-${this.requestIdCounter++}`;
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
@@ -155,7 +160,10 @@ export class ChessClient {
                 }
             }, 5000);
 
-            this.pendingRequests.set(requestId, { resolve, reject, timer });
+            // WHY: resolve is typed as (v: TResponse | PromiseLike<TResponse>) => void by Promise;
+            // PendingRequest stores it as (v: unknown) => void to avoid generic propagation.
+            // The cast is safe because we call resolve(payload) where payload comes from the server.
+            this.pendingRequests.set(requestId, { resolve: resolve as (v: unknown) => void, reject, timer });
             this.send(type, payload, requestId);
         });
     }
@@ -169,7 +177,8 @@ export class ChessClient {
             this.pendingRequests.delete(requestId);
 
             if (type === 'error') {
-                reject(new Error((payload as any).message || 'Unknown server error'));
+                const err = payload as ErrorPayload;
+                reject(new Error(err.message || 'Unknown server error'));
             } else {
                 resolve(payload);
             }
@@ -178,7 +187,9 @@ export class ChessClient {
         }
 
         if (type === 'helloAck') {
-            this.sessionToken = (payload as any).sessionToken;
+            // WHY: payload type from protocol depends on server message; cast to HelloAckPayload at this boundary.
+            const ack = payload as HelloAckPayload;
+            this.sessionToken = ack.sessionToken ?? null;
         }
 
         const handlers = this.listeners.get(type) || [];

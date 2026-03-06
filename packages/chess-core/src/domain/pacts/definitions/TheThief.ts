@@ -3,13 +3,17 @@ import { Effects } from '../PactEffects';
 import { Coordinate } from '../../models/Coordinate';
 import { PactUtils } from '../PactUtils';
 
+/** State for the pickpocket bonus: tracks when each pawn-enemy pair last triggered a stun. */
+type ThiefBonusState = Record<string, number>;
+
 /**
  * The Thief Pact
  * Bonus (Pickpocket): Friendly pawns stun adjacent enemy major pieces for 2 turns.
  * Malus (Wanted): Pawns cannot promote.
  */
 export const TheThief = definePact('thief')
-    .bonus('pickpocket', {
+    .bonus<ThiefBonusState>('pickpocket', {
+        initialState: () => ({}),
         onMove: (move, context) => {
             const { game, playerId } = context;
             const friendlyPawns = context.query.pieces().friendly().ofTypes(['pawn']);
@@ -25,9 +29,10 @@ export const TheThief = definePact('thief')
                         if (neighbor.isValid()) {
                             const enemyPiece = game.board.getSquare(neighbor)?.piece;
                             if (enemyPiece && enemyPiece.color !== playerId && (enemyPiece.type === 'rook' || enemyPiece.type === 'queen')) {
-                                const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}`;
-                                const state = context.state || {};
-                                if (game.totalTurns - (state[historyKey] || -10) > 2 && game.pieceCooldowns.get(enemyPiece.id) !== 2) {
+                                const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}` as keyof ThiefBonusState;
+                                const state = context.state;
+                                const lastTurn = state[historyKey] ?? -10;
+                                if (game.totalTurns - lastTurn > 2 && game.pieceCooldowns.get(enemyPiece.id) !== 2) {
                                     game.pieceCooldowns.set(enemyPiece.id, 2);
                                     context.updateState({ [historyKey]: game.totalTurns });
                                     PactUtils.notifyPactEffect(game, 'thief', 'pickpocket', 'bonus', 'hand-coin');

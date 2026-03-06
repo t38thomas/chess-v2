@@ -14,7 +14,7 @@ import { GameEndModal } from '../ui/components/GameEndModal';
 import { GameSessionLayout } from '../ui/components/GameSessionLayout';
 import { useTheme } from '../ui/theme';
 import { useTranslation } from '../i18n';
-import { Pact, PERK_LIBRARY } from 'chess-core';
+import { Pact, PERK_LIBRARY, PACT_CARDS, PactRegistry } from 'chess-core';
 import { useBoardSize } from '../ui/responsive/useBoardSize';
 import { usePactTranslation } from '../ui/hooks/usePactTranslation';
 import { PactTurnCounter } from '../ui/components/PactTurnCounter';
@@ -200,15 +200,16 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                                     {section.label}
                                 </Text>
                                 <View style={styles.pactsList}>
-                                    {section.pactItems.map((pact, idx) => {
-                                        const translated = translatePact(pact);
+                                    {section.pactItems.map((pactDef, idx) => {
+                                        const pactMeta = PACT_CARDS.find(p => p.id === pactDef.id) || null;
+                                        const translated = translatePact(pactMeta);
                                         return (
                                             <TouchableOpacity
                                                 key={idx}
                                                 style={styles.pactBadge}
-                                                onPress={() => setSelectedPact(pact)}
+                                                onPress={() => setSelectedPact(pactMeta)}
                                             >
-                                                <Icon name={pact.bonus.icon as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle') as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
                                                 <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
                                             </TouchableOpacity>
                                         );
@@ -239,7 +240,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                             />
                         ) : (
                             availableAbilities.map(abilityId => {
-                                const perk = PERK_LIBRARY[abilityId];
+                                const perk = PERK_LIBRARY[abilityId as keyof typeof PERK_LIBRARY];
                                 if (!perk) return null;
                                 return (
                                     <Button
@@ -335,7 +336,10 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             <PactSelectionModal
                 visible={phase === 'setup'}
                 color={turn}
-                onSelect={(pact) => assignPact(turn, pact)}
+                onSelect={(pact) => {
+                    const pactDef = PactRegistry.getInstance().getDefinition(pact.id);
+                    if (pactDef) assignPact(turn, pactDef);
+                }}
                 choicesCount={matchConfig.pactChoicesAtStart}
                 seed={matchConfig.seed}
                 roundIndex={matchConfig.activePactsMax > 1 ? pacts[turn].length : 0}

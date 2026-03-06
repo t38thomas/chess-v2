@@ -1,6 +1,6 @@
 # Guida Completa alla Creazione di un Patto in PactChess
 
-> **Versione:** 2.0 · **Lingua:** Italiano (codice/identificatori in inglese)  
+> **Versione:** 2.1 (Archi 10/10) · **Lingua:** Italiano (codice/identificatori in inglese)  
 > **Pubblico:** Sviluppatori TypeScript con conoscenza base del dominio scacchistico
 
 ---
@@ -45,6 +45,7 @@ I due lati vengono assegnati ai giocatori separatamente (il bonus di un giocator
 | **duration** | Quanto dura l'effetto: permanente, N turni, condizionale |
 | **state** | Dati serializzabili persistenti per patto+giocatore, memorizzati in `game.pactState` |
 | **RuleModifiers** | Interfaccia con hook che il `RuleEngine` chiama per alterare le regole base |
+| **PactPriority** | Enum (`EARLY`, `NORMAL`, `LATE`) che definisce l'ordine di esecuzione nella pipeline |
 | **PactRegistry** | Singleton che contiene tutte le `PactLogic` istanze attive |
 
 ---
@@ -270,7 +271,7 @@ Chiamati dal `RuleEngine` in modo sincrono durante il calcolo delle mosse legali
 
 | Hook | Quando | Ritorna |
 |---|---|---|
-| `onGetPseudoMoves` | Generazione mosse pseudo-legali | `void` (modifica `moves[]` in-place) |
+| `onModifyMoves` | Generazione mosse (Pipeline Pura) | `Move[]` (ritorna l'array modificato) |
 | `canCapture` | Prima di ogni cattura | `boolean` |
 | `canBeCaptured` | Quando un pezzo sta per essere catturato | `boolean` |
 | `canMovePiece` | Prima che un pezzo si muova | `boolean` |
@@ -381,10 +382,13 @@ class RuleEngine {
 Ogni hook nei `RuleModifiers` è **opzionale** — il RuleEngine lo invoca solo se definito. 
 
 > [!NOTE]
-> **Chain Composition**: Se più Patti definiscono lo stesso modifier (es. `canCapture`), il sistema li **compone** automaticamente. 
-> - I modifier booleani sono in AND (se uno nega l'azione, l'azione è negata).
-> - I modifier che tornano array/void sono eseguiti in sequenza.
-> Questo garantisce che nessun Patto sovrascriva silenziosamente un altro.
+> **Pipeline & Priority (10/10 Architecture)**:
+> - **Pipeline Immutabile**: I modifier che trasformano dati (come `onModifyMoves`) non lavorano più in-place. Ogni patto riceve l'array di mosse prodotto dal patto precedente e ne restituisce una nuova versione (Pattern `reduce`).
+> - **Execution Priority**: Esiste un sistema di priorità (`PactPriority`). 
+>   - `EARLY` (100): Per patti che aggiungono mosse.
+>   - `NORMAL` (0): Default.
+>   - `LATE` (-100): Per patti che filtrano o rimuovono mosse (assicura che vedano anche le mosse aggiunte da altri patti).
+> - **Robustezza**: Se un patto crasha, la pipeline prosegue con l'input originale, evitando interruzioni di gioco.
 
 ---
 
@@ -465,13 +469,14 @@ export const MioPatto = definePact('wanderer')
             stuckTurns: {} as Record<string, number>,
         }),
         modifiers: {
-            onGetPseudoMoves: ({ piece, from, moves }, context) => {
-                if (piece.type !== 'knight') return;
+            onModifyMoves: (currentMoves, { piece, from }, context) => {
+                if (piece.type !== 'knight') return currentMoves;
                 const state = context.state;
                 const stuckFor = state.stuckTurns[piece.id] ?? 0;
                 if (stuckFor >= 2) {
-                    moves.length = 0; // Blocca tutte le mosse
+                    return []; // Blocca tutte le mosse restituendo un array vuoto
                 }
+                return currentMoves;
             },
         },
         onMove: (move, context) => {
@@ -979,21 +984,34 @@ modifyNextTurn: (params, context) => {
 // E nel hook onExecuteMove, resetta context.updateState({ extraTurnGranted: false })
 ```
 
+### ❌ Mutazione In-Place Diretta (Obsoleto)
+
+Con la nuova architettura 10/10, non devi tentare di modificare l'array `moves` tramite `.push` o `.splice` se vuoi che la pipeline funzioni correttamente.
+
+```typescript
+// ⛔ SBAGLIATO (Stile vecchio/rischioso):
+onModifyMoves: (moves, params) => {
+    moves.push(newMove); 
+    // Dimenticare il return o sperare nella mutazione può causare bug
+}
+
+// ✅ CORRETTO:
+onModifyMoves: (currentMoves, params) => {
+    return [...currentMoves, newMove]; // Ritorna sempre un NUOVO array
+}
+```
+
 ### ❌ Calcoli Pesanti per Ogni Hook
 
-`onGetPseudoMoves` viene chiamato **per ogni pezzo, ad ogni turno**. Evita ricerche O(n²) qui.
+`onModifyMoves` viene chiamato **per ogni pezzo, ad ogni turno**. Evita ricerche O(n²) qui.
 
 ```typescript
 // ⛔ SBAGLIATO: ricerca su tutta la scacchiera per ogni pezzo
-onGetPseudoMoves: ({ board, piece, from, moves }) => {
+onModifyMoves: (currentMoves, { board }) => {
     const allPieces = board.getAllPieces(); // O(64)
-    for (const p of allPieces) {           // → O(n²) totale
-        // ...
-    }
+    // ...
+    return currentMoves;
 }
-
-// ✅ CORRETTO: usa PactUtils helper che sono già ottimizzati
-// oppure cache il risultato in context.state
 ```
 
 ### ❌ Non-Determinismo
@@ -1081,9 +1099,12 @@ export const TheTemplate = definePact<TemplateBonusState, TemplateMalusState>('t
 
         // -- Modificatori di Regola personalizzati --
         modifiers: {
-            // TODO: aggiungi i modifier necessari
-            // onGetPseudoMoves: (params, context) => { ... },
-            // canCapture: (params, context) => true,
+            // Riceve le mosse correnti e deve restituire l'array modificato
+            onModifyMoves: (currentMoves, params, context) => { 
+                // return [...currentMoves, ...newMoves];
+                return currentMoves; 
+            },
+            canCapture: (params, context) => true,
         },
 
         // -- Event Hooks --
@@ -1241,7 +1262,7 @@ PactContextWithState<T>
 └── updateState(Partial<T> | (prev: T) => T) → void
 
 RuleModifiers (hook facoltativi)
-├── onGetPseudoMoves(params, ctx) → void
+├── onModifyMoves(currentMoves, params, ctx) → Move[] (Pipeline Pura)
 ├── canCapture(params, ctx) → boolean
 ├── canBeCaptured(params, ctx) → boolean
 ├── canMovePiece(params, ctx) → boolean

@@ -1,4 +1,12 @@
 import { MatchConfig } from '../domain/models/MatchConfig';
+import { PieceType, PieceColor } from '../domain/models/Piece';
+
+export interface IActivePactDto {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+}
 
 export type MessageType =
     | 'hello'
@@ -17,7 +25,9 @@ export interface AssignPactPayload {
 
 export interface UseAbilityPayload {
     abilityId: string;
-    params?: any;
+    // WHY: params is an opaque bag whose structure is known only by each ability. 
+    // It enters the system here (WS boundary) and gets hydrated/narrowed in the domain.
+    params?: unknown;
 }
 
 export type ServerMessageType =
@@ -98,16 +108,29 @@ export interface StateSyncPayload {
     status: 'active' | 'checkmate' | 'stalemate' | 'draw';
     phase: 'setup' | 'playing' | 'game_over';
     turn: 'white' | 'black';
-    pacts: { white: any[], black: any[] };
+    pacts: {
+        white: Array<{ id: string; bonus: IActivePactDto; malus: IActivePactDto }>;
+        black: Array<{ id: string; bonus: IActivePactDto; malus: IActivePactDto }>;
+    };
     perkUsage: { white: string[], black: string[] };
     board?: Array<[string, { coordinate: { x: number; y: number }; piece: { type: string; color: string; id: string } | null }]>;
-    lastMove?: { from: { x: number; y: number }; to: { x: number; y: number } };
+    lastMove?: { from: { x: number; y: number }; to: { x: number; y: number } } | null;
     players: {
         white: { connected: boolean; username?: string };
         black: { connected: boolean; username?: string };
     };
     matchConfig?: MatchConfig;
     orientation?: number;
+    totalTurns: number;
+    winner?: 'white' | 'black' | null;
+    pieceCooldowns: Record<string, number>;
+    extraTurns: { white: number; black: number };
+    enPassantTarget: { x: number; y: number } | null;
+    capturedPieces: {
+        white: Array<{ type: PieceType; color: PieceColor; id: string }>;
+        black: Array<{ type: PieceType; color: PieceColor; id: string }>;
+    };
+    pactState: Record<string, unknown>;
 }
 
 export interface MoveAcceptedPayload {
@@ -123,5 +146,6 @@ export interface MatchEndedPayload {
 export interface AbilityActivatedPayload {
     playerId: string;
     abilityId: string;
-    params?: any;
+    // WHY: params is an opaque bag whose structure is known only by each ability. 
+    params?: unknown;
 }

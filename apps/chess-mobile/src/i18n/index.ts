@@ -12,8 +12,14 @@ const translations: Record<Locale, Translations> = {
 };
 
 // 2. Helper to resolve nested keys: "home.playOnline" -> "Play Online"
-const getNestedValue = (obj: any, key: string): string | undefined => {
-    return key.split('.').reduce((acc, part) => acc && acc[part], obj);
+const getNestedValue = (obj: Record<string, unknown>, key: string): string | undefined => {
+    const result = key.split('.').reduce<unknown>((acc, part) => {
+        if (acc !== null && typeof acc === 'object') {
+            return (acc as Record<string, unknown>)[part];
+        }
+        return undefined;
+    }, obj);
+    return typeof result === 'string' ? result : undefined;
 };
 
 // 3. Current locale state (module-level for non-hook usage)

@@ -55,6 +55,10 @@ export class DtoMapper {
             pactState: game.pactState,
             winner: game.winner,
             extraTurns: game.extraTurns,
+            capturedPieces: {
+                white: game.capturedPieces.white.map(p => ({ type: p.type, color: p.color, id: p.id })),
+                black: game.capturedPieces.black.map(p => ({ type: p.type, color: p.color, id: p.id }))
+            },
             enPassantTarget: game.enPassantTarget ? { x: game.enPassantTarget.x, y: game.enPassantTarget.y } : null
         };
     }

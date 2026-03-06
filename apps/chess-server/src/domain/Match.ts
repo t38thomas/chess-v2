@@ -23,7 +23,7 @@ export interface Match {
 
 export const MAX_PLAYERS = 2;
 
-export function createMatch(id: string, joinCode: string, variantConfig?: any): Match {
+export function createMatch(id: string, joinCode: string, variantConfig?: Record<string, unknown>): Match {
     const config = {
         ...DEFAULT_MATCH_CONFIG,
         ...(variantConfig?.matchConfig || {})

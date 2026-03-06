@@ -13,7 +13,8 @@ import { PactTurnCounter } from './PactTurnCounter';
 import { GameSessionLayout } from './GameSessionLayout';
 import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
-import { Pact, PERK_LIBRARY, BoardViewModel } from 'chess-core';
+import { Pact, PERK_LIBRARY, BoardViewModel, PACT_CARDS, PactRegistry } from 'chess-core';
+import { PactDefinition } from 'chess-core/src/domain/pacts/PactLogic';
 import { usePactTranslation } from '../hooks/usePactTranslation';
 
 import { useCapturedPieces } from '../hooks/useCapturedPieces';
@@ -31,7 +32,7 @@ interface ActiveGameViewProps {
         white?: { username: string; connected: boolean } | null;
         black?: { username: string; connected: boolean } | null;
     };
-    pacts: { white: Pact[]; black: Pact[] };
+    pacts: { white: PactDefinition[]; black: PactDefinition[] };
     playerColor: 'white' | 'black';
     phase: string;
     pendingPromotion: any;
@@ -165,15 +166,16 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                                     {section.label}
                                 </Text>
                                 <View style={styles.pactsList}>
-                                    {section.pactItems.map((pact, idx) => {
-                                        const translated = translatePact(pact);
+                                    {section.pactItems.map((pactDef, idx) => {
+                                        const pactMeta = PACT_CARDS.find(p => p.id === pactDef.id) || null;
+                                        const translated = translatePact(pactMeta);
                                         return (
                                             <TouchableOpacity
                                                 key={idx}
                                                 style={styles.pactBadge}
-                                                onPress={() => setSelectedPact(pact)}
+                                                onPress={() => setSelectedPact(pactMeta)}
                                             >
-                                                <Icon name={pact.bonus.icon as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle') as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
                                                 <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
                                             </TouchableOpacity>
                                         );
@@ -193,7 +195,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                     </Text>
                     <View style={styles.spectralActionsList}>
                         {availableAbilities.map(abilityId => {
-                            const perk = PERK_LIBRARY[abilityId];
+                            const perk = PERK_LIBRARY[abilityId as keyof typeof PERK_LIBRARY];
                             if (!perk) return null;
                             return (
                                 <Button
