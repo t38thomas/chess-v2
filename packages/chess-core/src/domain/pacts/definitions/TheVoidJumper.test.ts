@@ -16,8 +16,10 @@ describe('The Void Jumper Pact', () => {
     const createContext = (playerId: PieceColor): PactContext => ({
         game,
         playerId,
-        pactId: TheVoidJumper.id
-    });
+        pactId: TheVoidJumper.id,
+        state: {},
+        updateState: () => { }
+    } as any);
 
     // Helper to clear board
     const clearBoard = () => {

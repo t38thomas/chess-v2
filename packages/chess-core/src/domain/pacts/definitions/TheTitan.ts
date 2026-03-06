@@ -13,7 +13,8 @@ export const TheTitan = definePact('titan')
             onExecuteMove: (game, move, context) => {
                 const b = game.board;
                 const square = b.getSquare(move.to);
-                if (context && move.piece.color !== context.playerId) return;
+                const piece = move.piece || square?.piece;
+                if (context && piece?.color !== context.playerId) return;
                 if (!square || !square.piece || square.piece.type !== 'queen') return;
 
                 const adjacent = PactUtils.getPiecesAdjacentTo(game, move.to);

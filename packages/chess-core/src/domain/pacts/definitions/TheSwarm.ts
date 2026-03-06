@@ -11,10 +11,8 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSwarm = definePact('swarm')
     .bonus('hydra', {
-        onEvent: (event, payload, context) => {
-            const move = payload as any;
-            const isCapture = event === 'capture' || (move && move.capturedPiece);
-            if (isCapture && move) {
+        onMove: (move, context) => {
+            if (move.capturedPiece) {
                 const { game, playerId } = context;
                 const capturedPiece = move.capturedPiece;
                 if (capturedPiece?.type === 'pawn' && capturedPiece.color === playerId) {

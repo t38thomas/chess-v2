@@ -41,14 +41,14 @@ export const PawnEffects = {
                     }
                 }
             },
-            canCapture: (game, attacker, victim, to, from) => {
-                if (attacker.type !== 'pawn') return true;
+            canCapture: (params) => {
+                if (params.attacker.type !== 'pawn') return true;
 
-                const orientation = game?.orientation ?? 0;
-                const forward = Vector.getForward(attacker.color, orientation);
+                const orientation = params.game?.orientation ?? 0;
+                const forward = Vector.getForward(params.attacker.color, orientation);
 
-                const dx = to.x - from.x;
-                const dy = to.y - from.y;
+                const dx = params.to.x - params.from.x;
+                const dy = params.to.y - params.from.y;
 
                 const forwardComponent = dx * forward.dx + dy * forward.dy;
                 const lateralComponent = Math.abs(dx * forward.dy - dy * forward.dx);

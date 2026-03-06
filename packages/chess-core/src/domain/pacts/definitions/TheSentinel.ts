@@ -8,23 +8,22 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSentinel = definePact('sentinel')
     .bonus('vigilance', {
+        target: 'self',
         modifiers: {
-            canBeCaptured: (game, attacker, victim, to, from, board, context) => {
-                if (!game || (context && victim.color !== context.playerId)) return true;
-                const kingInfo = PactUtils.findPieces(game, victim.color, 'king', board)[0];
+            canBeCaptured: (params, context) => {
+                const kingInfo = PactUtils.findPieces(params.game!, context.playerId, 'king', params.board)[0];
                 if (!kingInfo) return true;
-                return !PactUtils.isAdjacent(to, kingInfo.coord);
+                return !PactUtils.isAdjacent(params.to, kingInfo.coord);
             }
         }
     })
     .malus('anchored', {
+        target: 'self',
         modifiers: {
-            canMovePiece: (game, from, board, context) => {
-                const effectiveBoard = board || game.board;
-                const piece = effectiveBoard.getSquare(from)?.piece;
-                if (context && piece?.color !== context.playerId) return true;
+            canMovePiece: (params, context) => {
+                const piece = params.board.getSquare(params.from)?.piece;
                 if (piece?.type === 'king') {
-                    return PactUtils.getPiecesAdjacentTo(game, from, effectiveBoard).length === 0;
+                    return PactUtils.getPiecesAdjacentTo(params.game, params.from, params.board).length === 0;
                 }
                 return true;
             }

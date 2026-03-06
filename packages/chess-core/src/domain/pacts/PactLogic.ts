@@ -73,43 +73,65 @@ export interface MoveParams {
     orientation?: number; // 0-3 (clockwise 90° steps), matches game.orientation
 }
 
+export interface MoveContext {
+    game: IChessGame;
+    board: BoardModel;
+    from: Coordinate;
+}
+
+export interface CaptureContext {
+    game: IChessGame | undefined;
+    board: BoardModel;
+    attacker: Piece;
+    victim: Piece;
+    from: Coordinate;
+    to: Coordinate;
+}
+
+export interface TurnModifierContext {
+    game: IChessGame;
+    currentTurn: PieceColor;
+    eventType: GameEvent;
+}
+
 export interface RuleModifiers {
     // Movement Hooks
-    onGetPseudoMoves?: (params: MoveParams, context?: PactContextWithState<any>) => void;
+    onGetPseudoMoves?: (params: MoveParams, context: PactContextWithState<any>) => void;
 
     // Movement overrides
-    getMaxRange?: (piece: Piece, context?: PactContextWithState<any>) => number;
-    getFixedDistances?: (piece: Piece, context?: PactContextWithState<any>) => number[] | null;
-    canDoubleMove?: (piece: Piece, y: number, startY: number, context?: PactContextWithState<any>) => boolean;
-    canDiagonalDash?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
-    canSidewaysMove?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
-    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context?: PactContextWithState<any>) => boolean;
-    canMoveLikeKnight?: (pieceType: PieceType, context?: PactContextWithState<any>) => boolean;
-    hasEcholocation?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
-    canMovePiece?: (game: IChessGame, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
+    getMaxRange?: (piece: Piece, context: PactContextWithState<any>) => number;
+    getFixedDistances?: (piece: Piece, context: PactContextWithState<any>) => number[] | null;
+    canDoubleMove?: (piece: Piece, y: number, startY: number, context: PactContextWithState<any>) => boolean;
+    canDiagonalDash?: (piece: Piece, context: PactContextWithState<any>) => boolean;
+    canSidewaysMove?: (piece: Piece, context: PactContextWithState<any>) => boolean;
+    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context: PactContextWithState<any>) => boolean;
+    canMoveLikeKnight?: (pieceType: PieceType, context: PactContextWithState<any>) => boolean;
+    hasEcholocation?: (piece: Piece, context: PactContextWithState<any>) => boolean;
+    canMovePiece?: (params: MoveContext, context: PactContextWithState<any>) => boolean;
 
     // Promotion overrides
-    getAllowedPromotionTypes?: (piece: Piece, context?: PactContextWithState<any>) => PieceType[];
+    getAllowedPromotionTypes?: (piece: Piece, context: PactContextWithState<any>) => PieceType[];
 
     // Capture overrides
-    canCapture?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
+    canCapture?: (params: CaptureContext, context: PactContextWithState<any>) => boolean;
 
     // King Safety
-    canCastleWhileMoved?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
-    canCastle?: (piece: Piece, context?: PactContextWithState<any>) => boolean;
-    mustMoveKingInCheck?: (color: PieceColor, context?: PactContextWithState<any>) => boolean;
+    canCastleWhileMoved?: (piece: Piece, context: PactContextWithState<any>) => boolean;
+    canCastle?: (piece: Piece, context: PactContextWithState<any>) => boolean;
+    mustMoveKingInCheck?: (color: PieceColor, context: PactContextWithState<any>) => boolean;
 
     // Turn Economy & Special Rules
-    modifyNextTurn?: (game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, context?: PactContextWithState<any>) => PieceColor | null;
-    onExecuteMove?: (game: IChessGame, move: Move, context?: PactContextWithState<any>) => void;
+    modifyNextTurn?: (params: TurnModifierContext, context: PactContextWithState<any>) => PieceColor | null;
+    onExecuteMove?: (game: IChessGame, move: Move, context: PactContextWithState<any>) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board?: BoardModel, context?: PactContextWithState<any>) => boolean;
-    isImmuneToCheckmate?: (game: IChessGame, context?: PactContextWithState<any>) => boolean;
+    canBeCaptured?: (params: CaptureContext, context: PactContextWithState<any>) => boolean;
+    isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<any>) => boolean;
 }
 
 export abstract class PactLogic<T = any> {
     abstract id: string;
+    public target: 'self' | 'enemy' | 'global' = 'self';
 
     /**
      * Returns the initial state for this pact.
@@ -219,6 +241,7 @@ class GenericPact<T = any> extends PactLogic<T> {
     ) {
         super();
         this.activeAbility = options.activeAbility;
+        this.target = options.target || 'self';
     }
 
     getInitialState(): T | null {
@@ -242,11 +265,6 @@ class GenericPact<T = any> extends PactLogic<T> {
         context: PactContext
     ): void {
         const ctx = this.createContextWithState(context);
-
-        // Legacy support
-        if (this.options.onEvent) {
-            this.options.onEvent(event as any, payload, ctx);
-        }
 
         // New typed hooks
         if (event === 'move' && this.options.onMove) this.options.onMove(payload, ctx);
@@ -291,6 +309,7 @@ class GenericPact<T = any> extends PactLogic<T> {
  * Builder for defining pacts declaratively.
  */
 export interface PactLogicOptions<T = any> {
+    target?: 'self' | 'enemy' | 'global';
     effects?: PactEffect[];
     modifiers?: RuleModifiers;
     onMove?: (payload: GameEventPayloads['move'], context: PactContextWithState<T>) => void;
@@ -299,8 +318,6 @@ export interface PactLogicOptions<T = any> {
     onPromotion?: (payload: GameEventPayloads['promotion'], context: PactContextWithState<T>) => void;
     onTurnStart?: (context: PactContextWithState<T>) => void;
     onTurnEnd?: (context: PactContextWithState<T>) => void;
-    // Legacy support
-    onEvent?: <K extends keyof GameEventPayloads>(event: K | GameEvent | string, payload: any, context: PactContext) => void;
     initialState?: () => T;
     activeAbility?: ActiveAbilityConfig<T>;
     getTurnCounters?: (context: PactContextWithState<T>) => TurnCounter[];

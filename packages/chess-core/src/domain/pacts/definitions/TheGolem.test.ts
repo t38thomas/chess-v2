@@ -30,7 +30,9 @@ describe('The Golem Pact', () => {
 
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.canBeCaptured) {
-                const canCapture = modifiers.canBeCaptured(game, blackQueen, whiteKing, kingPos, queenPos);
+                const canCapture = modifiers.canBeCaptured({
+                    game, board, attacker: blackQueen, victim: whiteKing, from: queenPos, to: kingPos
+                }, {} as any);
                 expect(canCapture).toBe(false);
             } else {
                 expect(true).toBe(false); // Hook should be defined
@@ -50,7 +52,9 @@ describe('The Golem Pact', () => {
 
             const modifiers = bonus.getRuleModifiers();
             if (modifiers.canBeCaptured) {
-                const canCapture = modifiers.canBeCaptured(game, blackQueen, whiteKing, kingPos, queenPos);
+                const canCapture = modifiers.canBeCaptured({
+                    game, board, attacker: blackQueen, victim: whiteKing, from: queenPos, to: kingPos
+                }, {} as any);
                 expect(canCapture).toBe(true);
             } else {
                 expect(true).toBe(false);
@@ -78,7 +82,7 @@ describe('The Golem Pact', () => {
 
             const modifiers = malus.getRuleModifiers();
             if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteKing, from: kingPos, moves });
+                modifiers.onGetPseudoMoves({ board, piece: whiteKing, from: kingPos, moves }, {} as any);
 
                 // Should only have 4 moves left (the non-diagonals)
                 expect(moves.length).toBe(4);
@@ -104,7 +108,7 @@ describe('The Golem Pact', () => {
 
             const modifiers = malus.getRuleModifiers();
             if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteQueen, from: queenPos, moves });
+                modifiers.onGetPseudoMoves({ board, piece: whiteQueen, from: queenPos, moves }, {} as any);
                 expect(moves.length).toBe(1); // Should still be there
             }
         });

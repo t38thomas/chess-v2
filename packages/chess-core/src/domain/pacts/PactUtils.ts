@@ -9,20 +9,24 @@ import { MovementUtils } from './utils/MovementUtils';
 
 
 
+export type PactVisualEffect = 'stun' | 'heal' | 'buff' | 'debuff' | 'silence' | 'swap' | 'revive' | 'damage';
+export type PactVisualIcon = 'flask' | 'shield' | 'sword' | 'snowflake' | 'swap-horizontal' | 'heart' | 'skull' | 'zap' | 'eye' | 'flame' | 'leaf';
+export type PactEffectOrigin = 'bonus' | 'malus';
+
 export class PactUtils {
     // Notifications & Messaging
     public static emitPactEffect(game: IChessGame, config: {
         pactId: string;
         title: string;
         description: string;
-        icon: string;
-        type: 'bonus' | 'malus';
+        icon: PactVisualIcon | string;
+        type: PactEffectOrigin;
         payload?: any;
     }): void {
         game.emit('pact_effect', config);
     }
 
-    public static notifyPactEffect(game: IChessGame, pactId: string, eventKey: string, type: 'bonus' | 'malus', icon: string): void {
+    public static notifyPactEffect(game: IChessGame, pactId: string, eventKey: PactVisualEffect | string, type: PactEffectOrigin, icon: PactVisualIcon | string): void {
         game.emit('pact_effect', {
             pactId,
             title: `pact.toasts.${pactId}.${eventKey}.title`,

@@ -8,9 +8,11 @@ import { Effects } from '../PactEffects';
  */
 export const TheHawk = definePact('hawk')
     .bonus('high_flyer', {
+        target: 'self',
         effects: [Effects.movement.canMoveThroughFriendlies('bishop')]
     })
     .malus('distant_predator', {
+        target: 'self',
         effects: [Effects.combat.restrictAdjacentCapture('bishop')]
     })
     .build();

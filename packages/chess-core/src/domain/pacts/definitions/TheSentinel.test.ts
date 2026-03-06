@@ -3,6 +3,7 @@ import { TheSentinel } from './TheSentinel';
 import { ChessGame } from '../../ChessGame';
 import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
+import { RuleEngine } from '../../rules/RuleEngine';
 
 describe('The Sentinel', () => {
     let game: ChessGame;
@@ -28,8 +29,8 @@ describe('The Sentinel', () => {
             game.board.placePiece(pawnPos, pawn);
             game.board.placePiece(attackerPos, attacker);
 
-            const modifiers = vigilanceBonus.getRuleModifiers();
-            const canBeCaptured = modifiers.canBeCaptured!(game, attacker, pawn, pawnPos, attackerPos);
+            game.assignPact('white', TheSentinel as any);
+            const canBeCaptured = RuleEngine.canCapture(game, attacker, pawn, pawnPos, attackerPos, game.board, []);
 
             expect(canBeCaptured).toBe(false);
         });
@@ -48,8 +49,8 @@ describe('The Sentinel', () => {
             game.board.placePiece(pawnPos, pawn);
             game.board.placePiece(attackerPos, attacker);
 
-            const modifiers = vigilanceBonus.getRuleModifiers();
-            const canBeCaptured = modifiers.canBeCaptured!(game, attacker, pawn, pawnPos, attackerPos);
+            game.assignPact('white', TheSentinel as any);
+            const canBeCaptured = RuleEngine.canCapture(game, attacker, pawn, pawnPos, attackerPos, game.board, []);
 
             expect(canBeCaptured).toBe(true);
         });
@@ -67,8 +68,9 @@ describe('The Sentinel', () => {
             game.board.placePiece(kingPos, king);
             game.board.placePiece(pawnPos, friendlyPawn);
 
-            const modifiers = anchoredMalus.getRuleModifiers();
-            const canMove = modifiers.canMovePiece!(game, kingPos);
+            game.assignPact('white', TheSentinel as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, kingPos, perks, game.board);
 
             expect(canMove).toBe(false);
         });
@@ -85,8 +87,9 @@ describe('The Sentinel', () => {
             game.board.placePiece(kingPos, king);
             game.board.placePiece(adjacentKnightPos, enemyKnight);
 
-            const modifiers = anchoredMalus.getRuleModifiers();
-            const canMove = modifiers.canMovePiece!(game, kingPos);
+            game.assignPact('white', TheSentinel as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, kingPos, perks, game.board);
 
             expect(canMove).toBe(false);
         });
@@ -98,8 +101,9 @@ describe('The Sentinel', () => {
             const kingPos = new Coordinate(4, 0);
             game.board.placePiece(kingPos, king);
 
-            const modifiers = anchoredMalus.getRuleModifiers();
-            const canMove = modifiers.canMovePiece!(game, kingPos);
+            game.assignPact('white', TheSentinel as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, kingPos, perks, game.board);
 
             expect(canMove).toBe(true);
         });

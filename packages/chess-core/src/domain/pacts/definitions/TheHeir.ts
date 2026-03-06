@@ -8,42 +8,39 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheHeir = definePact('heir')
     .bonus('bloodline', {
-        onEvent: (event, payload, context) => {
+        target: 'self',
+        onCapture: (payload, context) => {
             const { game, playerId } = context;
-            const move = payload as any;
-            const isCapture = event === 'capture' || (move && move.capturedPiece);
-            if (isCapture && move) {
-                const capturedPiece = move.capturedPiece;
-                if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
-                    const minorPieces = PactUtils.findPiecesByTypes(game, playerId, ['rook', 'bishop', 'knight']);
-                    if (minorPieces.length > 0) {
-                        const [successor] = PactUtils.pickRandom(minorPieces, 1);
-                        if (successor) {
-                            PactUtils.promotePiece(game, successor.coord, 'queen');
-                            const ctx = context as import('../PactLogic').PactContextWithState<any>;
-                            const state = ctx.state || {};
-                            ctx.updateState({
-                                successorIds: {
-                                    ...(state.successorIds || {}),
-                                    [successor.piece.id]: true
-                                }
-                            });
+            const capturedPiece = payload.victim;
+            if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
+                const minorPieces = PactUtils.findPiecesByTypes(game, playerId, ['rook', 'bishop', 'knight']);
+                if (minorPieces.length > 0) {
+                    const [successor] = PactUtils.pickRandom(minorPieces, 1);
+                    if (successor) {
+                        PactUtils.promotePiece(game, successor.coord, 'queen');
+                        const ctx = context as import('../PactLogic').PactContextWithState<any>;
+                        const state = ctx.state || {};
+                        ctx.updateState({
+                            successorIds: {
+                                ...(state.successorIds || {}),
+                                [successor.piece.id]: true
+                            }
+                        });
 
-                            PactUtils.notifyPactEffect(game, 'heir', 'bloodline', 'bonus', 'crown');
-                        }
+                        PactUtils.notifyPactEffect(game, 'heir', 'bloodline', 'bonus', 'crown');
                     }
                 }
             }
         }
     })
     .malus('young_queen', {
+        target: 'self',
         modifiers: {
-            canCapture: (game, attacker, victim, to, from, board, context) => {
-                if (context && attacker.color !== context.playerId) return true;
-                if (attacker.type === 'queen') {
-                    const sharedState = game?.pactState[`bloodline_${attacker.color}`] || {};
-                    const isSuccessor = sharedState.successorIds?.[attacker.id];
-                    if (!isSuccessor) return victim.type === 'king';
+            canCapture: (params, context) => {
+                if (params.attacker.type === 'queen') {
+                    const sharedState = params.game?.pactState[`bloodline_${params.attacker.color}`] || {};
+                    const isSuccessor = sharedState.successorIds?.[params.attacker.id];
+                    if (!isSuccessor) return params.victim.type === 'king';
                 }
                 return true;
             }

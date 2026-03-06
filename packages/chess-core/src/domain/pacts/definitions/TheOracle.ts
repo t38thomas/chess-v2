@@ -14,13 +14,12 @@ export const TheOracle = definePact('oracle')
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
             context.updateState({ capablePieceIds });
         },
-        onEvent: (event, payload, context) => {
+        onMove: (move, context) => {
             const { game, playerId } = context;
-            const move = payload as any;
-            const isPlayerMove = ['move', 'capture', 'check', 'checkmate'].includes(event) && move?.piece?.color === playerId;
+            const isPlayerMove = move?.piece?.color === playerId;
 
             if (isPlayerMove) {
-                const ctx = context as import('../PactLogic').PactContextWithState<any>;
+                const ctx = context;
                 const state = ctx.state || {};
                 const capablePieceIds = state.capablePieceIds || [];
                 if (capablePieceIds.length === 0) return;

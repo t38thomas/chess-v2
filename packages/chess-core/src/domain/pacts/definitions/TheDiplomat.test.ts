@@ -4,6 +4,7 @@ import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { TheDiplomat } from './TheDiplomat';
 import { ChessGame } from '../../ChessGame';
+import { RuleEngine } from '../../rules/RuleEngine';
 
 describe('The Diplomat Pact', () => {
     let board: BoardModel;
@@ -27,9 +28,8 @@ describe('The Diplomat Pact', () => {
             board.placePiece(queenPos, whiteQueen);
             board.placePiece(pawnPos, blackPawn);
 
-            // Setting context for bonus
-            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos, board, context);
+            game.assignPact('white', TheDiplomat as any);
+            const canBeCaptured = RuleEngine.canCapture(game, blackPawn, whiteQueen, queenPos, pawnPos, board, []);
             expect(canBeCaptured).toBe(false);
         });
 
@@ -43,8 +43,8 @@ describe('The Diplomat Pact', () => {
             board.placePiece(queenPos, whiteQueen);
             board.placePiece(knightPos, blackKnight);
 
-            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackKnight, whiteQueen, queenPos, knightPos, board, context);
+            game.assignPact('white', TheDiplomat as any);
+            const canBeCaptured = RuleEngine.canCapture(game, blackKnight, whiteQueen, queenPos, knightPos, board, []);
             expect(canBeCaptured).toBe(true);
         });
 
@@ -61,8 +61,8 @@ describe('The Diplomat Pact', () => {
             // Simulate capture
             game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
 
-            const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomat' });
-            const canBeCaptured = bonus.getRuleModifiers().canBeCaptured!(game, blackPawn, whiteQueen, queenPos, pawnPos, board, context);
+            game.assignPact('white', TheDiplomat as any);
+            const canBeCaptured = RuleEngine.canCapture(game, blackPawn, whiteQueen, queenPos, pawnPos, board, []);
             expect(canBeCaptured).toBe(true);
         });
 
@@ -94,7 +94,9 @@ describe('The Diplomat Pact', () => {
             const knightPos = new Coordinate(1, 0);
             board.placePiece(knightPos, whiteKnight);
 
-            const canMove = malus.getRuleModifiers().canMovePiece!(game, knightPos, board);
+            game.assignPact('white', TheDiplomat as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, knightPos, perks, board);
             expect(canMove).toBe(false);
         });
 
@@ -106,7 +108,9 @@ describe('The Diplomat Pact', () => {
 
             game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
 
-            const canMove = malus.getRuleModifiers().canMovePiece!(game, knightPos, board);
+            game.assignPact('white', TheDiplomat as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, knightPos, perks, board);
             expect(canMove).toBe(true);
         });
 
@@ -116,7 +120,9 @@ describe('The Diplomat Pact', () => {
             const rookPos = new Coordinate(0, 0);
             board.placePiece(rookPos, whiteRook);
 
-            const canMove = malus.getRuleModifiers().canMovePiece!(game, rookPos, board);
+            game.assignPact('white', TheDiplomat as any);
+            const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);
+            const canMove = RuleEngine.canMovePiece(game, rookPos, perks, board);
             expect(canMove).toBe(true);
         });
     });

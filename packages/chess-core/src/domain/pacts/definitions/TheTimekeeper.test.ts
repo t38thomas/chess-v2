@@ -19,10 +19,12 @@ describe('The Timekeeper', () => {
     it('should grant an extra turn when Time Stop is activated', () => {
         const initialExtraTurns = game.extraTurns['white'] || 0;
 
-        const context: PactContext = {
+        const context = {
             game: game,
-            playerId: 'white',
-            pactId: TheTimekeeper.id
+            playerId: 'white' as const,
+            pactId: TheTimekeeper.id,
+            state: {},
+            updateState: () => { }
         };
 
         // Mock execute if needed, but we are testing the class providing execute
@@ -45,10 +47,12 @@ describe('The Timekeeper', () => {
             .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'pawn');
         expect(whitePawns.length).toBe(4);
 
-        const context: PactContext = {
+        const context = {
             game: game,
-            playerId: 'white',
-            pactId: 'time_stop'
+            playerId: 'white' as const,
+            pactId: 'time_stop',
+            state: {},
+            updateState: () => { }
         };
 
         timeStop.activeAbility!.execute(context, {});
@@ -69,10 +73,12 @@ describe('The Timekeeper', () => {
             .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'pawn');
         expect(whitePawns.length).toBe(2);
 
-        const context: PactContext = {
+        const context = {
             game: game,
-            playerId: 'white',
-            pactId: 'time_stop'
+            playerId: 'white' as const,
+            pactId: 'time_stop',
+            state: {},
+            updateState: () => { }
         };
 
         timeStop.activeAbility!.execute(context, {});

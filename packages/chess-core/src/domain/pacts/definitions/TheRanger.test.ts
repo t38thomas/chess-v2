@@ -22,7 +22,7 @@ describe('The Ranger Pact', () => {
             const bishop = new Piece('bishop', 'white', 'w-bishop');
             const modifiers = malus.getRuleModifiers();
             if (modifiers.getMaxRange) {
-                expect(modifiers.getMaxRange(bishop)).toBe(4);
+                expect(modifiers.getMaxRange(bishop, { game, playerId: 'white', pactId: 'ranger' } as any)).toBe(4);
             } else {
                 expect(true).toBe(false); // Fails if getMaxRange is missing
             }
@@ -32,7 +32,7 @@ describe('The Ranger Pact', () => {
             const rook = new Piece('rook', 'white', 'w-rook');
             const modifiers = malus.getRuleModifiers();
             if (modifiers.getMaxRange) {
-                expect(modifiers.getMaxRange(rook)).toBe(8);
+                expect(modifiers.getMaxRange(rook, { game, playerId: 'white', pactId: 'ranger' } as any)).toBe(8);
             }
         });
     });

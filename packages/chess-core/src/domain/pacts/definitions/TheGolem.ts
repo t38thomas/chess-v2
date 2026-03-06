@@ -8,9 +8,11 @@ import { Effects } from '../PactEffects';
  */
 export const TheGolem = definePact('golem')
     .bonus('stone_skin', {
+        target: 'self',
         effects: [Effects.combat.protectKingAgainstRanged(3)]
     })
     .malus('lead_feet', {
+        target: 'self',
         effects: [Effects.movement.disableDiagonal('king')]
     })
     .build();

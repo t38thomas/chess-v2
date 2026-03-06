@@ -58,11 +58,11 @@ describe('The Hawk Pact', () => {
             const rules = malus.getRuleModifiers();
 
             // Adjacent capture
-            const canCaptureAdjacent = rules.canCapture!(game, bishop, enemy, toAdjacent, from);
+            const canCaptureAdjacent = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toAdjacent, from }, {} as any);
             expect(canCaptureAdjacent).toBe(false);
 
             // Distant capture
-            const canCaptureDistant = rules.canCapture!(game, bishop, enemy, toDistant, from);
+            const canCaptureDistant = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toDistant, from }, {} as any);
             expect(canCaptureDistant).toBe(true);
         });
 
@@ -75,7 +75,7 @@ describe('The Hawk Pact', () => {
 
             const rules = malus.getRuleModifiers();
 
-            const canCapture = rules.canCapture!(game, queen, enemy, toAdjacent, from);
+            const canCapture = rules.canCapture!({ game, board: game.board, attacker: queen, victim: enemy, to: toAdjacent, from }, {} as any);
             expect(canCapture).toBe(true);
         });
     });

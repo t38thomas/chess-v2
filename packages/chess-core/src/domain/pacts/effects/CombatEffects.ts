@@ -8,8 +8,8 @@ export const CombatEffects = {
      */
     immuneToPawnCapturesOnDarkSquares: (): PactEffect => ({
         modifiers: {
-            canBeCaptured: (game, attacker, victim, to) => {
-                return !(PactUtils.isBlackSquare(to) && attacker.type === 'pawn');
+            canBeCaptured: (params) => {
+                return !(PactUtils.isBlackSquare(params.to) && params.attacker.type === 'pawn');
             }
         }
     }),
@@ -28,10 +28,10 @@ export const CombatEffects = {
      */
     restrictDiagonalCapture: (attackerType: PieceType): PactEffect => ({
         modifiers: {
-            canCapture: (game, attacker, victim, to, from) => {
-                if (attacker.type !== attackerType) return true;
-                const dx = Math.abs(to.x - from.x);
-                const dy = Math.abs(to.y - from.y);
+            canCapture: (params) => {
+                if (params.attacker.type !== attackerType) return true;
+                const dx = Math.abs(params.to.x - params.from.x);
+                const dy = Math.abs(params.to.y - params.from.y);
                 return !(dx > 0 && dy > 0);
             }
         }
@@ -42,10 +42,10 @@ export const CombatEffects = {
      */
     restrictAdjacentCapture: (attackerType: PieceType): PactEffect => ({
         modifiers: {
-            canCapture: (game, attacker, victim, to, from) => {
-                if (attacker.type === attackerType) {
-                    const dx = Math.abs(to.x - from.x);
-                    const dy = Math.abs(to.y - from.y);
+            canCapture: (params) => {
+                if (params.attacker.type === attackerType) {
+                    const dx = Math.abs(params.to.x - params.from.x);
+                    const dy = Math.abs(params.to.y - params.from.y);
                     if (dx <= 1 && dy <= 1) return false;
                 }
                 return true;
@@ -58,9 +58,9 @@ export const CombatEffects = {
      */
     protectKingAgainstRanged: (maxRange: number): PactEffect => ({
         modifiers: {
-            canBeCaptured: (game, attacker, victim, to, from) => {
-                if (victim.type !== 'king') return true;
-                return from.distanceTo(to) <= maxRange;
+            canBeCaptured: (params) => {
+                if (params.victim.type !== 'king') return true;
+                return params.from.distanceTo(params.to) <= maxRange;
             }
         }
     }),

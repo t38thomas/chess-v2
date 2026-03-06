@@ -82,11 +82,12 @@ describe('The Saboteur Pact', () => {
             game.pacts.white.push(pact as any);
             game.phase = 'playing';
 
-            const result = game.makeMove(new Coordinate(4, 6), new Coordinate(4, 7));
+            const result = game.makeMove(new Coordinate(4, 6), new Coordinate(4, 7), 'queen');
             expect(result).toBe(true);
 
             const promotedPiece = game.board.getSquare(new Coordinate(4, 7))?.piece;
             expect(promotedPiece?.type).toBe('rook');
+            expect(promotedPiece?.type).not.toBe('queen');
             expect(promotedPiece?.type).not.toBe('queen');
         });
     });

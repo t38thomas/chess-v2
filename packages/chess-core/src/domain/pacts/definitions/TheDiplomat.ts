@@ -9,13 +9,13 @@ import { Effects } from '../PactEffects';
  */
 export const TheDiplomat = definePact('diplomat')
     .bonus('diplomatic_immunity', {
+        target: 'self',
         modifiers: {
-            canBeCaptured: (game, attacker, victim, to, from, board, context) => {
-                if (!game || !PactUtils.isQueen(victim)) return true;
-                if (context && victim.color !== context.playerId) return true;
+            canBeCaptured: (params, context) => {
+                if (!params.game || !PactUtils.isQueen(params.victim)) return true;
 
-                const hasCaptured = (context?.state || {})['has_captured'];
-                return !!(hasCaptured || !PactUtils.isPawn(attacker));
+                const hasCaptured = (context.state || {})['has_captured'];
+                return !!(hasCaptured || !PactUtils.isPawn(params.attacker));
             }
         },
         effects: [
@@ -45,13 +45,13 @@ export const TheDiplomat = definePact('diplomat')
         }
     })
     .malus('internal_sabotage', {
+        target: 'self',
         modifiers: {
-            canMovePiece: (game, from, board, context) => {
-                const b = board || game.board;
-                const piece = b.getSquare(from)?.piece;
+            canMovePiece: (params, context) => {
+                const b = params.board;
+                const piece = b.getSquare(params.from)?.piece;
                 if (piece && PactUtils.isKnight(piece)) {
-                    if (context && piece.color !== context.playerId) return true;
-                    const sharedState = game.pactState[`diplomatic_immunity_${piece.color}`] || {};
+                    const sharedState = params.game.pactState[`diplomatic_immunity_${piece.color}`] || {};
                     return !!(sharedState['has_captured']);
                 }
                 return true;

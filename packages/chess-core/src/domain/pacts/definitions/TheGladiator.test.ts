@@ -62,7 +62,7 @@ describe('The Gladiator', () => {
             const darkSquare = new Coordinate(0, 0);
             const attackerPos = new Coordinate(1, 1);
 
-            const result = canBeCaptured(game, attacker, victim, darkSquare, attackerPos);
+            const result = canBeCaptured({ game, board: game.board, attacker, victim, to: darkSquare, from: attackerPos }, whiteContext);
             expect(result).toBe(false);
         });
 
@@ -75,7 +75,7 @@ describe('The Gladiator', () => {
             const darkSquare = new Coordinate(0, 0);
             const attackerPos = new Coordinate(0, 5);
 
-            const result = canBeCaptured(game, attacker, victim, darkSquare, attackerPos);
+            const result = canBeCaptured({ game, board: game.board, attacker, victim, to: darkSquare, from: attackerPos }, whiteContext);
             expect(result).toBe(true);
         });
 
@@ -90,7 +90,7 @@ describe('The Gladiator', () => {
             const lightSquare = new Coordinate(1, 0);
             const attackerPos = new Coordinate(0, 1);
 
-            const result = canBeCaptured(game, attacker, victim, lightSquare, attackerPos);
+            const result = canBeCaptured({ game, board: game.board, attacker, victim, to: lightSquare, from: attackerPos }, whiteContext);
             expect(result).toBe(true);
         });
     });

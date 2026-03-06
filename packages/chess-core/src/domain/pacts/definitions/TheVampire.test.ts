@@ -19,7 +19,7 @@ describe('The Vampire', () => {
             const modifiers = vampireMalus.getRuleModifiers();
             expect(modifiers.canCastle).toBeDefined();
             // @ts-ignore
-            expect(modifiers.canCastle(new Piece('king', 'white', 'white-king'))).toBe(false);
+            expect(modifiers.canCastle(new Piece('king', 'white', 'white-king'), { game, playerId: 'white', pactId: 'vampire', state: {}, updateState: () => { } } as any)).toBe(false);
         });
     });
 
@@ -47,7 +47,7 @@ describe('The Vampire', () => {
             const emitSpy = vi.spyOn(game, 'emit');
 
             const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
-            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id });
+            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
 
             // Verify resurrection: Should be at (2,0) or (5,0)
             const unitsOnBoard = game.board.getAllSquares()
@@ -79,7 +79,7 @@ describe('The Vampire', () => {
             const emitSpy = vi.spyOn(game, 'emit');
 
             const capturePayload = { attacker: myQueen, victim: enemyQueen, to: enemyQueenPos, from: myQueenPos };
-            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id });
+            vampireBonus.onEvent('capture', capturePayload, { game, playerId: 'white', pactId: vampireBonus.id, state: {}, updateState: () => { } } as any);
 
             const unitsOnBoard = game.board.getAllSquares()
                 .filter(s => s.piece && s.piece.color === 'white' && (s.piece.type === 'bishop' || s.piece.type === 'knight'));

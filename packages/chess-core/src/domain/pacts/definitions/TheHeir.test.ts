@@ -27,7 +27,9 @@ describe('The Heir', () => {
             game.board.placePiece(enemyPos, enemyPawn);
 
             const modifiers = youngQueenMalus.getRuleModifiers();
-            const canCapture = modifiers.canCapture!(game, queen, enemyPawn, enemyPos, queenPos);
+            const canCapture = modifiers.canCapture!({
+                game, board: game.board, attacker: queen, victim: enemyPawn, from: queenPos, to: enemyPos
+            }, { playerId: queen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
 
             expect(canCapture).toBe(false);
         });
@@ -44,7 +46,9 @@ describe('The Heir', () => {
             game.board.placePiece(enemyPos, enemyKing);
 
             const modifiers = youngQueenMalus.getRuleModifiers();
-            const canCapture = modifiers.canCapture!(game, queen, enemyKing, enemyPos, queenPos);
+            const canCapture = modifiers.canCapture!({
+                game, board: game.board, attacker: queen, victim: enemyKing, from: queenPos, to: enemyPos
+            }, { playerId: queen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
 
             expect(canCapture).toBe(true);
         });
@@ -64,7 +68,9 @@ describe('The Heir', () => {
             game.pactState[`bloodline_white`] = { successorIds: { [successorQueen.id]: true } };
 
             const modifiers = youngQueenMalus.getRuleModifiers();
-            const canCapture = modifiers.canCapture!(game, successorQueen, enemyPawn, enemyPos, queenPos);
+            const canCapture = modifiers.canCapture!({
+                game, board: game.board, attacker: successorQueen, victim: enemyPawn, from: queenPos, to: enemyPos
+            }, { playerId: successorQueen.color, game, updateState: () => { }, state: {}, pactId: 'heir' } as any);
 
             expect(canCapture).toBe(true);
         });
@@ -88,8 +94,10 @@ describe('The Heir', () => {
             });
 
             const payload = {
-                capturedPiece: queen,
-                attacker: new Piece('rook', 'black', 'black-rook')
+                victim: queen,
+                attacker: new Piece('rook', 'black', 'black-rook'),
+                from: new Coordinate(3, 7),
+                to: new Coordinate(3, 7)
             };
 
             // Simulate capture: remove Queen first
@@ -119,8 +127,8 @@ describe('The Heir', () => {
             });
 
             // Simulate capture: remove Queen first
-            game.board.removePiece(queenPos);
-            bloodlineBonus.onEvent('capture', { capturedPiece: queen }, context);
+            game.board.removePiece(new Coordinate(3, 7));
+            bloodlineBonus.onEvent('capture', { victim: queen, attacker: new Piece('pawn', 'black', 'pawn'), from: new Coordinate(3, 7), to: new Coordinate(3, 7) }, context);
 
             const whiteQueens = game.board.getAllSquares()
                 .filter(s => s.piece && s.piece.color === 'white' && s.piece.type === 'queen');

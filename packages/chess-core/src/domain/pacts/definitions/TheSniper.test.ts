@@ -35,7 +35,7 @@ describe('The Sniper Pact', () => {
                 piece: whiteRook,
                 from: start,
                 moves
-            });
+            }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
 
             // Should be able to move to (0,2), (0,3), etc.
             expect(moves.some(m => m.to.toString() === '0,2')).toBe(true);
@@ -59,7 +59,7 @@ describe('The Sniper Pact', () => {
                 piece: whiteRook,
                 from: start,
                 moves
-            });
+            }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
 
             const captureMove = moves.find(m => m.to.toString() === '4,7');
             expect(captureMove).toBeDefined();
@@ -79,7 +79,7 @@ describe('The Sniper Pact', () => {
                 piece: whiteRook,
                 from: new Coordinate(0, 0),
                 moves
-            });
+            }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
 
             // Should NOT be able to move to (0,3)
             expect(moves.some(m => m.to.toString() === '0,3')).toBe(false);
@@ -92,7 +92,7 @@ describe('The Sniper Pact', () => {
             const blackPawn = new Piece('pawn', 'black', 'black-pawn-1');
             const move = new Move(new Coordinate(0, 0), new Coordinate(0, 5), whiteRook, blackPawn);
 
-            malus.getRuleModifiers().onExecuteMove!(game, move);
+            malus.getRuleModifiers().onExecuteMove!(game, move, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
 
             expect(game.pieceCooldowns.get(whiteRook.id)).toBe(2);
         });
@@ -102,7 +102,7 @@ describe('The Sniper Pact', () => {
             board.placePiece(new Coordinate(0, 0), whiteRook);
             game.pieceCooldowns.set(whiteRook.id, 1);
 
-            const canMove = malus.getRuleModifiers().canMovePiece!(game, new Coordinate(0, 0));
+            const canMove = malus.getRuleModifiers().canMovePiece!({ game, from: new Coordinate(0, 0), board: game.board }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
             expect(canMove).toBe(false);
         });
     });

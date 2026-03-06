@@ -86,7 +86,7 @@ export const TheRanger = definePact('ranger')
     })
     .malus('short_sighted', {
         modifiers: {
-            getMaxRange: (piece) => piece.type === 'bishop' ? 4 : 8
+            getMaxRange: (piece, context) => piece.type === 'bishop' ? 4 : 8
         }
     })
     .build();

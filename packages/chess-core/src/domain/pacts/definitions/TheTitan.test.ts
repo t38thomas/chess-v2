@@ -27,9 +27,10 @@ describe('The Titan', () => {
             game.board.placePiece(friendlyPawnPos, { type: 'pawn', color: 'white', id: 'w-p' } as any);
             game.board.placePiece(enemyPawnPos, { type: 'pawn', color: 'black', id: 'b-p1' } as any);
 
-            const move = { from: new Coordinate(3, 2), to: queenPos } as Move;
+            const queen = game.board.getSquare(queenPos)!.piece!;
+            const move = { from: new Coordinate(3, 2), to: queenPos, piece: queen } as Move;
 
-            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, move);
+            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, move, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
             // Pawns should be pushed:
             // Friendly (3,4) pushed in direction (0, 1) from (3,3) -> becomes (3,5)
@@ -52,7 +53,8 @@ describe('The Titan', () => {
             game.board.placePiece(pawnPos, { type: 'pawn', color: 'white', id: 'w-p' } as any);
             game.board.placePiece(blockerPos, { type: 'knight', color: 'white', id: 'w-n' } as any);
 
-            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, { to: queenPos } as any);
+            const queen = game.board.getSquare(queenPos)!.piece!;
+            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, { to: queenPos, piece: queen } as any, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
             // Pawn at (3,4) stays at (3,4) because (3,5) is blocked
             expect(game.board.getSquare(pawnPos)?.piece?.id).toBe('w-p');
@@ -67,7 +69,8 @@ describe('The Titan', () => {
             game.board.placePiece(queenPos, { type: 'queen', color: 'white', id: 'w-q' } as any);
             game.board.placePiece(pawnPos, { type: 'pawn', color: 'white', id: 'w-p' } as any);
 
-            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, { to: queenPos } as any);
+            const queen = game.board.getSquare(queenPos)!.piece!;
+            earthquakeBonus.getRuleModifiers().onExecuteMove!(game, { to: queenPos, piece: queen } as any, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
             // Pawn at (7,7) stays at (7,7) because pushing it would go to (8,8) which is invalid
             expect(game.board.getSquare(pawnPos)?.piece?.id).toBe('w-p');
@@ -87,7 +90,7 @@ describe('The Titan', () => {
                 ] as Move[]
             } as any;
 
-            modifiers.onGetPseudoMoves!(params);
+            modifiers.onGetPseudoMoves!(params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
             expect(params.moves.length).toBe(1);
             expect(params.moves[0].to.x).toBe(1);
@@ -104,7 +107,7 @@ describe('The Titan', () => {
                 ] as Move[]
             } as any;
 
-            modifiers.onGetPseudoMoves!(params);
+            modifiers.onGetPseudoMoves!(params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
             expect(params.moves.length).toBe(2);
         });

@@ -53,7 +53,8 @@ export const TheSniper = definePact('sniper')
     })
     .malus('reload', {
         modifiers: {
-            canMovePiece: (game, from, board, context) => {
+            canMovePiece: (params, context) => {
+                const { game, from, board } = params;
                 const effectiveBoard = board || game.board;
                 const square = effectiveBoard.getSquare(from);
                 if (square?.piece) {

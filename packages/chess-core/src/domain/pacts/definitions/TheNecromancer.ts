@@ -38,11 +38,11 @@ export const TheNecromancer = definePact('necromancer')
     })
     .malus('ascension_cost', {
         modifiers: {
-            modifyNextTurn: (game, currentTurn, eventType) => {
-                if (eventType === 'promotion') {
-                    const opponent = currentTurn === 'white' ? 'black' : 'white';
-                    game.extraTurns[opponent] = (game.extraTurns[opponent] || 0) + 1;
-                    PactUtils.notifyPactEffect(game, 'necromancer', 'cost', 'malus', 'trending-up');
+            modifyNextTurn: (params, context) => {
+                if (params.eventType === 'promotion') {
+                    const opponent = params.currentTurn === 'white' ? 'black' : 'white';
+                    params.game.extraTurns[opponent] = (params.game.extraTurns[opponent] || 0) + 1;
+                    PactUtils.notifyPactEffect(params.game, 'necromancer', 'cost', 'malus', 'trending-up');
                 }
                 return null;
             }

@@ -4,13 +4,14 @@ import { TheTidecaller } from './TheTidecaller';
 import { Coordinate } from '../../models/Coordinate';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { Move } from '../../models/Move';
+import { PactRegistry } from '../PactRegistry';
 
 describe('The Tidecaller Pact', () => {
     let game: ChessGame;
 
     beforeEach(() => {
         game = new ChessGame();
-        // game.startNewGame(); // Removed, constructor does this
+        PactRegistry.getInstance().registerDefinition(TheTidecaller);
         game.phase = 'playing';
     });
 

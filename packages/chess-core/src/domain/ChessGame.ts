@@ -275,7 +275,7 @@ export class ChessGame implements IChessGame {
                 let pieceToPromote = promotionPiece || 'queen';
 
                 // Validate promotion type against active pacts (Fix for Saboteur Malus)
-                const allowedTypes = RuleEngine.getAllowedPromotionTypes(movingPiece, playerPacts);
+                const allowedTypes = RuleEngine.getAllowedPromotionTypes(movingPiece, playerPacts, this);
 
                 // Ensure the requested type is allowed. If not, fallback to the first allowed type.
                 if (!allowedTypes.includes(pieceToPromote)) {

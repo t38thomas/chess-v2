@@ -8,9 +8,11 @@ import { Effects } from '../PactEffects';
  */
 export const TheGladiator = definePact('gladiator')
     .bonus('arena', {
+        target: 'self',
         effects: [Effects.combat.immuneToPawnCapturesOnDarkSquares()]
     })
     .malus('disarmed', {
+        target: 'self',
         effects: [Effects.rules.removePiecesAtStart('bishop')]
     })
     .build();

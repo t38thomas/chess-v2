@@ -32,7 +32,7 @@ describe('The Swarm Pact', () => {
             const context = { game, playerId: 'white' as any, pactId: 'hydra' };
             const move = { capturedPiece: whitePawn };
 
-            bonus.onEvent('capture', move, context);
+            bonus.onEvent('move', move as any, context as any);
 
             expect(events.length).toBe(1);
             expect(events[0].title).toBe('pact.toasts.swarm.spawn.title');

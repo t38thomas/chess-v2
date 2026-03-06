@@ -63,7 +63,7 @@ describe('The Alchemist', () => {
                 capturedPiece: victim
             };
 
-            malus.onEvent('capture', movePayload, { game, playerId: 'white', pactId: 'volatile_reagents' });
+            malus.onEvent('move', movePayload as any, { game, playerId: 'white', pactId: 'volatile_reagents' } as any);
 
             expect(game.pieceCooldowns.get(attacker.id)).toBe(2);
         });
@@ -78,7 +78,7 @@ describe('The Alchemist', () => {
                 promotion: 'queen'
             };
 
-            malus.onEvent('promotion', movePayload, { game, playerId: 'white', pactId: 'volatile_reagents' });
+            malus.onEvent('move', movePayload as any, { game, playerId: 'white', pactId: 'volatile_reagents' } as any);
 
             expect(game.pieceCooldowns.get(attacker.id)).toBe(2);
         });

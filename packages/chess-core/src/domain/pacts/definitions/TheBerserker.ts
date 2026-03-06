@@ -14,6 +14,7 @@ interface BerserkerState {
  */
 export const TheBerserker = definePact<BerserkerState>('berserker')
     .bonus('frenzy', {
+        target: 'self',
         initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null }),
         modifiers: {
             onExecuteMove: (game, move, context) => {
@@ -27,25 +28,22 @@ export const TheBerserker = definePact<BerserkerState>('berserker')
                     PactUtils.notifyPactEffect(game, 'berserker', 'frenzy', 'bonus', 'axe');
                 }
             },
-            modifyNextTurn: (game, currentTurn, eventType, context) => {
-                if (currentTurn !== context?.playerId) return null;
-                const state = context?.state || {};
-                if (state.isFrenzyActive) return currentTurn;
+            modifyNextTurn: (params, context) => {
+                const state = context.state || {};
+                if (state.isFrenzyActive) return params.currentTurn;
                 return null;
             },
-            canMovePiece: (game, from, board, context) => {
-                const b = board || game.board;
-                const piece = b.getSquare(from)?.piece;
-                if (piece?.color !== context?.playerId) return true;
-                const state = context?.state || {};
+            canMovePiece: (params, context) => {
+                const b = params.board;
+                const piece = b.getSquare(params.from)?.piece;
+                const state = context.state || {};
                 if (state.isFrenzyActive && state.frenzyPieceId) {
                     return piece?.id === state.frenzyPieceId;
                 }
                 return true;
             },
-            canCapture: (game, attacker, victim, to, from, board, context) => {
-                if (!game || attacker.color !== context?.playerId) return true;
-                const state = context?.state || {};
+            canCapture: (params, context) => {
+                const state = context.state || {};
                 return !state.isFrenzyActive;
             }
         }

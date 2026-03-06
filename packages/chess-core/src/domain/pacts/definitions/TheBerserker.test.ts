@@ -86,7 +86,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.canCapture) {
-            const canCapture = modifiers.canCapture(game, whiteRook, blackPawn, captureTarget, start, board, getContext());
+            const canCapture = modifiers.canCapture({ game, board, attacker: whiteRook, victim: blackPawn, to: captureTarget, from: start }, getContext());
             expect(canCapture).toBe(false);
         } else {
             expect(true).toBe(false);
@@ -109,9 +109,9 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         if (modifiers.canMovePiece) {
             // The frenzy piece can move
-            expect(modifiers.canMovePiece(game, start, board, getContext())).toBe(true);
+            expect(modifiers.canMovePiece({ game, board, from: start } as any, getContext())).toBe(true);
             // Other pieces cannot move
-            expect(modifiers.canMovePiece(game, queenPos, board, getContext())).toBe(false);
+            expect(modifiers.canMovePiece({ game, board, from: queenPos } as any, getContext())).toBe(false);
         }
     });
 
@@ -120,7 +120,7 @@ describe('The Berserker Pact — BerserkerBonus (Pawn Hunter)', () => {
 
         const modifiers = bonus.getRuleModifiers();
         if (modifiers.modifyNextTurn) {
-            expect(modifiers.modifyNextTurn(game, 'white', 'move', getContext())).toBe('white');
+            expect(modifiers.modifyNextTurn({ game, currentTurn: 'white', eventType: 'move' } as any, getContext())).toBe('white');
         }
     });
 

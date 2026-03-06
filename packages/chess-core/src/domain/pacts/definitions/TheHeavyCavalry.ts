@@ -9,8 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheHeavyCavalry = definePact('heavy_cavalry')
     .bonus('trample', {
+        target: 'self',
         modifiers: {
-            onExecuteMove: (game, move) => {
+            onExecuteMove: (game, move, context) => {
                 if (move.piece.type !== 'knight') return;
 
                 const directions = [
@@ -36,8 +37,10 @@ export const TheHeavyCavalry = definePact('heavy_cavalry')
         }
     })
     .malus('heavy_armor', {
+        target: 'self',
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
+            onGetPseudoMoves: (params) => {
+                const { board, piece, from, moves } = params;
                 if (piece.type !== 'knight') return;
 
                 for (let i = moves.length - 1; i >= 0; i--) {

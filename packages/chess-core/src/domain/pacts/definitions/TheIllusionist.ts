@@ -12,6 +12,7 @@ const DISPLACE_COOLDOWN = 3;
  */
 export const TheIllusionist = definePact('illusionist')
     .bonus('displace', {
+        target: 'self',
         activeAbility: {
             id: 'displace',
             name: 'perks.displace.name',
@@ -47,6 +48,7 @@ export const TheIllusionist = definePact('illusionist')
         }
     })
     .malus('vanished_illusion', {
+        target: 'self',
         effects: [
             Effects.state.oncePerMatch({
                 key: 'vanished_illusion_applied',

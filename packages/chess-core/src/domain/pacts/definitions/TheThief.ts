@@ -10,34 +10,31 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheThief = definePact('thief')
     .bonus('pickpocket', {
-        onEvent: (event, payload, context) => {
+        onMove: (move, context) => {
             const { game, playerId } = context;
-            const isMoveEvent = ['move', 'capture', 'check', 'checkmate'].includes(event);
-            if (isMoveEvent) {
-                const friendlyPawns = game.board.getAllSquares().filter(sq => sq.piece?.color === playerId && sq.piece.type === 'pawn');
-                friendlyPawns.forEach(pawnSq => {
-                    const pawn = pawnSq.piece!;
-                    for (let dx = -1; dx <= 1; dx++) {
-                        for (let dy = -1; dy <= 1; dy++) {
-                            if (dx === 0 && dy === 0) continue;
-                            const neighbor = new Coordinate(pawnSq.coordinate.x + dx, pawnSq.coordinate.y + dy);
-                            if (neighbor.isValid()) {
-                                const targetPiece = game.board.getSquare(neighbor)?.piece;
-                                if (targetPiece && targetPiece.color !== playerId && (targetPiece.type === 'rook' || targetPiece.type === 'queen')) {
-                                    const historyKey = `pickpocket_${pawn.id}_${targetPiece.id}`;
-                                    const ctx = context as import('../PactLogic').PactContextWithState<any>;
-                                    const state = ctx.state || {};
-                                    if (game.totalTurns - (state[historyKey] || -10) > 2 && game.pieceCooldowns.get(targetPiece.id) !== 2) {
-                                        game.pieceCooldowns.set(targetPiece.id, 2);
-                                        ctx.updateState({ [historyKey]: game.totalTurns });
-                                        PactUtils.notifyPactEffect(game, 'thief', 'pickpocket', 'bonus', 'hand-coin');
-                                    }
+            const friendlyPawns = game.board.getAllSquares().filter(sq => sq.piece?.color === playerId && sq.piece.type === 'pawn');
+            friendlyPawns.forEach(pawnSq => {
+                const pawn = pawnSq.piece!;
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        const neighbor = new Coordinate(pawnSq.coordinate.x + dx, pawnSq.coordinate.y + dy);
+                        if (neighbor.isValid()) {
+                            const targetPiece = game.board.getSquare(neighbor)?.piece;
+                            if (targetPiece && targetPiece.color !== playerId && (targetPiece.type === 'rook' || targetPiece.type === 'queen')) {
+                                const historyKey = `pickpocket_${pawn.id}_${targetPiece.id}`;
+                                const ctx = context;
+                                const state = ctx.state || {};
+                                if (game.totalTurns - (state[historyKey] || -10) > 2 && game.pieceCooldowns.get(targetPiece.id) !== 2) {
+                                    game.pieceCooldowns.set(targetPiece.id, 2);
+                                    ctx.updateState({ [historyKey]: game.totalTurns });
+                                    PactUtils.notifyPactEffect(game, 'thief', 'pickpocket', 'bonus', 'hand-coin');
                                 }
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         },
         getTurnCounters: (context) => {
             const { game, playerId } = context;
