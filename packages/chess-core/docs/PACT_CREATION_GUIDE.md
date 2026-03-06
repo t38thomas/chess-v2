@@ -1,6 +1,6 @@
 # Guida alla Creazione di Patti in Chess V2
 
-Questa guida spiega come creare nuovi patti utilizzando il nuovo DSL `definePact`, il sistema degli `Effects` e le funzionalità avanzate come lo stato tipizzato e le abilità attive.
+Questa guida spiega come creare nuovi patti utilizzando il DSL `definePact`, il sistema degli `Effects` e le funzionalità avanzate come lo stato tipizzato e le abilità attive, seguendo i nuovi standard di refactoring (Parameter Objects e Mandatory Context).
 
 ## 1. Struttura di un Patto
 
@@ -22,12 +22,22 @@ export const TheMyPact = definePact('my_pact_id')
         ],
         // Modificatori di regole personalizzati
         modifiers: {
-            getMaxRange: (piece) => piece.type === 'pawn' ? 2 : undefined
+            // NOTA: Il context è sempre il secondo argomento
+            getMaxRange: (piece, context) => {
+                return piece.type === 'pawn' ? 2 : undefined;
+            },
+            // NOTA: I modificatori complessi usano Parameter Objects
+            onGetPseudoMoves: (params, context) => {
+                const { piece, moves, from } = params;
+                // Logica personalizzata...
+            }
         }
     })
     .malus('my_malus', {
-        // Hook sugli eventi
+        // Hook specifici per eventi (preferiti rispetto al generico onEvent)
         onCapture: (payload, context) => {
+            // payload è un CaptureContext { attacker, victim, from, to }
+            const { attacker, victim } = payload;
             // Logica quando avviene una cattura
         }
     })
@@ -56,16 +66,21 @@ export class PactFactory {
 }
 ```
 
-## 3. Sistema degli Effects
+## 3. Sistema degli Parameter Objects
 
-Il sistema `Effects` fornisce blocchi riutilizzabili per le logiche più comuni.
-Puoi trovarli tutti in `PactEffects.ts`.
+Tutte le funzioni di manipolazione delle regole (modifiers) e gli hook degli eventi sono stati standardizzati per ricevere oggetti descrittivi invece di lunghe liste di argomenti posizionali.
 
-Esempi comuni:
-- `Effects.movement.canMoveThrough(moverFilter, obstacleFilter)`
-- `Effects.state.counter(initialValue)`
-- `Effects.rules.extraMoveOnCapture()`
-- `Effects.ui.toast(title, desc, icon)`
+### Modificatori comuni:
+- `onGetPseudoMoves(params: MoveGeneratorContext, context: PactContextWithState)`
+- `canCapture(params: CaptureContext, context: PactContextWithState)`
+- `canMovePiece(params: MoveContext, context: PactContextWithState)`
+- `modifyNextTurn(params: TurnModifierContext, context: PactContextWithState)`
+
+Il `context` fornisce sempre l'accesso a:
+- `game`: L'istanza corrente del ChessGame.
+- `playerId`: L'owner del patto ('white' | 'black').
+- `state`: Lo stato persistente del patto.
+- `updateState`: Funzione per aggiornare lo stato.
 
 ## 4. Gestione dello Stato
 
@@ -81,7 +96,8 @@ export const TheChargedPact = definePact<MyState, any>('charged_pact')
         initialState: () => ({ charges: 0 }),
         onMove: (move, context) => {
             // context.state è tipizzato
-            // context.updateState({ charges: context.state.charges + 1 });
+            const currentCharges = context.state.charges;
+            context.updateState({ charges: currentCharges + 1 });
         }
     })
     // ...
@@ -110,7 +126,8 @@ Puoi definire abilità che il giocatore può attivare manualmente.
 
 ## 6. Best Practices
 
-- **DSL vs Custom Logic**: Usa gli `Effects` quando possibile. Se la logica è complessa, usa i `modifiers` o gli hook `onEvent` (`onMove`, `onCapture`, etc.).
+- **Context Everywhere**: Non accedere mai a variabili globali o stati di gioco fuori dal `context` fornito. Questo garantisce che il patto funzioni correttamente sia in locale che online.
+- **Parameter Objects**: Non usare mai argomenti posizionali. Se devi aggiungere dati a un hook, aggiungili all'interfaccia corrispondente in `PactLogic.ts`.
+- **Target Filtering**: Il `RuleEngine` filtra automaticamente l'esecuzione dei patti in base al `playerId`, a meno che non si specifichi un `target` (es. 'opponent') nella definizione.
 - **Localizzazione**: Usa sempre chiavi di traduzione (`pact.toasts...`) invece di stringhe hardcoded.
-- **PactUtils**: Consulta `PactUtils.ts` per funzioni helper (es. `notifyPactEffect`, `findPieces`, `isEdgeSquare`).
-- **Test**: Ogni patto deve avere un file `.test.ts` dedicato che verifichi sia il bonus che il malus.
+- **Test**: Ogni patto deve avere un file `.test.ts`. Assicurati di passare un oggetto `context` completo (usando `any` se necessario ma includendo `state` e `updateState`) nelle chiamate ai modifiers nei test.
