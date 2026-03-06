@@ -3,6 +3,7 @@ import { PactLogic, PactDefinition, RuleModifiers } from './PactLogic';
 export class PactRegistry {
     private static instance: PactRegistry;
     private pacts: Map<string, PactLogic> = new Map();
+    private definitions: Map<string, PactDefinition> = new Map();
     private modifierCache: Map<string, RuleModifiers> = new Map();
 
     private constructor() { }
@@ -20,6 +21,7 @@ export class PactRegistry {
     }
 
     public registerDefinition(definition: PactDefinition) {
+        this.definitions.set(definition.id, definition);
         this.register(definition.bonus);
         this.register(definition.malus);
     }
@@ -28,8 +30,16 @@ export class PactRegistry {
         return this.pacts.get(id);
     }
 
+    public getDefinition(id: string): PactDefinition | undefined {
+        return this.definitions.get(id);
+    }
+
     public getAll(): PactLogic[] {
         return Array.from(this.pacts.values());
+    }
+
+    public getAllDefinitions(): PactDefinition[] {
+        return Array.from(this.definitions.values());
     }
 
     /**

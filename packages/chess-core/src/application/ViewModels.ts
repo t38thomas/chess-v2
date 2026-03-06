@@ -1,7 +1,7 @@
 import { PieceType, PieceColor } from '../domain/models/Piece';
 import { GameStatus, GamePhase } from '../domain/GameTypes';
 import { MatchConfig } from '../domain/models/MatchConfig';
-import { Pact } from '../domain/models/Pact';
+import { PactDefinition } from '../domain/pacts/PactLogic';
 
 // Simplified view models for UI - pure data, no methods
 export interface SquareViewModel {
@@ -34,7 +34,7 @@ export interface BoardViewModel {
     status: GameStatus;
     history: MoveViewModel[];
     phase: GamePhase;
-    pacts: Record<PieceColor, Pact[]>;
+    pacts: Record<PieceColor, PactDefinition[]>;
     pendingPromotion?: { x: number; y: number; color: PieceColor } | null;
     winner?: PieceColor;
     activeAbilityId?: string | null;

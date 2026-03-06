@@ -1,4 +1,5 @@
-import { Coordinate, PieceType, PACT_CARDS, ChessGame } from 'chess-core';
+import { Coordinate, PieceType, ChessGame } from 'chess-core';
+import { PactRegistry } from 'chess-core';
 import { Match } from './Match';
 
 export interface MakeMovePayload {
@@ -78,7 +79,7 @@ export class GameEngine {
         if (!player) throw new Error("Player not in match");
         if (!player.color) throw new Error("Player color not assigned");
 
-        const pact = PACT_CARDS.find(p => p.id === pactId);
+        const pact = PactRegistry.getInstance().getDefinition(pactId);
         if (!pact) throw new Error("Invalid Pact ID");
 
         game.assignPact(player.color, pact);

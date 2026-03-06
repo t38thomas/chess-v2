@@ -2,7 +2,7 @@ import { BoardModel } from '../models/BoardModel';
 import { Coordinate } from '../models/Coordinate';
 import { PieceColor, PieceType } from '../models/Piece';
 import { MoveGenerator } from './MoveGenerator';
-import { Perk } from '../models/Pact';
+import { PactLogic } from '../pacts/PactLogic';
 import { IChessGame } from '../GameTypes';
 
 export class CheckDetector {
@@ -13,7 +13,7 @@ export class CheckDetector {
         board: BoardModel,
         square: Coordinate,
         byColor: PieceColor,
-        perks: Perk[] = [],
+        pacts: PactLogic[] = [],
         game?: IChessGame
     ): boolean {
         // Check all squares for enemy pieces that can attack this square
@@ -24,7 +24,7 @@ export class CheckDetector {
 
             // Generate pseudo-legal moves for this piece
             // NOTE: We pass null for enPassantTarget to avoid infinite recursion
-            const moves = MoveGenerator.getPseudoLegalMoves(board, sq.piece, sq.coordinate, null, perks, new Set(), game);
+            const moves = MoveGenerator.getPseudoLegalMoves(board, sq.piece, sq.coordinate, null, pacts, new Set(), game);
 
             // Check if any move targets our square
             if (moves.some(m => m.to.equals(square))) {
@@ -51,13 +51,13 @@ export class CheckDetector {
     /**
      * Check if the king of the given color is in check
      */
-    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, perks: Perk[] = [], game?: IChessGame): boolean {
+    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame): boolean {
         const kingPos = this.findKing(board, kingColor);
         if (!kingPos) return false; // No king found (shouldn't happen in valid game)
 
         const enemyColor: PieceColor = kingColor === 'white' ? 'black' : 'white';
         // When checking if the king is in check, we must consider the enemy pieces' perks
-        return this.isSquareUnderAttack(board, kingPos, enemyColor, perks, game);
+        return this.isSquareUnderAttack(board, kingPos, enemyColor, pacts, game);
     }
 
     /**
@@ -68,7 +68,7 @@ export class CheckDetector {
         from: Coordinate,
         to: Coordinate,
         kingColor: PieceColor,
-        perks: Perk[] = [],
+        pacts: PactLogic[] = [],
         isSwap: boolean = false,
         game?: IChessGame
     ): boolean {
@@ -88,7 +88,7 @@ export class CheckDetector {
 
         // Check if king is in check
         // Note: For wouldLeaveKingInCheck, we should consider the CURRENT board context perks
-        const inCheck = this.isKingInCheck(board, kingColor, perks, game);
+        const inCheck = this.isKingInCheck(board, kingColor, pacts, game);
 
         // Restore board
         sourceSquare.piece = originalPiece;

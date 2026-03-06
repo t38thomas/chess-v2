@@ -9,7 +9,7 @@ import { BoardUtils } from './utils/BoardUtils';
 export interface PieceQueryResult extends Array<{ piece: Piece; coord: Coordinate }> {
     ofTypes(types: PieceType[]): PieceQueryResult;
     byId(id: string): { piece: Piece; coord: Coordinate } | undefined;
-    at(coord: Coordinate): { piece: Piece; coord: Coordinate } | undefined;
+    atCoord(coord: Coordinate): { piece: Piece; coord: Coordinate } | undefined;
     inRange(from: Coordinate, range: number): PieceQueryResult;
 }
 
@@ -21,12 +21,12 @@ export interface PactContext {
 }
 
 export interface PactContextWithState<T> extends PactContext {
-    state: T;
-    updateState: (update: Partial<T> | ((prev: T) => T)) => void;
+    readonly state: Readonly<T>;
+    updateState: (update: Partial<T> | ((prev: Readonly<T>) => Readonly<T>)) => void;
     /**
      * Gets the state of the sibling logic (bonus if this is malus, or vice-versa).
      */
-    getSiblingState: <TSibling = any>() => TSibling | null;
+    getSiblingState: <TSibling = any>() => Readonly<TSibling> | null;
     /**
      * Fluent query API for common board/piece operations.
      */
@@ -37,11 +37,17 @@ export interface PactContextWithState<T> extends PactContext {
             enemy: () => PieceQueryResult;
             ofTypes: (types: PieceType[]) => PieceQueryResult;
             byId: (id: string) => { piece: Piece; coord: Coordinate } | undefined;
-            at: (coord: Coordinate) => { piece: Piece; coord: Coordinate } | undefined;
+            atCoord: (coord: Coordinate) => { piece: Piece; coord: Coordinate } | undefined;
         };
         isCheckmated: (color?: PieceColor) => boolean;
     };
 
+}
+
+export enum PactPriority {
+    EARLY = 100,
+    NORMAL = 0,
+    LATE = -100
 }
 
 /**
@@ -49,6 +55,7 @@ export interface PactContextWithState<T> extends PactContext {
  */
 export interface PactEffect<T = any> {
     modifiers?: RuleModifiers<T>;
+    priority?: number; // Defines execution order (higher priority runs earlier), default 0
     onEvent?: <K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
         payload: any,
@@ -84,7 +91,7 @@ export interface MoveParams {
     from: Coordinate;
     moves: Move[];
     game?: IChessGame;
-    perks?: Perk[];
+    pacts?: PactLogic[];
     orientation?: number; // 0-3 (clockwise 90° steps), matches game.orientation
 }
 
@@ -217,7 +224,7 @@ export abstract class PactLogic<T = any> {
                     const wrap = (pieces: { piece: Piece, coord: Coordinate }[]) => Object.assign(pieces, {
                         ofTypes: (types: PieceType[]) => wrap(pieces.filter(p => types.includes(p.piece.type))),
                         byId: (id: string) => pieces.find(p => p.piece.id === id),
-                        at: (coord: Coordinate) => pieces.find(p => p.coord.x === coord.x && p.coord.y === coord.y),
+                        atCoord: (coord: Coordinate) => pieces.find(p => p.coord.x === coord.x && p.coord.y === coord.y),
                         inRange: (from: Coordinate, range: number) => wrap(pieces.filter(p => Math.max(Math.abs(p.coord.x - from.x), Math.abs(p.coord.y - from.y)) <= range))
                     }) as PieceQueryResult;
 
@@ -228,7 +235,7 @@ export abstract class PactLogic<T = any> {
                         enemy: () => wrap(getPieces(color === 'white' ? 'black' : 'white')),
                         ofTypes: (types: PieceType[]) => wrap(BoardUtils.findPiecesByTypes(context.game, color, types)),
                         byId: (id: string) => wrap(getPieces(color)).byId(id),
-                        at: (coord: Coordinate) => wrap(getPieces(color)).at(coord)
+                        atCoord: (coord: Coordinate) => wrap(getPieces(color)).atCoord(coord)
                     };
                 },
                 isCheckmated: (colorOverride?: PieceColor) => {
@@ -311,11 +318,8 @@ class GenericPact<T = any> extends PactLogic<T> {
     getRuleModifiers(): RuleModifiers<T> {
         const wrapModifier = (fn: Function) => {
             return (...args: any[]) => {
-                const lastArg = args[args.length - 1];
-                // Check if the last argument is a PactContext
-                if (lastArg && typeof lastArg === 'object' && lastArg.game && lastArg.pactId) {
-                    args[args.length - 1] = this.createContextWithState(lastArg);
-                }
+                const context = args[args.length - 1] as PactContext;
+                args[args.length - 1] = this.createContextWithState(context);
                 return fn(...args);
             };
         };
@@ -491,7 +495,15 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
 
         if (fns.length === 0) continue;
         if (fns.length === 1) {
-            result[key as string] = fns[0];
+            result[key as string] = (...args: any[]) => {
+                try {
+                    return fns[0](...args);
+                } catch (e) {
+                    console.error(`[PactSystem] Error in modifier ${key}:`, e);
+                    // Return neutral values on failure
+                    return BOOLEAN_MODIFIERS.has(key) ? true : undefined;
+                }
+            };
             continue;
         }
 
@@ -499,8 +511,12 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
             // AND-chain: false from any handler blocks; undefined is neutral
             result[key as string] = (...args: any[]) => {
                 for (const fn of fns) {
-                    const res = fn(...args);
-                    if (res === false) return false;
+                    try {
+                        const res = fn(...args);
+                        if (res === false) return false;
+                    } catch (e) {
+                        console.error(`[PactSystem] Error in boolean modifier ${key}:`, e);
+                    }
                 }
                 return true;
             };
@@ -508,7 +524,13 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
             // Sequential: all handlers called, last return value propagated
             result[key as string] = (...args: any[]) => {
                 let last: any;
-                for (const fn of fns) last = fn(...args);
+                for (const fn of fns) {
+                    try {
+                        last = fn(...args);
+                    } catch (e) {
+                        console.error(`[PactSystem] Error in sequential modifier ${key}:`, e);
+                    }
+                }
                 return last;
             };
         }

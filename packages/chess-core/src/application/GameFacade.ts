@@ -6,7 +6,7 @@ import { PieceType, PieceColor } from '../domain/models/Piece';
 import { MoveGenerator } from '../domain/rules/MoveGenerator';
 import { CheckDetector } from '../domain/rules/CheckDetector';
 import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
-import { Pact } from '../domain/models/Pact';
+import { PactDefinition } from '../domain/pacts/PactLogic';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
 import { PactUtils } from '../domain/pacts/PactUtils';
 import { MatchConfig, DEFAULT_MATCH_CONFIG } from '../domain/models/MatchConfig';
@@ -352,7 +352,7 @@ export class GameFacade {
     }
 
     // Roguelike Methods
-    public assignPact(color: PieceColor, pact: Pact) {
+    public assignPact(color: PieceColor, pact: PactDefinition) {
         this.game.assignPact(color, pact);
         this.notify();
     }

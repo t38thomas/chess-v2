@@ -1,7 +1,7 @@
 import { BoardModel } from './models/BoardModel';
 import { Piece, PieceColor, PieceType } from './models/Piece';
 import { Move } from './models/Move';
-import { Pact } from './models/Pact';
+import { PactDefinition } from './pacts/PactLogic';
 import { Coordinate } from './models/Coordinate';
 import { MatchConfig } from './models/MatchConfig';
 
@@ -49,7 +49,7 @@ export interface IChessGame {
     history: Move[];
     status: GameStatus;
     phase: GamePhase;
-    pacts: Record<PieceColor, Pact[]>;
+    pacts: Record<PieceColor, PactDefinition[]>;
     perkUsage: Record<PieceColor, Set<string>>;
     pieceCooldowns: Map<string, number>;
     pactState: Record<string, unknown>;

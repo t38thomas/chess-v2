@@ -6,8 +6,8 @@ import { MoveGenerator } from './rules/MoveGenerator';
 import { CheckDetector } from './rules/CheckDetector';
 import { RuleEngine } from './rules/RuleEngine';
 import { PactFactory } from './pacts/PactFactory';
-import { Pact } from './models/Pact';
 import { PactRegistry } from './pacts/PactRegistry';
+import { PactDefinition } from './pacts/PactLogic';
 
 import { IChessGame, GameEvent, GameStatus, GamePhase, GameEventPayloads } from './GameTypes';
 import { MatchConfig, DEFAULT_MATCH_CONFIG } from './models/MatchConfig';
@@ -20,7 +20,7 @@ export class ChessGame implements IChessGame {
     public status: GameStatus;
     public winner?: PieceColor; // Added winner property
     public phase: GamePhase;
-    public readonly pacts: Record<PieceColor, Pact[]> = { white: [], black: [] };
+    public readonly pacts: Record<PieceColor, PactDefinition[]> = { white: [], black: [] };
     public readonly perkUsage: Record<PieceColor, Set<string>> = { white: new Set(), black: new Set() };
     public readonly pieceCooldowns: Map<string, number> = new Map(); // pieceId -> turnCount to unlock
     public readonly pactState: Record<string, any> = {}; // Generic storage for pact-specific state
@@ -55,7 +55,7 @@ export class ChessGame implements IChessGame {
         this.orientation = 0;
     }
 
-    public assignPact(color: PieceColor, pact: Pact) {
+    public assignPact(color: PieceColor, pact: PactDefinition) {
         if (this.phase !== 'setup') return;
 
         const maxPacts = this.matchConfig.activePactsMax;
@@ -144,7 +144,7 @@ export class ChessGame implements IChessGame {
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
         const abilityPerk = playerPacts.find(p => p.id === abilityId);
 
-        if (!abilityPerk || abilityPerk.category !== 'Action') return false;
+        if (!abilityPerk || !abilityPerk.activeAbility) return false;
         if (this.perkUsage[this.turn].has(abilityId)) return false;
 
         const success = RuleEngine.useAbility(this, abilityId, params, playerPacts);
@@ -174,7 +174,7 @@ export class ChessGame implements IChessGame {
         if (this.phase !== 'playing') return [];
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
         return playerPacts
-            .filter(p => p.category === 'Action' && !this.perkUsage[this.turn].has(p.id))
+            .filter(p => p.activeAbility && !this.perkUsage[this.turn].has(p.id))
             .map(p => p.id);
     }
 

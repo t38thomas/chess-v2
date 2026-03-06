@@ -2,7 +2,7 @@ import { BoardModel } from '../models/BoardModel';
 import { Coordinate } from '../models/Coordinate';
 import { Move } from '../models/Move';
 import { Piece, PieceType, PieceColor } from '../models/Piece';
-import { Perk } from '../models/Pact';
+import { PactLogic } from '../pacts/PactLogic';
 import { RuleEngine } from './RuleEngine';
 import { IChessGame } from '../GameTypes';
 
@@ -35,65 +35,65 @@ export class MoveGenerator {
         return res;
     }
 
-    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, perks: Perk[] = [], perkUsage: Set<string> = new Set(), game?: IChessGame): Move[] {
+    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], perkUsage: Set<string> = new Set(), game?: IChessGame): Move[] {
         const moves: Move[] = [];
 
         // Apply any perk-specific baseline movement restrictions (Slug Move, Heavy Crown)
-        if (game && !RuleEngine.canMovePiece(game, from, perks, board)) {
+        if (game && !RuleEngine.canMovePiece(game, from, pacts, board)) {
             return [];
         }
 
         switch (piece.type) {
             case 'pawn':
-                this.addPawnMoves(board, piece, from, moves, enPassantTarget, perks, game);
+                this.addPawnMoves(board, piece, from, moves, enPassantTarget, pacts, game);
                 break;
             case 'rook':
-                const rookRange = RuleEngine.getMaxRange(piece, perks, game);
-                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, perks, game);
+                const rookRange = RuleEngine.getMaxRange(piece, pacts, game);
+                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, pacts, game);
                 break;
             case 'bishop':
-                const bishopRange = RuleEngine.getMaxRange(piece, perks, game);
-                const bishopFixedDistances = RuleEngine.getFixedDistances(piece, perks, game);
+                const bishopRange = RuleEngine.getMaxRange(piece, pacts, game);
+                const bishopFixedDistances = RuleEngine.getFixedDistances(piece, pacts, game);
 
                 if (bishopFixedDistances) {
-                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances, perks, game);
+                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances, pacts, game);
                 } else {
-                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, perks, game);
+                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, pacts, game);
                 }
 
                 // Zealous Bishops: 1 square horizontal/vertical
-                if (perks.some(p => p.id === 'zealous_bishops')) { // Small inline check for unique hybrid logic
+                if (pacts.some(p => p.id === 'zealous_bishops')) { // Small inline check for unique hybrid logic
                     this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves);
                 }
                 break;
             case 'queen':
-                const queenRange = RuleEngine.getMaxRange(piece, perks, game);
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, queenRange, perks, game);
+                const queenRange = RuleEngine.getMaxRange(piece, pacts, game);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, queenRange, pacts, game);
                 break;
             case 'knight':
-                const knightDirs = perks.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
-                this.addSteppingMoves(board, from, knightDirs, piece, moves, perks, game);
+                const knightDirs = pacts.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
+                this.addSteppingMoves(board, from, knightDirs, piece, moves, pacts, game);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, perks, game);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game);
 
-                if (RuleEngine.canMoveLikeKnight(piece.type, perks, perkUsage, game)) {
-                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, perks, game);
+                if (RuleEngine.canMoveLikeKnight(piece.type, pacts, perkUsage, game)) {
+                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game);
                 }
 
                 // Super Pawn / Prince logic: if type is something else (or we just check if it should move like king)
-                this.addCastlingMoves(board, piece, from, moves, perks, game);
+                this.addCastlingMoves(board, piece, from, moves, pacts, game);
                 break;
             default:
                 // Handle custom pieces like "Prince" from Super Pawn
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, perks, game);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game);
                 break;
         }
 
         // Apply any perk-specific custom move additions
-        RuleEngine.onGetPseudoMoves(board, from, piece, moves, perks, game);
+        RuleEngine.onGetPseudoMoves(board, from, piece, moves, pacts, game);
 
         return moves;
     }
@@ -103,7 +103,7 @@ export class MoveGenerator {
         return !!target && !target.piece;
     }
 
-    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, perks: Perk[] = [], game?: IChessGame) {
+    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], game?: IChessGame) {
         const { x, y } = from;
         const orientation = game?.orientation || 0;
 
@@ -213,9 +213,9 @@ export class MoveGenerator {
         }
 
         // Override startY logic for check
-        // RuleEngine.canPawnDoubleMove expects (piece, y, startY, perks)
+        // RuleEngine.canPawnDoubleMove expects (piece, y, startY, pacts)
         // We use our orientation-aware 'onStartRank' logic to determine if we are at startY.
-        const canDoubleMove = RuleEngine.canPawnDoubleMove(piece, onStartRank ? 1 : 0, 1, perks, game);
+        const canDoubleMove = RuleEngine.canPawnDoubleMove(piece, onStartRank ? 1 : 0, 1, pacts, game);
 
         const to = new Coordinate(x + forward.dx, y + forward.dy);
 
@@ -230,7 +230,7 @@ export class MoveGenerator {
         }
 
         // Diagonal Dash
-        if (RuleEngine.canPawnDiagonalDash(piece, perks, game)) {
+        if (RuleEngine.canPawnDiagonalDash(piece, pacts, game)) {
             // Rotate Diagonal Vectors?
             // Std: (-1, dy), (1, dy).
             // Rotated: Left+Forward, Right+Forward?
@@ -246,7 +246,7 @@ export class MoveGenerator {
         }
 
         // Scout Path: Sideways moves (relative to forward)
-        if (RuleEngine.canPawnSidewaysMove(piece, perks, game)) {
+        if (RuleEngine.canPawnSidewaysMove(piece, pacts, game)) {
             const left = this.rotateVector(-1, 0, orientation);
             const right = this.rotateVector(1, 0, orientation);
 
@@ -262,8 +262,8 @@ export class MoveGenerator {
             const left = this.rotateVector(-1, 0, orientation);
             const right = this.rotateVector(1, 0, orientation);
 
-            this.addCapture(board, x + left.dx + forward.dx, y + left.dy + forward.dy, piece, moves, from, perks, game);
-            this.addCapture(board, x + right.dx + forward.dx, y + right.dy + forward.dy, piece, moves, from, perks, game);
+            this.addCapture(board, x + left.dx + forward.dx, y + left.dy + forward.dy, piece, moves, from, pacts, game);
+            this.addCapture(board, x + right.dx + forward.dx, y + right.dy + forward.dy, piece, moves, from, pacts, game);
         }
 
         // En passant
@@ -284,25 +284,25 @@ export class MoveGenerator {
                 // The captured pawn is at the same X as diagL but same Y as from
                 const victimCoord = new Coordinate(diagL.x, from.y);
                 const victim = board.getSquare(victimCoord)?.piece;
-                if (victim && RuleEngine.canCapture(game, piece, victim, diagL, from, board, perks)) {
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagL, from, board, pacts)) {
                     moves.push(new Move(from, diagL, piece, null, false, true));
                 }
             }
             if (enPassantTarget.equals(diagR)) {
                 const victimCoord = new Coordinate(diagR.x, from.y);
                 const victim = board.getSquare(victimCoord)?.piece;
-                if (victim && RuleEngine.canCapture(game, piece, victim, diagR, from, board, perks)) {
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagR, from, board, pacts)) {
                     moves.push(new Move(from, diagR, piece, null, false, true));
                 }
             }
         }
     }
 
-    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, perks: Perk[] = [], game?: IChessGame) {
+    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame) {
         const target = board.getSquare(new Coordinate(x, y));
         if (target && target.piece && target.piece.color !== piece.color) {
             // RuleEngine check for capture restrictions
-            if (!RuleEngine.canCapture(game, piece, target.piece, target.coordinate, from, board, perks)) return;
+            if (!RuleEngine.canCapture(game, piece, target.piece, target.coordinate, from, board, pacts)) return;
 
             moves.push(new Move(from, new Coordinate(x, y), piece, target.piece));
         }
@@ -315,7 +315,7 @@ export class MoveGenerator {
         piece: Piece,
         moves: Move[],
         maxRange: number = BoardModel.SIZE,
-        perks: Perk[] = [],
+        pacts: PactLogic[] = [],
         game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
@@ -332,15 +332,15 @@ export class MoveGenerator {
                     moves.push(new Move(from, coord, piece));
                 } else {
                     if (target.piece.color !== piece.color) {
-                        this.addCapture(board, x, y, piece, moves, from, perks, game);
+                        this.addCapture(board, x, y, piece, moves, from, pacts, game);
                         // Echolocation: Continue after capture/enemy
-                        if (RuleEngine.hasEcholocation(piece, perks, game)) {
+                        if (RuleEngine.hasEcholocation(piece, pacts, game)) {
                             x += dx;
                             y += dy;
                             range++;
                             continue;
                         }
-                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, perks, game) || RuleEngine.hasEcholocation(piece, perks, game)) {
+                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, pacts, game) || RuleEngine.hasEcholocation(piece, pacts, game)) {
                         // Keep going if we can move through friendlies OR have echolocation
                         x += dx;
                         y += dy;
@@ -363,7 +363,7 @@ export class MoveGenerator {
         piece: Piece,
         moves: Move[],
         distances: number[],
-        perks: Perk[] = [],
+        pacts: PactLogic[] = [],
         game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
@@ -387,7 +387,7 @@ export class MoveGenerator {
                             if (!target.piece) {
                                 moves.push(new Move(from, coord, piece, null));
                             } else if (target.piece.color !== piece.color) {
-                                this.addCapture(board, x, y, piece, moves, from, perks, game);
+                                this.addCapture(board, x, y, piece, moves, from, pacts, game);
                             }
                         }
                     }
@@ -402,7 +402,7 @@ export class MoveGenerator {
         dirs: number[][],
         piece: Piece,
         moves: Move[],
-        perks: Perk[] = [],
+        pacts: PactLogic[] = [],
         game?: IChessGame
     ) {
         const { x: startX, y: startY } = from;
@@ -416,19 +416,19 @@ export class MoveGenerator {
                     if (!target.piece) {
                         moves.push(new Move(from, coord, piece, null));
                     } else if (target.piece.color !== piece.color) {
-                        this.addCapture(board, x, y, piece, moves, from, perks, game);
+                        this.addCapture(board, x, y, piece, moves, from, pacts, game);
                     }
                 }
             }
         });
     }
 
-    private static addCastlingMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], perks: Perk[] = [], game?: IChessGame) {
+    private static addCastlingMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], pacts: PactLogic[] = [], game?: IChessGame) {
         // King must not have moved (unless RuleEngine allows it)
-        if (piece.hasMoved && !RuleEngine.canCastleWhileMoved(piece, perks, game)) return;
+        if (piece.hasMoved && !RuleEngine.canCastleWhileMoved(piece, pacts, game)) return;
 
         // Check if castling is generally allowed by active pacts
-        if (!RuleEngine.canCastle(piece, perks, game)) return;
+        if (!RuleEngine.canCastle(piece, pacts, game)) return;
 
         const { x, y } = from;
         const baseRank = piece.color === 'white' ? 0 : 7;
@@ -440,7 +440,7 @@ export class MoveGenerator {
         if (x !== 4 || y !== baseRank) return;
 
         // Check if king is in check (cannot castle out of check)
-        if (this.isSquareUnderAttack(board, from, piece.color, perks, game)) return;
+        if (this.isSquareUnderAttack(board, from, piece.color, pacts, game)) return;
 
         // Kingside castling (O-O)
         const kingsideRookSquare = board.getSquare(new Coordinate(7, baseRank));
@@ -455,8 +455,8 @@ export class MoveGenerator {
                 const f = new Coordinate(5, baseRank);
                 const g = new Coordinate(6, baseRank);
 
-                if (!this.isSquareUnderAttack(board, f, piece.color, perks, game) &&
-                    !this.isSquareUnderAttack(board, g, piece.color, perks, game)) {
+                if (!this.isSquareUnderAttack(board, f, piece.color, pacts, game) &&
+                    !this.isSquareUnderAttack(board, g, piece.color, pacts, game)) {
                     moves.push(new Move(from, g, piece, null, true, false));
                 }
             }
@@ -478,15 +478,15 @@ export class MoveGenerator {
                 const c = new Coordinate(2, baseRank);
                 const d = new Coordinate(3, baseRank);
 
-                if (!this.isSquareUnderAttack(board, c, piece.color, perks, game) &&
-                    !this.isSquareUnderAttack(board, d, piece.color, perks, game)) {
+                if (!this.isSquareUnderAttack(board, c, piece.color, pacts, game) &&
+                    !this.isSquareUnderAttack(board, d, piece.color, pacts, game)) {
                     moves.push(new Move(from, c, piece, null, true, false));
                 }
             }
         }
     }
 
-    private static isSquareUnderAttack(board: BoardModel, square: Coordinate, byColor: PieceColor, perks: Perk[] = [], game?: IChessGame): boolean {
+    private static isSquareUnderAttack(board: BoardModel, square: Coordinate, byColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame): boolean {
         const opponentColor: PieceColor = byColor === 'white' ? 'black' : 'white';
 
         // Check all opponent pieces to see if any can attack this square
@@ -496,7 +496,7 @@ export class MoveGenerator {
                 // For attack checking, we should use the opponent's perks
                 // BUT perks are currently assigned to the game, not the piece.
                 // We'll assume the caller passes the relevant perks if needed.
-                const opponentMoves = this.getPseudoLegalMovesSimple(board, sq.piece, sq.coordinate, perks, game);
+                const opponentMoves = this.getPseudoLegalMovesSimple(board, sq.piece, sq.coordinate, pacts, game);
                 if (opponentMoves.some(m => m.to.equals(square))) {
                     return true;
                 }
@@ -506,27 +506,27 @@ export class MoveGenerator {
     }
 
     // Simplified version without castling to avoid recursion
-    private static getPseudoLegalMovesSimple(board: BoardModel, piece: Piece, from: Coordinate, perks: Perk[] = [], game?: IChessGame): Move[] {
+    private static getPseudoLegalMovesSimple(board: BoardModel, piece: Piece, from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame): Move[] {
         const moves: Move[] = [];
 
         switch (piece.type) {
             case 'pawn':
-                this.addPawnMoves(board, piece, from, moves, null, perks, game);
+                this.addPawnMoves(board, piece, from, moves, null, pacts, game);
                 break;
             case 'rook':
-                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, undefined, perks, game);
+                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, undefined, pacts, game);
                 break;
             case 'bishop':
-                this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, undefined, perks, game);
+                this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, undefined, pacts, game);
                 break;
             case 'queen':
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, perks, game);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, pacts, game);
                 break;
             case 'knight':
-                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, perks, game);
+                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, pacts, game);
                 break;
         }
 

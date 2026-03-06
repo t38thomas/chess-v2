@@ -32,7 +32,7 @@ export const MovementEffects = {
      */
     swapMovement: (typeA: PieceType, typeB: PieceType): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, from, piece, moves, perks, game }) => {
+            onGetPseudoMoves: ({ board, from, piece, moves, pacts, game }) => {
                 if (piece.type === typeA || piece.type === typeB) {
                     const targetType = piece.type === typeA ? typeB : typeA;
                     moves.length = 0;
@@ -52,8 +52,8 @@ export const MovementEffects = {
                     if (targetType === 'knight') {
                         MoveGenerator.addSteppingMoves(board, from, dirs, piece, moves);
                     } else {
-                        const range = RuleEngine.getMaxRange(piece, perks || []);
-                        MoveGenerator.addSlidingMoves(board, from, dirs, piece, moves, range, perks || [], game);
+                        const range = RuleEngine.getMaxRange(piece, pacts || []);
+                        MoveGenerator.addSlidingMoves(board, from, dirs, piece, moves, range, pacts || [], game);
                     }
                 }
             }
