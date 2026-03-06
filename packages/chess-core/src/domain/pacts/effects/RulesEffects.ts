@@ -42,7 +42,7 @@ export const RulesEffects = {
         onEvent: (event, payload, context) => {
             if (event === 'pact_assigned') {
                 const pieces = PactUtils.findPieces(context.game, context.playerId, type);
-                const victims = PactUtils.pickRandom(pieces, Math.min(pieces.length, count));
+                const victims = PactUtils.pickRandom(pieces, Math.min(pieces.length, count), context.game.rng);
                 for (const { coord } of victims) {
                     PactUtils.removePiece(context.game, coord);
                 }

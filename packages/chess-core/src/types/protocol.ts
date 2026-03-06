@@ -1,3 +1,4 @@
+import { IconName } from '../domain/models/Icon';
 import { MatchConfig } from '../domain/models/MatchConfig';
 import { PieceType, PieceColor } from '../domain/models/Piece';
 
@@ -5,7 +6,7 @@ export interface IActivePactDto {
     id: string;
     name: string;
     description: string;
-    icon: string;
+    icon: IconName;
 }
 
 export type MessageType =

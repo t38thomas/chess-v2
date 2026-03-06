@@ -1,8 +1,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { LayoutAnimation } from 'react-native';
-import { GameFacade, BoardViewModel, MatchConfig } from 'chess-core';
+import { GameFacade, BoardViewModel, MatchConfig, PieceType, PieceColor, PactDefinition, GameEvent } from 'chess-core';
 import { useSoundContext } from '../context/SoundContext';
+import { GameEvent as SoundEvent } from '../../services/SoundManager';
 
 export const useGame = (matchConfig?: MatchConfig) => {
     const { playGameEvent } = useSoundContext();
@@ -11,7 +12,8 @@ export const useGame = (matchConfig?: MatchConfig) => {
     const [facade] = useState(() => new GameFacade(
         matchConfig,
         undefined, // onMove callback
-        (event) => playGameEvent(event as any) // onGameEvent callback for sounds
+        // WHY: playGameEvent expects a specific event union or string from SoundManager.
+        (event) => playGameEvent(event as unknown as SoundEvent) // onGameEvent callback for sounds
     ));
 
     // Sync state
@@ -57,11 +59,11 @@ export const useGame = (matchConfig?: MatchConfig) => {
     const isCheck = useMemo(() => viewModel.squares.some(s => s.isCheck), [viewModel]);
     const pendingPromotion = viewModel.pendingPromotion;
 
-    const completePromotion = useCallback((pieceType: any) => {
+    const completePromotion = useCallback((pieceType: PieceType) => {
         facade.completePromotion(pieceType);
     }, [facade]);
 
-    const assignPact = useCallback((color: any, pact: any) => {
+    const assignPact = useCallback((color: PieceColor, pact: PactDefinition) => {
         facade.assignPact(color, pact);
     }, [facade]);
 
@@ -84,12 +86,12 @@ export const useGame = (matchConfig?: MatchConfig) => {
         winner: viewModel.winner,
         pacts,
         assignPact,
-        useAbility: (id: string, params?: any) => facade.useAbility(id, params),
+        useAbility: (id: string, params?: unknown) => facade.useAbility(id, params),
         cancelAbility: () => facade.cancelAbility(),
         availableAbilities,
         activeAbilityId: viewModel.activeAbilityId,
         pendingTargets: viewModel.pendingTargets,
-        subscribeToGameEvents: useCallback((listener: (event: any, payload?: any) => void) => facade.subscribeToGameEvents(listener), [facade]),
+        subscribeToGameEvents: useCallback((listener: (event: GameEvent, payload?: unknown) => void) => facade.subscribeToGameEvents(listener), [facade]),
         orientation: facade.orientation,
         rotateBoard: useCallback(() => {
             facade.rotateBoard();

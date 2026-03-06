@@ -13,8 +13,8 @@ import { PactDetailsModal } from '../ui/components/PactDetailsModal';
 import { GameEndModal } from '../ui/components/GameEndModal';
 import { GameSessionLayout } from '../ui/components/GameSessionLayout';
 import { useTheme } from '../ui/theme';
-import { useTranslation } from '../i18n';
-import { Pact, PERK_LIBRARY, PACT_CARDS, PactRegistry } from 'chess-core';
+import { useTranslation, TxKeyPath } from '../i18n';
+import { Pact, PERK_LIBRARY, PACT_CARDS, PactRegistry, PactEffectNotification } from 'chess-core';
 import { useBoardSize } from '../ui/responsive/useBoardSize';
 import { usePactTranslation } from '../ui/hooks/usePactTranslation';
 import { PactTurnCounter } from '../ui/components/PactTurnCounter';
@@ -129,11 +129,12 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
         const unsubscribe = subscribeToGameEvents((event, payload) => {
             console.log('[GameScreen] Received event:', event, payload);
             if (event === 'pact_effect' && payload) {
+                const effect = payload as PactEffectNotification;
                 showToast({
-                    title: t(payload.title as any),
-                    description: payload.description ? t(payload.description as any) : undefined,
-                    icon: payload.icon,
-                    type: payload.type || 'info',
+                    title: t(effect.title),
+                    description: effect.description ? t(effect.description) : undefined,
+                    icon: effect.icon,
+                    type: effect.type || 'info',
                     duration: 4000
                 });
             }
@@ -144,7 +145,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
     const handleRotateBoardAction = () => {
         if (viewModel.totalTurns < 2) {
             showToast({
-                title: t('errors.rotationTooEarly' as any),
+                title: t('errors.rotationTooEarly'),
                 type: 'warning',
                 icon: 'alert-circle-outline'
             });
@@ -209,7 +210,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                                                 style={styles.pactBadge}
                                                 onPress={() => setSelectedPact(pactMeta)}
                                             >
-                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle') as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle')} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
                                                 <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
                                             </TouchableOpacity>
                                         );
@@ -246,7 +247,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                                     <Button
                                         key={abilityId}
                                         label={perk.name}
-                                        icon={perk.icon as any}
+                                        icon={perk.icon}
                                         variant="primary"
                                         onPress={() => useAbility(abilityId)}
                                         style={{ flex: 1 }}
@@ -269,7 +270,7 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
             <View style={styles.controlsContainer}>
                 {matchConfig.enableTurnRotate90 && (
                     <Button
-                        label={t('game.rotateBoard' as any)}
+                        label={t('game.rotateBoard')}
                         onPress={handleRotateBoardAction}
                         variant="secondary"
                         icon="rotate-right"
@@ -301,7 +302,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                             <CapturedPiecesRow
                                 pieces={capturedPieces.topRow.pieces}
                                 advantage={capturedPieces.topRow.advantageBadge}
-                                // label={t(capturedPieces.topRow.labelKey as any)}
                                 pieceColor="white"
                             />
                         </Animated.View>
@@ -317,7 +317,6 @@ export const GameScreen: React.FC<GameScreenProps & { matchConfig: MatchConfig }
                             <CapturedPiecesRow
                                 pieces={capturedPieces.bottomRow.pieces}
                                 advantage={capturedPieces.bottomRow.advantageBadge}
-                                // label={t(capturedPieces.bottomRow.labelKey as any)}
                                 pieceColor="black"
                             />
                         </Animated.View>

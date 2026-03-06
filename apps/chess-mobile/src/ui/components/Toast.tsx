@@ -75,7 +75,7 @@ export const Toast: React.FC<ToastProps> = ({ data, index }) => {
             <View style={styles.content}>
                 {data.icon && (
                     <View style={[styles.iconContainer, { backgroundColor: getIconBgColor(data.type, colors) }]}>
-                        <Icon name={data.icon as any} size={20} color={getIconColor(data.type, colors)} />
+                        <Icon name={data.icon} size={20} color={getIconColor(data.type, colors)} />
                     </View>
                 )}
                 <View style={styles.textContainer}>

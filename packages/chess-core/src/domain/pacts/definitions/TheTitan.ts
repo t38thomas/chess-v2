@@ -4,8 +4,8 @@ import { PactUtils } from '../PactUtils';
 
 /**
  * The Titan Pact
- * Bonus (Earthquake): When the Queen moves, all adjacent pawns are pushed away.
- * Malus (Gigantism): The Queen cannot move to or capture on edge squares.
+ * Bonus (Earthquake): When the Queen moves, all adjacent pieces (except the King) are pushed away one square.
+ * Malus (Gigantism): The Queen cannot move to or capture on edge squares (rank 0, 7 or file 0, 7).
  */
 export const TheTitan = definePact('titan')
     .bonus('earthquake', {
@@ -20,7 +20,7 @@ export const TheTitan = definePact('titan')
                 let pushedAny = false;
 
                 for (const { piece: adjPiece, coord: adjCoord } of adjacent) {
-                    if (adjPiece.type === 'pawn') {
+                    if (adjPiece.type !== 'king') {
                         const dx = adjCoord.x - move.to.x;
                         const dy = adjCoord.y - move.to.y;
 

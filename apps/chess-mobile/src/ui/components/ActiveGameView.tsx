@@ -12,8 +12,8 @@ import { GameEndModal } from './GameEndModal';
 import { PactTurnCounter } from './PactTurnCounter';
 import { GameSessionLayout } from './GameSessionLayout';
 import { useTheme } from '../theme';
-import { useTranslation } from '../../i18n';
-import { Pact, PERK_LIBRARY, BoardViewModel, PACT_CARDS, PactRegistry } from 'chess-core';
+import { useTranslation, TxKeyPath } from '../../i18n';
+import { Pact, PERK_LIBRARY, BoardViewModel, PACT_CARDS, PactRegistry, PieceType, Piece, Coordinate, PieceColor } from 'chess-core';
 import { PactDefinition } from 'chess-core/src/domain/pacts/PactLogic';
 import { usePactTranslation } from '../hooks/usePactTranslation';
 
@@ -26,7 +26,7 @@ interface ActiveGameViewProps {
     onSquarePress: (x: number, y: number) => void;
     reversed: boolean;
     boardSize: number;
-    turn: 'white' | 'black';
+    turn: PieceColor;
     isCheck: boolean;
     players: {
         white?: { username: string; connected: boolean } | null;
@@ -35,13 +35,13 @@ interface ActiveGameViewProps {
     pacts: { white: PactDefinition[]; black: PactDefinition[] };
     playerColor: 'white' | 'black';
     phase: string;
-    pendingPromotion: any;
+    pendingPromotion?: { x: number; y: number; color: PieceColor } | null;
     availableAbilities: string[];
     onRotateBoard?: () => void; // Game action
     orientation?: number; // Game state
     onLeaveMatch: () => void;
     onUseAbility: (abilityId: string) => void;
-    onCompletePromotion: (piece: string) => void;
+    onCompletePromotion: (piece: PieceType) => void;
     onAssignPact: (pact: Pact) => void;
     onResign?: () => void;
 }
@@ -75,13 +75,10 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
     const capturedPieces = useCapturedPieces(viewModel);
     const { showToast } = useToast();
 
-
-
-
     const handleRotateBoard = () => {
         if (viewModel.totalTurns < 2) {
             showToast({
-                title: t('errors.rotationTooEarly' as any),
+                title: t('errors.rotationTooEarly'),
                 type: 'warning',
                 icon: 'alert-circle-outline'
             });
@@ -175,7 +172,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                                                 style={styles.pactBadge}
                                                 onPress={() => setSelectedPact(pactMeta)}
                                             >
-                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle') as any} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
+                                                <Icon name={(pactMeta?.bonus.icon || 'help-circle')} size={14} color={section.color === 'white' ? colors.primary : colors.textSecondary} />
                                                 <Text variant="caption" bold style={{ marginLeft: 4, fontSize: 10 }}>{translated?.title ?? ''}</Text>
                                             </TouchableOpacity>
                                         );
@@ -201,7 +198,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                                 <Button
                                     key={abilityId}
                                     label={perk.name}
-                                    icon={perk.icon as any}
+                                    icon={perk.icon}
                                     variant="primary"
                                     onPress={() => onUseAbility(abilityId)}
                                     style={{ flex: 1 }}
@@ -234,7 +231,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
             <View style={styles.controlsContainer}>
                 {onRotateBoard && viewModel.matchConfig?.enableTurnRotate90 && (
                     <Button
-                        label={t('game.rotateBoard' as any)}
+                        label={t('game.rotateBoard')}
                         onPress={handleRotateBoard}
                         variant="secondary"
                         icon="rotate-right"
@@ -265,7 +262,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         <CapturedPiecesRow
                             pieces={capturedPieces.topRow.pieces}
                             advantage={capturedPieces.topRow.advantageBadge}
-                            // label={t(capturedPieces.topRow.labelKey as any)}
+                            // label={t(capturedPieces.topRow.labelKey )}
                             pieceColor={playerColor === 'white' ? 'black' : 'white'}
                             style={{ marginBottom: spacing[2] }}
                         />
@@ -280,7 +277,7 @@ export const ActiveGameView: React.FC<ActiveGameViewProps> = ({
                         <CapturedPiecesRow
                             pieces={capturedPieces.bottomRow.pieces}
                             advantage={capturedPieces.bottomRow.advantageBadge}
-                            // label={t(capturedPieces.bottomRow.labelKey as any)}
+                            // label={t(capturedPieces.bottomRow.labelKey )}
                             pieceColor={playerColor}
                             style={{ marginTop: spacing[2] }}
                         />
@@ -396,4 +393,3 @@ const styles = StyleSheet.create({
         gap: 8,
     },
 });
-

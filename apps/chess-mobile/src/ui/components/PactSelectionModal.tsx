@@ -22,6 +22,7 @@ import { useTheme } from '../theme';
 import { useTranslation } from '../../i18n';
 import { usePactTranslation } from '../hooks/usePactTranslation';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconName } from './Icon';
 
 interface PactSelectionModalProps {
     visible: boolean;
@@ -149,8 +150,8 @@ interface PactCardProps {
         id: string;
         title: string;
         description: string;
-        bonus: { id: string; name: string; description: string; icon: string; };
-        malus: { id: string; name: string; description: string; icon: string; };
+        bonus: { id: string; name: string; description: string; icon: IconName; };
+        malus: { id: string; name: string; description: string; icon: IconName; };
     } | null;
     onSelect: () => void;
     index: number;
@@ -200,7 +201,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index, isLargeScree
                         </View>
                         <View style={styles.perkInfo}>
                             <View style={styles.iconBox}>
-                                <MaterialCommunityIcons name={pact.bonus.icon as any} size={20} color={colors.primary} />
+                                <MaterialCommunityIcons name={pact.bonus.icon} size={20} color={colors.primary} />
                             </View>
                             <View style={styles.perkText}>
                                 <Text variant="body" bold style={styles.perkName}>{pact.bonus.name}</Text>
@@ -218,7 +219,7 @@ const PactCard: React.FC<PactCardProps> = ({ pact, onSelect, index, isLargeScree
                         </View>
                         <View style={styles.perkInfo}>
                             <View style={styles.iconBox}>
-                                <MaterialCommunityIcons name={pact.malus.icon as any} size={20} color={colors.danger} />
+                                <MaterialCommunityIcons name={pact.malus.icon} size={20} color={colors.danger} />
                             </View>
                             <View style={styles.perkText}>
                                 <Text variant="body" bold style={styles.perkName}>{pact.malus.name}</Text>

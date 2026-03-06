@@ -4,6 +4,7 @@ import { Coordinate } from '../../models/Coordinate';
 import { Piece } from '../../models/Piece';
 import { TheDiplomat } from './TheDiplomat';
 import { ChessGame } from '../../ChessGame';
+import { Move } from '../../models/Move';
 import { RuleEngine } from '../../rules/RuleEngine';
 
 describe('The Diplomat Pact', () => {
@@ -61,19 +62,18 @@ describe('The Diplomat Pact', () => {
             board.placePiece(queenPos, whiteQueen);
             board.placePiece(pawnPos, blackPawn);
 
-            // Simulate capture
-            game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
+            // Simulate crossing
+            game.pactState[`diplomatic_immunity_white`] = { has_crossed_midfield: true };
 
             game.assignPact('white', TheDiplomat as any);
             const canBeCaptured = RuleEngine.canCapture(game, blackPawn, whiteQueen, queenPos, pawnPos, board, []);
             expect(canBeCaptured).toBe(true);
         });
 
-        it('should update state and notify when Queen makes a capture', () => {
+        it('should update state and notify when Queen crosses midfield', () => {
             const whiteQueen = new Piece('queen', 'white', 'white-queen');
-            const blackPawn = new Piece('pawn', 'black', 'black-pawn');
-            const from = new Coordinate(4, 4);
-            const to = new Coordinate(5, 5);
+            const from = new Coordinate(4, 3);
+            const to = new Coordinate(4, 4); // Crosses midfield (y >= 4 for white)
 
             let notifyCount = 0;
             game.subscribe((event) => {
@@ -82,10 +82,11 @@ describe('The Diplomat Pact', () => {
 
             const context = bonus.createContextWithState({ game, playerId: 'white', pactId: 'diplomatic_immunity' });
 
-            // Use the public onEvent method which correctly handles effects
-            bonus.onEvent('capture', { piece: whiteQueen, from, to, capturedPiece: blackPawn }, context);
+            // Trigger via onEvent 'move'
+            bonus.onEvent('move', new Move(from, to, whiteQueen), context);
 
-            expect(game.pactState[`diplomatic_immunity_white`]?.has_captured).toBe(true);
+            const state = game.pactState[`diplomatic_immunity_white`] as any;
+            expect(state?.has_crossed_midfield).toBe(true);
             expect(notifyCount).toBe(2); // One for immunity lost, one for sabotage ended
         });
 
@@ -110,7 +111,7 @@ describe('The Diplomat Pact', () => {
             const knightPos = new Coordinate(1, 0);
             board.placePiece(knightPos, whiteKnight);
 
-            game.pactState[`diplomatic_immunity_white`] = { has_captured: true };
+            game.pactState[`diplomatic_immunity_white`] = { has_crossed_midfield: true };
 
             game.assignPact('white', TheDiplomat as any);
             const perks = game.pacts.white.flatMap(p => [p.bonus, p.malus]);

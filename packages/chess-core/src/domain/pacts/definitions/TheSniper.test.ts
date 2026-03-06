@@ -37,9 +37,9 @@ describe('The Sniper Pact', () => {
                 moves
             }, { game, playerId: 'white', pactId: 'sniper', state: {}, updateState: () => { } } as any);
 
-            // Should be able to move to (0,2), (0,3), etc.
-            expect(moves.some(m => m.to.toString() === '0,2')).toBe(true);
-            expect(moves.some(m => m.to.toString() === '0,7')).toBe(true);
+            // Should NOT be able to move to (0,2), (0,7) anymore (only capture)
+            expect(moves.some(m => m.to.toString() === '0,2')).toBe(false);
+            expect(moves.some(m => m.to.toString() === '0,7')).toBe(false);
         });
 
         it('should allow Rook to capture behind one obstacle', () => {

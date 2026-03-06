@@ -35,11 +35,11 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                 <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={styles.header}>
                         <View style={[styles.headerIcon, { backgroundColor: colors.primaryMuted }]}>
-                            <Icon name={displayedPact.bonus.icon as any} size={28} color={colors.primary} />
+                            <Icon name={displayedPact.bonus.icon} size={28} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1, marginLeft: spacing[4] }}>
                             <Text variant="title" bold>{displayedPact.title}</Text>
-                            <Text variant="caption" color="secondary">{t('pact.activePact' as any)}</Text>
+                            <Text variant="caption" color="secondary">{t('pact.activePact')}</Text>
                         </View>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                             <Icon name="close" size={24} color={colors.textSecondary} />
@@ -56,7 +56,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                             <View style={styles.perkHeader}>
                                 <Icon name={pact?.bonus.icon ?? "plus-circle"} size={20} color={colors.primary} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.primary }}>
-                                    {t('pact.bonusPrefix' as any, { name: displayedPact.bonus.name })}
+                                    {t('pact.bonusPrefix', { name: displayedPact.bonus.name })}
                                 </Text>
                             </View>
                             <Text variant="caption" style={{ marginTop: spacing[2], lineHeight: 18 }}>
@@ -71,7 +71,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                             <View style={styles.perkHeader}>
                                 <Icon name={pact?.malus.icon ?? "minus-circle"} size={20} color={colors.danger} />
                                 <Text variant="body" bold style={{ marginLeft: spacing[2], color: colors.danger }}>
-                                    {t('pact.malusPrefix' as any, { name: displayedPact.malus.name })}
+                                    {t('pact.malusPrefix', { name: displayedPact.malus.name })}
                                 </Text>
                             </View>
                             <Text variant="caption" style={{ marginTop: spacing[2], lineHeight: 18 }}>
@@ -81,7 +81,7 @@ export const PactDetailsModal: React.FC<PactDetailsModalProps> = ({ visible, pac
                     </ScrollView>
 
                     <Button
-                        label={t('pact.gotIt' as any)}
+                        label={t('pact.gotIt')}
                         onPress={onClose}
                         variant="primary"
                         fullWidth

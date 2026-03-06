@@ -1,3 +1,5 @@
+import { IconName } from "./Icon";
+
 export type PerkCategory =
     | 'Movement'
     | 'Promotion'
@@ -12,7 +14,7 @@ export type PerkCategory =
 export interface Perk {
     id: string;
     name: string; // Translation key
-    icon: string;
+    icon: IconName;
     description: string; // Translation key
     ranking: number;
     category: PerkCategory;

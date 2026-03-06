@@ -10,11 +10,14 @@ import { Vector } from './PawnEffects';
 
 export const MovementEffects = {
     /**
-     * Sets the maximum movement range for all pieces.
+     * Sets the maximum movement range for specific pieces.
      */
-    maxRange: (range: number): PactEffect => ({
+    maxRange: (range: number, filter?: (piece: Piece) => boolean): PactEffect => ({
         modifiers: {
-            getMaxRange: () => range
+            getMaxRange: (piece) => {
+                if (filter && !filter(piece)) return 99; // Default max range (min with 8 in RuleEngine)
+                return range;
+            }
         }
     }),
 

@@ -3,18 +3,18 @@ import { PactUtils } from '../PactUtils';
 
 /** Bonus state: tracks which queen IDs are successors (not subject to Young Queen restriction). */
 interface HeirBonusState {
-    successorIds: Record<string, boolean>;
+    generations: Record<string, number>; // pieceId -> generation (0, 1, 2...)
 }
 
 /**
  * The Heir Pact
  * Bonus (Bloodline): When your Queen is captured, a random minor piece is promoted to a new Queen.
- * Malus (Young Queen): Initial Queen cannot capture any piece except the King. Successor Queens have no such restriction.
+ * Malus (Young Queen): Captures are restricted by Queen generation (Gen 0: King only, Gen 1: No Queen/Rook).
  */
-export const TheHeir = definePact('heir')
-    .bonus<HeirBonusState>('bloodline', {
+export const TheHeir = definePact<HeirBonusState>('heir')
+    .bonus('bloodline', {
         target: 'self',
-        initialState: () => ({ successorIds: {} }),
+        initialState: () => ({ generations: {} }),
         onCapture: (payload, context) => {
             const { game, playerId } = context;
             const capturedPiece = payload.capturedPiece;
@@ -23,11 +23,13 @@ export const TheHeir = definePact('heir')
                 if (minorPieces.length > 0) {
                     const [successor] = PactUtils.pickRandom(minorPieces, 1);
                     if (successor) {
+                        const gens = (context.state.generations || {}) as Record<string, number>;
+                        const currentGen = gens[capturedPiece.id] ?? 0;
                         PactUtils.promotePiece(game, successor.coord, 'queen');
-                        context.updateState((prev) => ({
-                            successorIds: {
-                                ...prev.successorIds,
-                                [successor.piece.id]: true
+                        context.updateState((prev: HeirBonusState) => ({
+                            generations: {
+                                ...(prev.generations || {}),
+                                [successor.piece.id]: currentGen + 1
                             }
                         }));
 
@@ -42,11 +44,12 @@ export const TheHeir = definePact('heir')
         modifiers: {
             canCapture: (params, context) => {
                 if (params.attacker.type === 'queen') {
-                    // WHY: sibling state type (HeirBonusState) cannot be statically inferred here;
-                    // we narrow manually via optional chaining.
-                    const sharedState = context.getSiblingState<HeirBonusState>() ?? { successorIds: {} };
-                    const isSuccessor = sharedState.successorIds?.[params.attacker.id];
-                    if (!isSuccessor) return params.victim.type === 'king';
+                    const sharedState = context.getSiblingState<HeirBonusState>() ?? { generations: {} };
+                    const gen = sharedState.generations?.[params.attacker.id] ?? 0;
+
+                    if (gen === 0) return params.victim.type === 'king';
+                    if (gen === 1) return params.victim.type !== 'queen' && params.victim.type !== 'rook';
+                    return true;
                 }
                 return true;
             }
@@ -55,15 +58,16 @@ export const TheHeir = definePact('heir')
             const queens = context.query.pieces().ofTypes(['queen']);
             if (queens.length === 0) return [];
 
-            const sharedState = context.getSiblingState<HeirBonusState>() ?? { successorIds: {} };
-            const isSuccessor = queens.some(q => sharedState.successorIds?.[q.piece.id]);
+            const sharedState = context.getSiblingState<HeirBonusState>() ?? { generations: {} };
+            const maxGen = Math.max(...queens.map(q => sharedState.generations?.[q.piece.id] ?? 0));
 
             return [{
-                id: 'queen_status',
-                label: isSuccessor ? 'queen_successor' : 'queen_initial',
-                value: isSuccessor ? 100 : 0,
+                id: 'queen_generation',
+                label: 'queen_rank',
+                value: maxGen,
                 pactId: 'heir',
-                type: 'counter'
+                type: 'counter',
+                subLabel: `Gen ${maxGen}`
             }];
         }
     })

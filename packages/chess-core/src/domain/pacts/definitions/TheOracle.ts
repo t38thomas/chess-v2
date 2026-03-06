@@ -7,7 +7,7 @@ interface OracleMalusState {
 
 /**
  * The Oracle Pact
- * Bonus (Prescience): (No active logic yet)
+ * Bonus (Prescience): UI counter shows undefended enemy pieces.
  * Malus (Inevitable Fate): If you have an opportunity to capture an undefended piece and don't take it, you must sacrifice a piece.
  */
 export const TheOracle = definePact('oracle')
@@ -52,6 +52,19 @@ export const TheOracle = definePact('oracle')
                     PactUtils.notifyPactEffect(game, 'oracle', 'punishment', 'malus', 'skull');
                 }
             }
+        },
+        getTurnCounters: (context) => {
+            const count = context.state.capablePieceIds.length;
+            if (count > 0) {
+                return [{
+                    id: 'inevitable_fate_pending',
+                    label: 'capture_required',
+                    value: count,
+                    pactId: 'oracle',
+                    type: 'counter',
+                }];
+            }
+            return [];
         }
     })
     .build();

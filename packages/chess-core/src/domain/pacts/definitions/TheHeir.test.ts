@@ -68,8 +68,8 @@ describe('The Heir', () => {
             game.board.placePiece(queenPos, successorQueen);
             game.board.placePiece(enemyPos, enemyPawn);
 
-            // Mark as successor in pactState
-            game.pactState[`bloodline_white`] = { successorIds: { [successorQueen.id]: true } };
+            // Mark as successor in pactState (Gen 1)
+            game.pactState[`bloodline_white`] = { generations: { [successorQueen.id]: 1 } };
 
             const modifiers = youngQueenMalus.getRuleModifiers();
             const context = youngQueenMalus.createContextWithState({ playerId: successorQueen.color, game, pactId: 'heir' });
@@ -112,8 +112,8 @@ describe('The Heir', () => {
 
             const newQueen = whiteQueens[0].piece!;
             // WHY test: pactState is Record<string, unknown>; cast to HeirBonusState for verification.
-            const bonusState = game.pactState['bloodline_white'] as { successorIds: Record<string, boolean> } | undefined;
-            expect(bonusState?.successorIds?.[newQueen.id]).toBe(true);
+            const bonusState = game.pactState['bloodline_white'] as { generations: Record<string, number> } | undefined;
+            expect(bonusState?.generations?.[newQueen.id]).toBe(1);
         });
 
         it('should do nothing if no minor pieces are left', () => {

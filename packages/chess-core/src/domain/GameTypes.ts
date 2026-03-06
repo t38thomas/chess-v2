@@ -4,6 +4,7 @@ import { Move } from './models/Move';
 import { PactDefinition } from './pacts/PactLogic';
 import { Coordinate } from './models/Coordinate';
 import { MatchConfig } from './models/MatchConfig';
+import { IconName } from './models/Icon';
 
 export type GameStatus = 'active' | 'checkmate' | 'stalemate' | 'draw' | 'resignation';
 export type GamePhase = 'setup' | 'playing' | 'game_over';
@@ -16,7 +17,7 @@ export interface PactEffectNotification {
     pactId: string;
     title: string;
     description: string;
-    icon: string;
+    icon: IconName;
     type: 'bonus' | 'malus';
     payload?: unknown;
 }

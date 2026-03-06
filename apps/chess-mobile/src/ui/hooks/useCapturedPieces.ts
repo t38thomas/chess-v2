@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { CapturedPiecesLogic, CapturedPiecesViewModel } from '../viewmodels/CapturedPiecesViewModel';
-import { BoardViewModel } from 'chess-core';
+import { BoardViewModel, Piece } from 'chess-core';
 
 export const useCapturedPieces = (viewModel: BoardViewModel): CapturedPiecesViewModel => {
     return useMemo(() => {
@@ -12,8 +12,8 @@ export const useCapturedPieces = (viewModel: BoardViewModel): CapturedPiecesView
         }
 
         return CapturedPiecesLogic.calculate(
-            viewModel.capturedPieces.black as any[], // Captured BY white (black pieces)
-            viewModel.capturedPieces.white as any[], // Captured BY black (white pieces)
+            viewModel.capturedPieces.black as Piece[], // Captured BY white (black pieces)
+            viewModel.capturedPieces.white as Piece[], // Captured BY black (white pieces)
             'white' // Constant 'white' perspective for local game as requested
         );
     }, [viewModel.capturedPieces]);

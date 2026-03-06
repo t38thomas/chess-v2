@@ -3,7 +3,7 @@ import { Effects } from '../PactEffects';
 
 /**
  * The Saboteur Pact
- * Bonus (Diagonal Dash): Pawns can move diagonally (without capture).
+ * Bonus (Diagonal Dash): Pawns can move and capture diagonally.
  * Malus (Cut Supplies): Cannot promote to Queen.
  */
 export const TheSaboteur = definePact('saboteur')

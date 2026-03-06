@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Pact, Perk } from 'chess-core';
-import { useTranslation } from '../../i18n';
+import { useTranslation, TxKeyPath } from '../../i18n';
+import { IconName } from '../components/Icon';
 
 interface TranslatedPact {
     id: string;
@@ -10,13 +11,13 @@ interface TranslatedPact {
         id: string;
         name: string;
         description: string;
-        icon: string;
+        icon: IconName;
     };
     malus: {
         id: string;
         name: string;
         description: string;
-        icon: string;
+        icon: IconName;
     };
 }
 
@@ -31,18 +32,18 @@ export const usePactTranslation = () => {
 
         return {
             id: pact.id,
-            title: t(`pacts.${pact.id}.title` as any) || pact.id,
-            description: t(`pacts.${pact.id}.description` as any) || '',
+            title: t(`pacts.${pact.id}.title`) || pact.id,
+            description: t(`pacts.${pact.id}.description`) || '',
             bonus: {
                 id: pact.bonus.id,
-                name: t(`perks.${pact.bonus.id}.name` as any) || pact.bonus.name,
-                description: t(`perks.${pact.bonus.id}.description` as any) || pact.bonus.description,
+                name: t(`perks.${pact.bonus.id}.name`) || pact.bonus.name,
+                description: t(`perks.${pact.bonus.id}.description`) || pact.bonus.description,
                 icon: pact.bonus.icon,
             },
             malus: {
                 id: pact.malus.id,
-                name: t(`perks.${pact.malus.id}.name` as any) || pact.malus.name,
-                description: t(`perks.${pact.malus.id}.description` as any) || pact.malus.description,
+                name: t(`perks.${pact.malus.id}.name`) || pact.malus.name,
+                description: t(`perks.${pact.malus.id}.description`) || pact.malus.description,
                 icon: pact.malus.icon,
             },
         };

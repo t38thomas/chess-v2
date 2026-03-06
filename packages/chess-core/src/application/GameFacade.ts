@@ -5,8 +5,8 @@ import { Move } from '../domain/models/Move';
 import { Piece, PieceType, PieceColor } from '../domain/models/Piece';
 import { MoveGenerator } from '../domain/rules/MoveGenerator';
 import { CheckDetector } from '../domain/rules/CheckDetector';
-import { BoardViewModel, SquareViewModel, TurnCounter } from './ViewModels';
-import { PactDefinition } from '../domain/pacts/PactLogic';
+import { BoardViewModel, SquareViewModel } from './ViewModels';
+import { PactDefinition, TurnCounter } from '../domain/pacts/PactLogic';
 import { PactRegistry } from '../domain/pacts/PactRegistry';
 import { PactUtils } from '../domain/pacts/PactUtils';
 import { MatchConfig, DEFAULT_MATCH_CONFIG } from '../domain/models/MatchConfig';
@@ -22,7 +22,7 @@ export class GameFacade {
     private pendingPromotionMove: Move | null = null;
     private _activeAbilityId: string | null = null;
     private pendingTargets: Coordinate[] = [];
-    private gameEventListeners: ((event: GameEvent, payload?: any) => void)[] = [];
+    private gameEventListeners: ((event: GameEvent, payload?: unknown) => void)[] = [];
 
     constructor(
         private matchConfig: MatchConfig = DEFAULT_MATCH_CONFIG,
@@ -526,10 +526,10 @@ export class GameFacade {
         if (!payload || !payload.board) return;
 
         this.game.board.clear();
-        payload.board.forEach(([key, sqData]: [string, any]) => {
+        (payload.board || []).forEach(([key, sqData]) => {
             if (sqData && sqData.piece) {
                 const coord = new Coordinate(sqData.coordinate.x, sqData.coordinate.y);
-                this.game.board.placePiece(coord, sqData.piece);
+                this.game.board.placePiece(coord, sqData.piece as Piece);
             }
         });
 
@@ -574,8 +574,8 @@ export class GameFacade {
 
         // Sync Captured Pieces
         if (payload.capturedPieces) {
-            this.game.capturedPieces.white = (payload.capturedPieces.white || []).map((p: any) => new Piece(p.type, p.color, p.id));
-            this.game.capturedPieces.black = (payload.capturedPieces.black || []).map((p: any) => new Piece(p.type, p.color, p.id));
+            this.game.capturedPieces.white = (payload.capturedPieces.white || []).map(p => new Piece(p.type, p.color, p.id));
+            this.game.capturedPieces.black = (payload.capturedPieces.black || []).map(p => new Piece(p.type, p.color, p.id));
         }
 
         if (payload.matchConfig) {

@@ -72,7 +72,7 @@ const AppEntry = () => {
                                 setConfigMode('online');
                                 setCurrentScreen('online');
                             } else {
-                                setCurrentScreen(screen as any);
+                                setCurrentScreen(screen);
                             }
                         }}
                     />

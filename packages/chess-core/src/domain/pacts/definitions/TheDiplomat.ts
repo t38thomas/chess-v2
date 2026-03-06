@@ -1,11 +1,12 @@
 import { definePact } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 import { Effects } from '../PactEffects';
+import { Move } from '../../models/Move';
 
 /**
  * The Diplomat Pact
- * Bonus (Diplomatic Immunity): The Queen cannot be captured by pawns until she captures something.
- * Malus (Internal Sabotage): Knights are blocked until the Queen captures something.
+ * Bonus (Diplomatic Immunity): The Queen cannot be captured by pawns until she crosses the midfield line.
+ * Malus (Internal Sabotage): Knights are blocked until the Queen crosses the midfield line.
  */
 export const TheDiplomat = definePact('diplomat')
     .bonus('diplomatic_immunity', {
@@ -14,34 +15,36 @@ export const TheDiplomat = definePact('diplomat')
             canBeCaptured: (params, context) => {
                 if (params.victim.type !== 'queen') return true;
 
-                const hasCaptured = (context.state || {})['has_captured'];
-                return !!(hasCaptured || params.attacker.type !== 'pawn');
+                const hasCrossed = (context.state || {})['has_crossed_midfield'];
+                return !!(hasCrossed || params.attacker.type !== 'pawn');
             }
         },
         effects: [
             Effects.state.oncePerMatch({
-                key: 'has_captured',
-                triggerOn: ['capture'],
+                key: 'has_crossed_midfield',
+                triggerOn: ['move'],
                 filter: (event, payload, context) => {
-                    const move = payload as any;
-                    return move && move.piece && move.piece.color === context.playerId && move.piece.type === 'queen';
+                    const move = payload as Move;
+                    if (!move || move.piece.type !== 'queen' || move.piece.color !== context.playerId) return false;
+
+                    const y = move.to.y;
+                    return context.playerId === 'white' ? y >= 4 : y <= 3;
                 },
                 onTrigger: (context) => {
                     PactUtils.notifyPactEffect(context.game, 'diplomat', 'immunity_lost', 'malus', 'shield-off');
                     PactUtils.notifyPactEffect(context.game, 'diplomat', 'sabotage_ended', 'bonus', 'horse-variant');
                 }
-
             })
         ],
         getTurnCounters: (context) => {
-            const hasCaptured = (context.state || {})['has_captured'];
+            const hasCrossed = (context.state || {})['has_crossed_midfield'];
             return [{
                 id: 'diplomatic_immunity_status',
-                label: hasCaptured ? 'queen_successor' : 'queen_initial',
-                value: hasCaptured ? 0 : 1,
-                pactId: 'diplomatic_immunity',
+                label: hasCrossed ? 'queen_crossed' : 'queen_protected',
+                value: hasCrossed ? 0 : 1,
+                pactId: 'diplomat',
                 type: 'counter',
-                subLabel: hasCaptured ? 'Active' : 'Protected'
+                subLabel: hasCrossed ? 'Active' : 'Protected'
             }];
         }
     })
@@ -53,7 +56,7 @@ export const TheDiplomat = definePact('diplomat')
                 const piece = b.getSquare(params.from)?.piece;
                 if (piece?.type === 'knight') {
                     const sharedState = context.getSiblingState<any>() || {};
-                    return !!(sharedState['has_captured']);
+                    return !!(sharedState['has_crossed_midfield']);
                 }
                 return true;
             }

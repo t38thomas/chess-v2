@@ -3,7 +3,7 @@ import { PactUtils } from '../PactUtils';
 
 /**
  * The Necromancer Pact
- * Bonus (Reclaimer): Active ability to resurrect the last captured piece at its starting square (once).
+ * Bonus (Reclaimer): Active ability to resurrect the last captured friendly piece (any except Queen). Cooldown: 5 turns.
  * Malus (Ascension Cost): When you promote a piece, your opponent gets an extra turn.
  */
 export const TheNecromancer = definePact('necromancer')
@@ -14,7 +14,7 @@ export const TheNecromancer = definePact('necromancer')
             name: 'reclaimer',
             description: 'desc_reclaimer',
             icon: 'refresh',
-            maxUses: 1,
+            cooldown: 5,
             targetType: 'none',
             execute: (context) => {
                 const { game, playerId } = context;

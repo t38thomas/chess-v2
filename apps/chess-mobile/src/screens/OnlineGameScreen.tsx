@@ -128,8 +128,7 @@ export const OnlineGameScreen: React.FC<OnlineGameScreenProps> = ({ onNavigateBa
             onUseAbility={useAbility}
             onCompletePromotion={completePromotion}
             onAssignPact={(pact) => {
-                const pactDef = PactRegistry.getInstance().getDefinition(pact.id);
-                if (pactDef) assignPact(pactDef);
+                assignPact(pact);
             }}
             onResign={players[playerColor || 'white']?.connected ? resign : undefined}
         />

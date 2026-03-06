@@ -49,7 +49,7 @@ export const initI18n = async () => {
 
 // 6. Pluralization & Interpolation
 export type TranslationParams = Record<string, string | number>;
-export type TxKeyPath = RecursiveKeyOf<Translations>;
+export type TxKeyPath = RecursiveKeyOf<Translations> | (string & {});
 
 export const t = (key: TxKeyPath, params?: TranslationParams): string => {
     let localeData = translations[currentLocale];

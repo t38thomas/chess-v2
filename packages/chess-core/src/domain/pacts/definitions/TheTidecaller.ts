@@ -8,7 +8,7 @@ import { Effects } from '../PactEffects';
  */
 export const TheTidecaller = definePact('tidecaller')
     .bonus('flow', {
-        effects: [Effects.pawn.backwardMovement()]
+        effects: [Effects.pawn.backwardMovement({ canCapture: true })]
     })
     .malus('ebb', {
         effects: [Effects.combat.restrictDiagonalCapture('pawn')]

@@ -5,7 +5,7 @@ import { useTheme } from '../theme';
 import { Text } from './Text';
 import { Piece } from './Piece';
 import { BaseModal } from './BaseModal';
-import { useTranslation } from '../../i18n';
+import { useTranslation, TxKeyPath } from '../../i18n';
 
 interface PromotionModalProps {
     visible: boolean;
@@ -56,7 +56,7 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({
                             variant="caption"
                             style={{ marginTop: spacing[2] }}
                         >
-                            {t(labelKey as any)}
+                            {t(labelKey)}
                         </Text>
                     </Pressable>
                 ))}

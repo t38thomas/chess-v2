@@ -1,6 +1,7 @@
 import { PactEffect } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 import { PieceType } from '../../models/Piece';
+import { Move } from '../../models/Move';
 
 export const CombatEffects = {
     /**
@@ -10,6 +11,19 @@ export const CombatEffects = {
         modifiers: {
             canBeCaptured: (params) => {
                 return !(PactUtils.isBlackSquare(params.to) && params.attacker.type === 'pawn');
+            }
+        }
+    }),
+
+    /**
+     * Makes pieces on dark squares immune to captures from pawns and minor pieces (knights, bishops).
+     */
+    immuneToPawnAndMinorCapturesOnDarkSquares: (): PactEffect => ({
+        modifiers: {
+            canBeCaptured: (params) => {
+                if (!PactUtils.isBlackSquare(params.to)) return true;
+                const type = params.attacker.type;
+                return !(type === 'pawn' || type === 'knight' || type === 'bishop');
             }
         }
     }),
@@ -61,7 +75,7 @@ export const CombatEffects = {
      */
     loseOnPieceCapture: (pieceType: PieceType, notificationId: string = 'fatality', sound: string = 'skull', pactIdOverride?: string): PactEffect => ({
         onEvent: (event, payload, context) => {
-            const move = payload as any;
+            const move = payload as Move;
             const isCapture = event === 'capture' || (move && move.capturedPiece);
             if (isCapture && move) {
                 const { game, playerId } = context;

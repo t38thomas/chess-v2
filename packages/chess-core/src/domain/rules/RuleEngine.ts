@@ -16,7 +16,7 @@ export class RuleEngine {
     }
 
 
-    private static buildContext(game: IChessGame | undefined, playerId: PieceColor, pactId: string): PactContextWithState<any> | undefined {
+    private static buildContext(game: IChessGame | undefined, playerId: PieceColor, pactId: string): PactContextWithState<Record<string, unknown>> | undefined {
         if (!game) return undefined;
         const logic = PactRegistry.getInstance().get(pactId) as PactLogic;
         return logic?.createContextWithState({ game, playerId, pactId });
@@ -27,8 +27,8 @@ export class RuleEngine {
         pacts: PactLogic[],
         subjectColor: PieceColor,
         game?: IChessGame
-    ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any>; priority: number }[] {
-        const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any>; priority: number }[] = [];
+    ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<Record<string, unknown>>; priority: number }[] {
+        const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<Record<string, unknown>>; priority: number }[] = [];
         const registry = PactRegistry.getInstance();
 
         for (const meta of pacts) {
@@ -36,7 +36,7 @@ export class RuleEngine {
             if (!logic) continue;
 
             const modifiers = registry.getCachedModifiers(meta.id) || {};
-            const modifier = (modifiers as any)[key];
+            const modifier = (modifiers as RuleModifiers)[key] as NonNullable<RuleModifiers[K]>;
             if (!modifier) continue;
 
             const context = RuleEngine.buildContext(game, subjectColor, meta.id);
@@ -229,7 +229,7 @@ export class RuleEngine {
         return opponent;
     }
 
-    public static useAbility(game: IChessGame, abilityId: string, params?: any, pacts: PactLogic[] = []): boolean {
+    public static useAbility(game: IChessGame, abilityId: string, params?: unknown, pacts: PactLogic[] = []): boolean {
         for (const logic of pacts) {
             if (logic.id === abilityId) {
                 const ability = logic.activeAbility;

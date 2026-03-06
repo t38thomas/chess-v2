@@ -30,7 +30,8 @@ describe('The Illusionist Pact', () => {
 
             // Act: Use Displace on the pawn
             // Mock random to pick a specific adjacent square if needed, but here we just check it moved.
-            const result = game.useAbility('displace', targetPos);
+            const targetAdjacent = new Coordinate(4, 2); // e3
+            const result = game.useAbility('displace', { from: targetPos, to: targetAdjacent });
             expect(result).toBe(true);
 
             // Verify piece is gone from e2
@@ -77,7 +78,7 @@ describe('The Illusionist Pact', () => {
                 }
             }
 
-            const result = game.useAbility('displace', pos);
+            const result = game.useAbility('displace', { from: pos, to: new Coordinate(4, 5) });
             expect(result).toBe(false);
         });
 
@@ -86,11 +87,12 @@ describe('The Illusionist Pact', () => {
             game.assignPact('black', { id: 'dummy', bonus: { id: 'dummy_b' }, malus: { id: 'dummy_m' } } as any);
 
             const targetPos = new Coordinate(4, 1);
-            expect(game.useAbility('displace', targetPos)).toBe(true);
+            const targetAdjacent = new Coordinate(4, 2);
+            expect(game.useAbility('displace', { from: targetPos, to: targetAdjacent })).toBe(true);
 
             // Try again immediately (on next turn or same turn if repeatable=false)
             // Default repeatable is false.
-            expect(game.useAbility('displace', targetPos)).toBe(false);
+            expect(game.useAbility('displace', { from: targetPos, to: targetAdjacent })).toBe(false);
         });
     });
 

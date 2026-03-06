@@ -93,17 +93,24 @@ export const PawnEffects = {
     }),
 
     /**
-     * Allows pawns to move backward one square (no capture).
+     * Allows pawns to move backward one square (optionally with capture).
      */
-    backwardMovement: (): PactEffect => ({
+    backwardMovement: (options: { canCapture?: boolean } = {}): PactEffect => ({
         modifiers: {
             onModifyMoves: (currentMoves, { board, piece, from, orientation }) => {
                 if (piece.type !== 'pawn') return currentMoves;
                 const baseDy = piece.color === 'white' ? 1 : -1;
                 const backward = Vector.rotate(0, -baseDy, orientation ?? 0);
                 const targetCoord = new Coordinate(from.x + backward.dx, from.y + backward.dy);
-                if (targetCoord.isValid() && !board.getSquare(targetCoord)?.piece) {
-                    return [...currentMoves, new Move(from, targetCoord, piece, null)];
+
+                if (targetCoord.isValid()) {
+                    const targetSquare = board.getSquare(targetCoord);
+                    const occupant = targetSquare?.piece;
+                    if (!occupant) {
+                        return [...currentMoves, new Move(from, targetCoord, piece, null)];
+                    } else if (options.canCapture && occupant.color !== piece.color) {
+                        return [...currentMoves, new Move(from, targetCoord, piece, occupant)];
+                    }
                 }
                 return currentMoves;
             }

@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Pressable, Platform, Switch } from 'react
 import { Text } from '../ui/components/Text';
 import { Icon } from '../ui/components/Icon';
 import { IconButton } from '../ui/components/IconButton';
-import { useTranslation } from '../i18n';
+import { useTranslation, TxKeyPath } from '../i18n';
 import { useTheme } from '../ui/theme';
 import { Container } from '../ui/responsive/Container';
 import { Screen } from '../ui/responsive/Screen';
@@ -101,8 +101,8 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                 <Icon name="information-variant" size={24} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-                <Text variant="body" bold style={{ marginBottom: 4 }}>{t('matchConfig.help.title' as any)}</Text>
-                <Text variant="caption" color="secondary">{t('matchConfig.help.desc' as any)}</Text>
+                <Text variant="body" bold style={{ marginBottom: 4 }}>{t('matchConfig.help.title')}</Text>
+                <Text variant="caption" color="secondary">{t('matchConfig.help.desc')}</Text>
             </View>
         </View>
     );
@@ -112,14 +112,14 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
             <Container>
                 <View style={styles.header}>
                     <IconButton icon="arrow-left" onPress={onBack} variant="secondary" />
-                    <Text variant="title" bold style={{ marginLeft: spacing[4] }}>{t('matchConfig.title' as any)}</Text>
+                    <Text variant="title" bold style={{ marginLeft: spacing[4] }}>{t('matchConfig.title')}</Text>
                 </View>
 
                 <ScrollView contentContainerStyle={[styles.scrollContent, isDesktop && styles.desktopContent]}>
                     <View style={[styles.mainCard, isDesktop && { maxWidth: 600, alignSelf: 'center' }]}>
 
                         <Stepper
-                            label={t('matchConfig.activePactsMax.label' as any)}
+                            label={t('matchConfig.activePactsMax.label')}
                             value={config.activePactsMax}
                             min={1}
                             max={3}
@@ -130,7 +130,7 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                         <View style={{ height: spacing[8] }} />
 
                         <Stepper
-                            label={t('matchConfig.pactChoicesAtStart.label' as any)}
+                            label={t('matchConfig.pactChoicesAtStart.label')}
                             value={config.pactChoicesAtStart}
                             min={0}
                             max={5}
@@ -142,9 +142,9 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
 
                         <View style={[styles.switchRow, { borderColor: colors.border, backgroundColor: colors.surface }]}>
                             <View style={{ flex: 1 }}>
-                                <Text variant="body" bold>{t('matchConfig.enableTurnRotate90.label' as any)}</Text>
+                                <Text variant="body" bold>{t('matchConfig.enableTurnRotate90.label')}</Text>
                                 <Text variant="caption" color="secondary" style={{ marginTop: 4 }}>
-                                    {t('matchConfig.enableTurnRotate90.desc' as any)}
+                                    {t('matchConfig.enableTurnRotate90.desc')}
                                 </Text>
                             </View>
                             <Switch
@@ -158,8 +158,8 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                         <View style={styles.explanationBox}>
                             <Text variant="body" color="secondary" style={{ textAlign: 'center', fontStyle: 'italic' }}>
                                 {config.pactChoicesAtStart === 0
-                                    ? t('matchConfig.pactChoicesAtStart.auto' as any)
-                                    : t('matchConfig.pactChoicesAtStart.manual' as any)}
+                                    ? t('matchConfig.pactChoicesAtStart.auto')
+                                    : t('matchConfig.pactChoicesAtStart.manual')}
                             </Text>
                         </View>
 
@@ -179,7 +179,7 @@ export const MatchConfigScreen: React.FC<MatchConfigScreenProps> = ({ mode, onBa
                             ]}
                         >
                             <Text style={{ color: colors.background }} bold variant="body">
-                                {mode === 'local' ? t('cta.startLocal' as any) : t('cta.createRoom' as any)}
+                                {mode === 'local' ? t('cta.startLocal') : t('cta.createRoom')}
                             </Text>
                         </Pressable>
                     </View>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: 32,
         ...Platform.select({
-            web: { cursor: 'pointer' } as any,
+            web: { cursor: 'pointer' },
             default: {}
         }),
     },

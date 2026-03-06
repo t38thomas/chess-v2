@@ -3,22 +3,31 @@ import { Move } from '../../models/Move';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { PactUtils } from '../PactUtils';
 import { Effects } from '../PactEffects';
+import { PieceType } from '../../models/Piece';
+
+interface ChangelingState extends Record<string, unknown> {
+    'mimicry_activeMimics'?: Record<string, { data: { type: PieceType }; expiresAtTurn: number }>;
+    'unstable_identity'?: number;
+}
 
 /**
  * The Changeling Pact
- * Bonus (Mimicry): Pawns that capture a piece mimic its movement for one turn.
- * Malus (Unstable Identity): If you don't capture for 5 turns, a random piece demotes to a pawn.
+ * Bonus (Mimicry): Pawns that capture a piece mimic its movement for one turn (with UI counter).
+ * Malus (Unstable Identity): If you don't capture for 5 turns, your most advanced piece demotes to a pawn.
  */
-export const TheChangeling = definePact('changeling')
+export const TheChangeling = definePact<ChangelingState, ChangelingState>('changeling')
     .bonus('mimicry', {
         effects: [
-            Effects.state.temporaryState<{ type: string }>({
+            Effects.state.temporaryState<{ type: PieceType }, ChangelingState>({
                 key: 'mimicry_activeMimics',
                 durationInTurns: 1,
                 triggerOn: ['capture'],
-                extractData: (payload: Move, event) => {
-                    if (event === 'capture' && payload.piece.type === 'pawn') {
-                        return { recordKey: payload.piece.id, data: { type: payload.capturedPiece?.type || 'pawn' } };
+                extractData: (payload: unknown, event) => {
+                    if (event === 'capture' && payload) {
+                        const move = payload as Move;
+                        if (move.piece.type === 'pawn') {
+                            return { recordKey: move.piece.id, data: { type: move.capturedPiece?.type || 'pawn' } };
+                        }
                     }
                     return null;
                 }
@@ -32,7 +41,7 @@ export const TheChangeling = definePact('changeling')
                 const mimicData = state[params.piece.id];
                 if (mimicData) {
                     const phantomPiece = params.piece.clone();
-                    phantomPiece.type = mimicData.data.type as any;
+                    phantomPiece.type = mimicData.data.type as PieceType;
 
                     const additionalMoves = MoveGenerator.getPseudoLegalMoves(
                         params.board,
@@ -70,14 +79,24 @@ export const TheChangeling = definePact('changeling')
                 resetOn: ['capture'],
                 filter: (event, payload, context) => {
                     if (event === 'turn_start' && payload !== context.playerId) return false;
-                    if (event === 'capture' && payload.piece.color !== context.playerId) return false;
+                    if (event === 'capture' && payload) {
+                        const move = payload as Move;
+                        if (move.piece.color !== context.playerId) return false;
+                    }
                     return true;
                 },
-                onMax: (context) => {
+                onMax: (context, _payload) => {
                     const myPieces = context.query.pieces().friendly().filter(p => p.piece.type !== 'pawn' && p.piece.type !== 'king');
 
                     if (myPieces.length > 0) {
-                        const victim = PactUtils.pickRandom(myPieces, 1)[0];
+                        // Deterministic: pick the one most advanced (highest Y for white, lowest for black)
+                        // then leftmost (lowest X).
+                        const sorted = [...myPieces].sort((a, b) => {
+                            const dy = context.playerId === 'white' ? b.coord.y - a.coord.y : a.coord.y - b.coord.y;
+                            if (dy !== 0) return dy;
+                            return a.coord.x - b.coord.x;
+                        });
+                        const victim = sorted[0];
                         if (victim) {
                             victim.piece.type = 'pawn';
                             PactUtils.notifyPactEffect(context.game, 'changeling', 'demotion', 'malus', 'dna');
@@ -87,8 +106,10 @@ export const TheChangeling = definePact('changeling')
             })
         ],
         getTurnCounters: (context) => {
-            const val = context.state['unstable_identity'] || 0;
-            return [{
+            const counters: any[] = [];
+            const val = (context.state['unstable_identity'] as number) || 0;
+
+            counters.push({
                 id: 'unstable_identity_counter',
                 label: 'unstable_identity_progress',
                 value: val,
@@ -96,7 +117,22 @@ export const TheChangeling = definePact('changeling')
                 type: 'counter',
                 maxValue: 5,
                 subLabel: `${val}/5`
-            }];
+            });
+
+            const mimics = context.state['mimicry_activeMimics'];
+            if (mimics) {
+                const mimicCount = Object.keys(mimics).length;
+                if (mimicCount > 0) {
+                    counters.push({
+                        id: 'mimicry_counter',
+                        label: 'mimicry_active_mimics',
+                        value: mimicCount,
+                        pactId: 'changeling',
+                        type: 'counter'
+                    });
+                }
+            }
+            return counters;
         }
     })
     .build();

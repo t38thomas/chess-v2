@@ -7,8 +7,8 @@ const DISPLACE_COOLDOWN = 3;
 
 /**
  * The Illusionist Pact
- * Bonus (Displace): Active ability to move an adjacent empty square.
- * Malus (Vanished Illusion): Lose a random pawn at the start of the game.
+ * Bonus (Displace): Active ability to move a piece to an adjacent empty square (user choice).
+ * Malus (Vanished Illusion): Start the match with a random pawn removed.
  */
 export const TheIllusionist = definePact('illusionist')
     .bonus('displace', {
@@ -19,30 +19,26 @@ export const TheIllusionist = definePact('illusionist')
             description: 'perks.displace.description',
             icon: 'shimmer',
             cooldown: DISPLACE_COOLDOWN,
-            targetType: 'piece',
-            maxTargets: 1,
+            targetType: 'square',
             execute: (context, params) => {
                 const { game } = context;
-                const targetPos = params as Coordinate;
-                const targetSquare = game.board.getSquare(targetPos);
-                if (!targetSquare?.piece) return false;
+                const p = params as { from: Coordinate; to: Coordinate } | undefined;
+                if (!p?.from || !p?.to) return false;
 
-                const adjacentSquares: Coordinate[] = [];
-                for (let dx = -1; dx <= 1; dx++) {
-                    for (let dy = -1; dy <= 1; dy++) {
-                        if (dx === 0 && dy === 0) continue;
-                        const nextCoord = new Coordinate(targetPos.x + dx, targetPos.y + dy);
-                        if (nextCoord.isValid()) {
-                            const sq = game.board.getSquare(nextCoord);
-                            if (sq && !sq.piece) adjacentSquares.push(nextCoord);
-                        }
-                    }
-                }
+                const fromPos = new Coordinate(p.from.x, p.from.y);
+                const toPos = new Coordinate(p.to.x, p.to.y);
 
-                if (adjacentSquares.length === 0) return false;
+                const sourceSquare = game.board.getSquare(fromPos);
+                const destSquare = game.board.getSquare(toPos);
 
-                const destination = PactUtils.pickRandom(adjacentSquares, 1)[0];
-                game.board.movePiece(targetPos, destination);
+                if (!sourceSquare?.piece || destSquare?.piece) return false;
+
+                // Check adjacency
+                const dx = Math.abs(fromPos.x - toPos.x);
+                const dy = Math.abs(fromPos.y - toPos.y);
+                if (dx > 1 || dy > 1) return false;
+
+                game.board.movePiece(fromPos, toPos);
                 PactUtils.notifyPactEffect(game, 'illusionist', 'displace', 'bonus', 'shimmer');
                 return true;
             }

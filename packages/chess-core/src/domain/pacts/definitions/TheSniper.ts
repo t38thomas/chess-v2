@@ -35,11 +35,6 @@ export const TheSniper = definePact('sniper')
                                 }
                                 break; // Line of sight blocked by second obstacle
                             }
-                        } else if (obstaclesFound === 1) {
-                            // Empty square behind 1 obstacle
-                            if (!newMoves.some(m => m.to.equals(coord))) {
-                                newMoves.push(new Move(from, coord, piece, null));
-                            }
                         }
 
                         x += dx;

@@ -135,8 +135,8 @@ describe('The Ranger Pact', () => {
             expect(board.getSquare(start)?.piece).toBe(whiteBishop);
             expect(board.getSquare(target)?.piece).toBeNull();
 
-            // Toggle should be reset
-            expect(bonus.createContextWithState({ game, playerId: 'white', pactId: bonus.id }).state?.snipeActive).toBe(false);
+            // Toggle should stay active (persistent)
+            expect(bonus.createContextWithState({ game, playerId: 'white', pactId: bonus.id }).state?.snipeActive).toBe(true);
         });
 
         it('should NOT move Bishop back if Snipe is NOT active', () => {

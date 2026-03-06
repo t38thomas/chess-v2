@@ -4,8 +4,8 @@ import { PactUtils } from '../PactUtils';
 
 /**
  * The Void Jumper Pact
- * Bonus (Void Jump): Swap positions of two friendly pieces at the cost of your most advanced piece.
- * Malus (Ritual Sacrifice): Associated with the Void Jump cost.
+ * Bonus (Void Jump): Swap positions of two friendly pieces. Max uses: 3.
+ * Malus (Ritual Sacrifice): To jump, you must sacrifice your currently most advanced piece.
  */
 export const TheVoidJumper = definePact('void_jumper')
     .bonus('void_jump', {
@@ -16,7 +16,7 @@ export const TheVoidJumper = definePact('void_jumper')
             icon: 'swap-vertical-bold',
             targetType: 'square',
             consumesTurn: true,
-            repeatable: true,
+            maxUses: 3,
             execute: (context, params) => {
                 const { game, playerId } = context;
                 const p = params as { from: Coordinate; to: Coordinate } | undefined;

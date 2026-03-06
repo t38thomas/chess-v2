@@ -32,8 +32,8 @@ export const TheThief = definePact('thief')
                                 const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}` as keyof ThiefBonusState;
                                 const state = context.state;
                                 const lastTurn = state[historyKey] ?? -10;
-                                if (game.totalTurns - lastTurn > 2 && game.pieceCooldowns.get(enemyPiece.id) !== 2) {
-                                    game.pieceCooldowns.set(enemyPiece.id, 2);
+                                if (game.totalTurns - lastTurn > 2 && (game.pieceCooldowns.get(enemyPiece.id) ?? 0) < 2) {
+                                    game.applyCooldown!(enemyPiece.id, 2);
                                     context.updateState({ [historyKey]: game.totalTurns });
                                     PactUtils.notifyPactEffect(game, 'thief', 'pickpocket', 'bonus', 'hand-coin');
                                 }
@@ -65,7 +65,7 @@ export const TheThief = definePact('thief')
         }
     })
     .malus('wanted', {
-        effects: [Effects.rules.restrictPromotion([])]
+        effects: [Effects.rules.restrictPromotion(['knight'])]
     })
     .build();
 

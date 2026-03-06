@@ -6,7 +6,7 @@ import { Screen } from '../ui/responsive/Screen';
 import { Container } from '../ui/responsive/Container';
 import { useBreakpoint } from '../ui/responsive/useBreakpoint';
 import { Text } from '../ui/components/Text';
-import { Icon } from '../ui/components/Icon';
+import { Icon, IconName } from '../ui/components/Icon';
 import { IconButton } from '../ui/components/IconButton';
 import { Button } from '../ui/components/Button';
 import { SettingsModal } from '../ui/components/SettingsModal';
@@ -73,7 +73,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     const renderGameCard = (
         title: string,
         subtitle: string,
-        icon: string,
+        icon: IconName,
         color: string,
         onPress: () => void,
         scaleAnim: Animated.Value
@@ -112,7 +112,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                 >
                     {/* Icon Circle */}
                     <View style={[styles.iconCircle, { backgroundColor: color + '20' }]}>
-                        <Icon name={icon as any} size={40} color={color} />
+                        <Icon name={icon} size={40} color={color} />
                     </View>
 
                     {/* Title & Subtitle */}

@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { Pressable, StyleSheet, Animated, ViewStyle } from 'react-native';
-import { Icon } from './Icon';
+import { Icon, IconName } from './Icon';
 import { useTheme } from '../theme';
 import { useSoundContext } from '../context/SoundContext';
 
 interface IconButtonProps {
-    icon: string;
+    icon: IconName;
     onPress: () => void;
     variant?: 'primary' | 'secondary' | 'ghost';
     size?: 'sm' | 'md' | 'lg';

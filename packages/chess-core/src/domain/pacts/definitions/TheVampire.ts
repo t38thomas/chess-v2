@@ -4,7 +4,7 @@ import { PactUtils } from '../PactUtils';
 
 /**
  * The Vampire Pact
- * Bonus (Life Thirst): Capturing the enemy Queen resurrects a friendly minor piece.
+ * Bonus (Life Thirst): Capturing the enemy Queen or Rook resurrects a friendly minor piece.
  * Malus (Vampire Curse): The King can never castle.
  */
 export const TheVampire = definePact('vampire')
@@ -12,8 +12,8 @@ export const TheVampire = definePact('vampire')
         onCapture: (params, context) => {
             const victim = params.capturedPiece;
             const attacker = params.piece;
-            if (victim && victim.type === 'queen') {
-                if (PactUtils.resurrectRandomPiece(context.game, attacker.color, ['bishop', 'knight'])) {
+            if (victim && (victim.type === 'queen' || victim.type === 'rook')) {
+                if (PactUtils.resurrectRandomPiece(context.game, context.playerId, ['bishop', 'knight'])) {
                     PactUtils.notifyPactEffect(context.game, 'vampire', 'life_thirst', 'bonus', 'blood-bag');
                 }
             }

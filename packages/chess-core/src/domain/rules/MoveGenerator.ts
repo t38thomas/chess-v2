@@ -240,7 +240,10 @@ export class MoveGenerator {
             const diagR = new Coordinate(x + right.dx + forward.dx, y + right.dy + forward.dy);
 
             if (this.isEmpty(board, diagL.x, diagL.y)) moves.push(new Move(from, diagL, piece));
+            else this.addCapture(board, diagL.x, diagL.y, piece, moves, from, pacts, game);
+
             if (this.isEmpty(board, diagR.x, diagR.y)) moves.push(new Move(from, diagR, piece));
+            else this.addCapture(board, diagR.x, diagR.y, piece, moves, from, pacts, game);
         }
 
         // Scout Path: Sideways moves (relative to forward)

@@ -17,6 +17,19 @@ export const TheShadow = definePact('shadow')
                 }
                 return true;
             }
+        },
+        getTurnCounters: (context) => {
+            const edgePieces = context.query.pieces().friendly().filter(p => BoardUtils.isEdgeSquare(p.coord));
+            if (edgePieces.length > 0) {
+                return [{
+                    id: 'shadow_cloak_active',
+                    label: 'shadow_protected',
+                    value: edgePieces.length,
+                    pactId: 'shadow',
+                    type: 'counter'
+                }];
+            }
+            return [];
         }
     })
     .malus('blind_light', {

@@ -19,7 +19,7 @@ export const TheRanger = definePact('ranger')
             targetType: 'none',
             repeatable: true,
             execute: (context) => {
-                context.updateState((prev: any) => ({ snipeActive: !prev?.snipeActive }));
+                context.updateState((prev) => ({ ...prev, snipeActive: !prev.snipeActive }));
                 return true;
             }
         },
@@ -60,9 +60,6 @@ export const TheRanger = definePact('ranger')
             onExecuteMove: (game, move, context) => {
                 if (move.isSnipe && context.state.snipeActive) {
                     game.board.movePiece(move.to, move.from);
-                }
-                if (move.piece.type === 'bishop') {
-                    context.updateState({ snipeActive: false });
                 }
             }
         },

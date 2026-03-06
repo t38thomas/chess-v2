@@ -22,12 +22,14 @@ export const TheSpectre = definePact('spectre')
                 let curX = move.from.x + dx;
                 let curY = move.from.y + dy;
 
-                while (curX !== move.to.x || curY !== move.to.y) {
+                let hasConsumed = false;
+                while (!hasConsumed && (curX !== move.to.x || curY !== move.to.y)) {
                     const coord = new Coordinate(curX, curY);
                     const square = game.board.getSquare(coord);
                     if (square?.piece && square.piece.color === move.piece.color && square.piece.type === 'pawn') {
                         game.board.removePiece(coord);
                         PactUtils.notifyPactEffect(game, 'spectre', 'possession', 'malus', 'ghost');
+                        hasConsumed = true;
                     }
                     curX += dx;
                     curY += dy;

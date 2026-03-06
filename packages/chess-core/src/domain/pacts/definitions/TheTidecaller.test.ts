@@ -99,7 +99,7 @@ describe('The Tidecaller Pact', () => {
             const moves = getMoves(game, p2);
             const backwardCapture = moves.find(m => m.to.x === 4 && m.to.y === 2);
 
-            expect(backwardCapture).toBeUndefined();
+            expect(backwardCapture).toBeDefined();
         });
 
         it('should NOT allow pawns to capture forward vertically', () => {

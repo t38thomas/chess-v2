@@ -4,8 +4,8 @@ import { PactUtils } from '../PactUtils';
 
 /**
  * The Alchemist Pact
- * Bonus (Transmutation): Active ability to swap two friendly non-king pieces.
- * Malus (Volatile Reagents): Capturing or promoting a piece stuns it for 1 turn cycle.
+ * Bonus (Transmutation): Active ability to swap two friendly non-king pieces (2 uses, cooldown 2).
+ * Malus (Volatile Reagents): Capturing or promoting a piece stuns it for 2 turns.
  */
 export const TheAlchemist = definePact('alchemist')
     .bonus('transmutation', {
@@ -15,7 +15,8 @@ export const TheAlchemist = definePact('alchemist')
             name: 'transmutation',
             description: 'desc_transmutation',
             icon: 'swap-horizontal',
-            maxUses: 1,
+            maxUses: 2,
+            cooldown: 2,
             targetType: 'square',
             consumesTurn: true,
             execute: (context, params) => {

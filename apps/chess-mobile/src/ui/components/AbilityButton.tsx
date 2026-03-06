@@ -24,13 +24,13 @@ export const AbilityButton: React.FC<AbilityButtonProps> = ({ abilities, onPress
     return (
         <View style={styles.container}>
             {abilities.map((id, index) => {
-                const perk = (PERK_LIBRARY as any)[id];
+                const perk = (PERK_LIBRARY)[id];
                 if (!perk) return null;
 
                 // Translate name and description using the perk ID
-                const name = t(`perks.${id}.name` as any);
+                const name = t(`perks.${id}.name`);
                 const translatedName = name.charAt(0).toUpperCase() + name.slice(1);
-                const translatedDesc = t(`perks.${id}.description` as any);
+                const translatedDesc = t(`perks.${id}.description`);
 
                 return (
                     <Animated.View

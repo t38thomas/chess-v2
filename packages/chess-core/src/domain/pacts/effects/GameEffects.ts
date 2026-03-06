@@ -1,3 +1,4 @@
+import { IconName } from '../../models/Icon';
 import { PactEffect } from '../PactLogic';
 import { PactUtils } from '../PactUtils';
 
@@ -23,7 +24,7 @@ export const GameEffects = {
     /**
      * Emits a visual pact effect notification.
      */
-    notify: (eventKey: string, type: 'bonus' | 'malus', icon: string): PactEffect => ({
+    notify: (eventKey: string, type: 'bonus' | 'malus', icon: IconName): PactEffect => ({
         onEvent: (event, payload, context) => {
             PactUtils.notifyPactEffect(context.game, context.pactId, eventKey, type, icon);
         }

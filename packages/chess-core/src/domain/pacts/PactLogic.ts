@@ -5,6 +5,7 @@ import { BoardModel } from '../models/BoardModel';
 import { Coordinate } from '../models/Coordinate';
 import { Perk } from '../models/Pact';
 import { BoardUtils } from './utils/BoardUtils';
+import { IconName } from '../models/Icon';
 
 export interface PieceQueryResult extends Array<{ piece: Piece; coord: Coordinate }> {
     ofTypes(types: PieceType[]): PieceQueryResult;
@@ -78,7 +79,7 @@ export interface ActiveAbilityConfig<TState = Record<string, unknown>, TParams =
     id: string;
     name: string; // Internal name or key for translation
     description: string; // Internal desc or key
-    icon: string;
+    icon: IconName;
     cooldown?: number; // Turns
     maxUses?: number; // per game
     targetType: 'none' | 'square' | 'piece';

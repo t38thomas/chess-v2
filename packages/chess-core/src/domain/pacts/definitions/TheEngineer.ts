@@ -3,7 +3,7 @@ import { Effects } from '../PactEffects';
 
 /**
  * The Engineer Pact
- * Bonus (Turret): Rooks can move 1 square diagonally.
+ * Bonus (Turret): Rooks can move and capture 1 square diagonally.
  * Malus (Design Flaw): Rooks cannot move horizontally.
  */
 export const TheEngineer = definePact('engineer')

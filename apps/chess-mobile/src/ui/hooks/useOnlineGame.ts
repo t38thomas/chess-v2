@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { GameFacade, BoardViewModel, MatchConfig, DEFAULT_MATCH_CONFIG } from 'chess-core';
+import { GameFacade, BoardViewModel, MatchConfig, DEFAULT_MATCH_CONFIG, PieceType, Pact } from 'chess-core';
 import { ChessClient } from '../../infrastructure/ChessClient';
 import {
     StateSyncPayload, MatchJoinedPayload, MatchCreatedPayload
@@ -38,13 +38,13 @@ export const useOnlineGame = () => {
     const [facade] = useState(() => new GameFacade(
         DEFAULT_MATCH_CONFIG,
         (move) => {
-            client.makeMove(move.from, move.to, move.promotion).catch((err: any) => {
+            client.makeMove(move.from, move.to, move.promotion).catch((err: unknown) => {
                 console.error("Move rejected by server", err);
             });
         },
         (event) => {
             // Handle game events for sounds/vibrations
-            playGameEvent(event as any);
+            playGameEvent(event as unknown as SoundEvent);
         },
         (abilityId, params) => {
             client.useAbility(abilityId, params).catch(err => {
@@ -78,7 +78,7 @@ export const useOnlineGame = () => {
 
             client.connect(storedUsername || undefined)
                 .then(() => setIsConnected(true))
-                .catch((err: any) => console.error("Connection failed", err));
+                .catch((err: unknown) => console.error("Connection failed", err));
         };
 
         initConnection();
@@ -183,11 +183,11 @@ export const useOnlineGame = () => {
     const isCheck = useMemo(() => viewModel.squares.some(s => s.isCheck), [viewModel]);
     const pendingPromotion = viewModel.pendingPromotion;
 
-    const completePromotion = useCallback((pieceType: any) => {
+    const completePromotion = useCallback((pieceType: PieceType) => {
         facade.completePromotion(pieceType);
     }, [facade]);
 
-    const assignPact = useCallback((pact: any) => {
+    const assignPact = useCallback((pact: Pact) => {
         client.assignPact(pact.id).catch(err => {
             console.error("Failed to assign pact online", err);
         });
@@ -232,7 +232,7 @@ export const useOnlineGame = () => {
         completePromotion,
         pendingPromotion,
         assignPact,
-        useAbility: (id: string, params?: any) => facade.useAbility(id, params),
+        useAbility: (id: string, params?: unknown) => facade.useAbility(id, params),
         cancelAbility: () => facade.cancelAbility(),
         availableAbilities,
         phase: viewModel.phase,

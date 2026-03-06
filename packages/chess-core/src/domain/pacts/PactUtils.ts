@@ -21,7 +21,7 @@ export class PactUtils {
         description: string;
         icon: PactVisualIcon | string;
         type: PactEffectOrigin;
-        payload?: any;
+        payload?: unknown;
     }): void {
         game.emit('pact_effect', config);
     }
@@ -115,14 +115,14 @@ export class PactUtils {
     }
 
     public static grantExtraTurn(game: IChessGame, playerId: string, count: number = 1): void {
-        const color = playerId as any as PieceColor;
+        const color = playerId as PieceColor;
         // Use domain command instead of direct mutation if available
         game.grantExtraTurn!(color, count);
     }
 
     public static removeRandomPieces(game: IChessGame, color: string, type: PieceType, count: number): void {
-        const pieces = BoardUtils.findPieces(game, color as any, type);
-        const victims = PactUtils.pickRandom(pieces, count);
+        const pieces = BoardUtils.findPieces(game, color as PieceColor, type);
+        const victims = PactUtils.pickRandom(pieces, count, game.rng);
         victims.forEach(v => PieceUtils.removePiece(game, v.coord));
     }
 

@@ -73,7 +73,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
                     {
                         backgroundColor: colors.bg2,
                         borderRadius: radii.xl,
-                        maxWidth: maxWidth as any,
+                        maxWidth: maxWidth,
                         width: '90%',
                         borderWidth: 1,
                         borderColor: colors.borderStrong,

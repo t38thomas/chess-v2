@@ -1,7 +1,7 @@
 import { PieceType, PieceColor } from '../domain/models/Piece';
 import { GameStatus, GamePhase } from '../domain/GameTypes';
 import { MatchConfig } from '../domain/models/MatchConfig';
-import { PactDefinition } from '../domain/pacts/PactLogic';
+import { PactDefinition, TurnCounter } from '../domain/pacts/PactLogic';
 
 // Simplified view models for UI - pure data, no methods
 export interface SquareViewModel {
@@ -44,14 +44,4 @@ export interface BoardViewModel {
     capturedPieces: Record<PieceColor, { type: PieceType; color: PieceColor; id: string }[]>;
     matchConfig?: MatchConfig;
     totalTurns: number;
-}
-
-export interface TurnCounter {
-    id: string;
-    label: string;
-    value: number;
-    pactId: string;
-    type: 'cooldown' | 'counter';
-    maxValue?: number;
-    subLabel?: string;
 }
