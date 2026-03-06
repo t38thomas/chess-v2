@@ -25,16 +25,16 @@ export const TheChangeling = definePact('changeling')
             })
         ],
         modifiers: {
-            onGetPseudoMoves: (params, context) => {
+            onModifyMoves: (currentMoves, params, context) => {
                 const state = context.state['mimicry_activeMimics'];
-                if (!state) return;
+                if (!state) return currentMoves;
 
                 const mimicData = state[params.piece.id];
                 if (mimicData) {
                     const phantomPiece = params.piece.clone();
                     phantomPiece.type = mimicData.data.type as any;
 
-                    const moves = MoveGenerator.getPseudoLegalMoves(
+                    const additionalMoves = MoveGenerator.getPseudoLegalMoves(
                         params.board,
                         phantomPiece,
                         params.from,
@@ -44,12 +44,15 @@ export const TheChangeling = definePact('changeling')
                         params.game
                     );
 
-                    moves.forEach(m => {
-                        if (!params.moves.some(existing => existing.to.equals(m.to))) {
-                            params.moves.push(new Move(m.from, m.to, params.piece, m.capturedPiece, m.isCastling, m.isEnPassant, m.isSwap, false, m.promotion));
+                    const newMoves = [...currentMoves];
+                    additionalMoves.forEach(m => {
+                        if (!newMoves.some(existing => existing.to.equals(m.to))) {
+                            newMoves.push(new Move(m.from, m.to, params.piece, m.capturedPiece, m.isCastling, m.isEnPassant, m.isSwap, false, m.promotion));
                         }
                     });
+                    return newMoves;
                 }
+                return currentMoves;
             }
         },
         onCapture: (payload, context) => {

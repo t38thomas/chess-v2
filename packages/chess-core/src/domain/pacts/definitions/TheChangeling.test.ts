@@ -64,10 +64,10 @@ describe('The Changeling Pact', () => {
 
 
             const modifiers = bonus.getRuleModifiers();
-            const moves: Move[] = [];
+            let moves: Move[] = [];
             const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'mimicry' });
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, {
                     board,
                     piece: whitePawn,
                     from: captureTarget, // Piece is now at captureTarget
@@ -99,11 +99,11 @@ describe('The Changeling Pact', () => {
             });
 
             const modifiers = bonus.getRuleModifiers();
-            const moves: Move[] = [];
+            let moves: Move[] = [];
             const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'mimicry' });
 
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, {
                     board,
                     piece: whitePawn,
                     from: start,

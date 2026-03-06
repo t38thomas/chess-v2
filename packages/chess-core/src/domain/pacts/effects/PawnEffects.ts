@@ -28,8 +28,8 @@ export const PawnEffects = {
      */
     canCaptureStraight: (): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
-                if (piece.type !== 'pawn') return;
+            onModifyMoves: (currentMoves, { board, piece, from, orientation }) => {
+                if (piece.type !== 'pawn') return currentMoves;
 
                 const forward = Vector.getForward(piece.color, orientation ?? 0);
                 const targetCoord = new Coordinate(from.x + forward.dx, from.y + forward.dy);
@@ -37,9 +37,10 @@ export const PawnEffects = {
                 if (targetCoord.isValid()) {
                     const targetSquare = board.getSquare(targetCoord);
                     if (targetSquare?.piece && targetSquare.piece.color !== piece.color) {
-                        moves.push(new Move(from, targetCoord, piece, targetSquare.piece));
+                        return [...currentMoves, new Move(from, targetCoord, piece, targetSquare.piece)];
                     }
                 }
+                return currentMoves;
             },
             canCapture: (params) => {
                 if (params.attacker.type !== 'pawn') return true;
@@ -57,7 +58,7 @@ export const PawnEffects = {
                 const isDiagonal = forwardComponent > 0 && lateralComponent > 0;
 
                 if (isStraightForward) return true;
-                if (isDiagonal) return false;
+                if (isDiagonal) return false; // Blocks default diagonal captures
 
                 return true;
             }
@@ -96,14 +97,15 @@ export const PawnEffects = {
      */
     backwardMovement: (): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
-                if (piece.type !== 'pawn') return;
+            onModifyMoves: (currentMoves, { board, piece, from, orientation }) => {
+                if (piece.type !== 'pawn') return currentMoves;
                 const baseDy = piece.color === 'white' ? 1 : -1;
                 const backward = Vector.rotate(0, -baseDy, orientation ?? 0);
                 const targetCoord = new Coordinate(from.x + backward.dx, from.y + backward.dy);
                 if (targetCoord.isValid() && !board.getSquare(targetCoord)?.piece) {
-                    moves.push(new Move(from, targetCoord, piece, null));
+                    return [...currentMoves, new Move(from, targetCoord, piece, null)];
                 }
+                return currentMoves;
             }
         }
     })

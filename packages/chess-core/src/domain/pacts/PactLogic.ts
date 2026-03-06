@@ -47,7 +47,8 @@ export interface PactContextWithState<T> extends PactContext {
 export enum PactPriority {
     EARLY = 100,
     NORMAL = 0,
-    LATE = -100
+    LATE = -100,
+    VERY_LATE = -200
 }
 
 /**
@@ -63,7 +64,7 @@ export interface PactEffect<T = any> {
     ) => void;
 }
 
-// Moved to GameTypes.ts
+
 
 export interface PactDefinition {
     id: string; // The UI/Meta ID for the pact (e.g. 'berserker')
@@ -117,8 +118,8 @@ export interface TurnModifierContext {
 }
 
 export interface RuleModifiers<T = any> {
-    // Movement Hooks
-    onGetPseudoMoves?: (params: MoveParams, context: PactContextWithState<T>) => void;
+    // Movement Hooks - Now pure functions passing through a pipeline
+    onModifyMoves?: (currentMoves: Move[], params: MoveParams, context: PactContextWithState<T>) => Move[];
 
     // Movement overrides
     getMaxRange?: (piece: Piece, context: PactContextWithState<T>) => number;
@@ -156,6 +157,7 @@ export abstract class PactLogic<T = any> {
     public target: 'self' | 'enemy' | 'global' = 'self';
     public siblingId?: string;
     public validateState?: (state: T) => boolean;
+    public options?: any; // To allow RuleEngine access to effects; properly implemented in GenericPact
 
     /**
      * Returns the initial state for this pact.
@@ -304,7 +306,7 @@ export abstract class PactLogic<T = any> {
 class GenericPact<T = any> extends PactLogic<T> {
     constructor(
         public readonly id: string,
-        private readonly options: PactLogicOptions<T>
+        public readonly options: PactLogicOptions<T>
     ) {
         super();
         this.activeAbility = options.activeAbility;
@@ -338,7 +340,12 @@ class GenericPact<T = any> extends PactLogic<T> {
         };
 
         const base = wrapAll(this.options.modifiers || {});
-        const effectModifiers = (this.options.effects || [])
+
+        // Sort effects by priority (descending: higher priority runs first)
+        const sortedEffects = [...(this.options.effects || [])]
+            .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+        const effectModifiers = sortedEffects
             .map(e => e.modifiers)
             .filter(m => m !== undefined)
             .map(m => wrapAll(m! as RuleModifiers<T>));
@@ -497,11 +504,14 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
         if (fns.length === 1) {
             result[key as string] = (...args: any[]) => {
                 try {
-                    return fns[0](...args);
+                    const res = fns[0](...args);
+                    return res !== undefined ? res : args[0];
                 } catch (e) {
                     console.error(`[PactSystem] Error in modifier ${key}:`, e);
                     // Return neutral values on failure
-                    return BOOLEAN_MODIFIERS.has(key) ? true : undefined;
+                    if (BOOLEAN_MODIFIERS.has(key)) return true;
+                    if (key === 'onModifyMoves') return args[0];
+                    return args[0] !== undefined ? args[0] : undefined;
                 }
             };
             continue;
@@ -520,18 +530,40 @@ export function composeRuleModifiers(sources: Partial<RuleModifiers>[]): RuleMod
                 }
                 return true;
             };
-        } else {
-            // Sequential: all handlers called, last return value propagated
+        } else if (key === 'onModifyMoves') {
+            // Pipeline (Reduce): Each handler processes the result of the previous one
             result[key as string] = (...args: any[]) => {
-                let last: any;
+                let current = args[0]; // The Move[] array
                 for (const fn of fns) {
                     try {
-                        last = fn(...args);
+                        args[0] = current;
+                        const next = fn(...args);
+                        if (next !== undefined) {
+                            current = next;
+                        }
+                    } catch (e) {
+                        console.error(`[PactSystem] Error in onModifyMoves pipeline for ${key}:`, e);
+                    }
+                }
+                return current;
+            };
+        } else {
+            // Sequential: all handlers called, last non-undefined return value propagated
+            result[key as string] = (...args: any[]) => {
+                let last: any = undefined;
+                for (const fn of fns) {
+                    try {
+                        const res = fn(...args);
+                        if (res !== undefined) {
+                            last = res;
+                        }
                     } catch (e) {
                         console.error(`[PactSystem] Error in sequential modifier ${key}:`, e);
                     }
                 }
-                return last;
+                // If everything failed or returned undefined, return the first arg for range/distance modifiers
+                // or just the last result.
+                return last !== undefined ? last : args[0];
             };
         }
     }

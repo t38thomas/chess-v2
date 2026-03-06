@@ -28,18 +28,17 @@ describe('Heavy Cavalry Pact', () => {
             // Place a pawn that blocks (4,4) -> (3,6) and (5,6)
             board.placePiece(new Coordinate(4, 5), whitePawn);
 
-            const moves = [
+            let moves = [
                 new Move(start, new Coordinate(3, 6), whiteKnight), // Should be blocked
                 new Move(start, new Coordinate(5, 6), whiteKnight), // Should be blocked
                 new Move(start, new Coordinate(6, 5), whiteKnight), // Should be free
             ];
 
-            malus.getRuleModifiers().onGetPseudoMoves!({
+            moves = malus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteKnight,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(moves.length).toBe(1);
             expect(moves[0].to.toString()).toBe('6,5');
@@ -57,17 +56,16 @@ describe('Heavy Cavalry Pact', () => {
             board.placePiece(new Coordinate(4, 5), blackPawn);
             board.placePiece(new Coordinate(5, 4), whiteRook);
 
-            const moves = [
+            let moves = [
                 new Move(start, new Coordinate(3, 6), whiteKnight), // Path (4,5) occupied by enemy
                 new Move(start, new Coordinate(6, 5), whiteKnight), // Path (5,4) occupied by rook
             ];
 
-            malus.getRuleModifiers().onGetPseudoMoves!({
+            moves = malus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteKnight,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(moves.length).toBe(2);
         });
@@ -92,7 +90,7 @@ describe('Heavy Cavalry Pact', () => {
             });
 
             const move = new Move(start, target, whiteKnight);
-            bonus.getRuleModifiers().onExecuteMove!(game, move);
+            bonus.getRuleModifiers().onExecuteMove!(game, move, { game, playerId: 'white', pactId: bonus.id } as any);
 
             expect(events.length).toBeGreaterThan(0);
             expect(events[0].title).toBe('pact.toasts.heavy_cavalry.trample.title');

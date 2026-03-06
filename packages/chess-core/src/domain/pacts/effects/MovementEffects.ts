@@ -1,4 +1,4 @@
-import { PactEffect } from '../PactLogic';
+import { PactEffect, PactPriority } from '../PactLogic';
 import { PieceType, Piece } from '../../models/Piece';
 import { MoveGenerator } from '../../rules/MoveGenerator';
 import { RuleEngine } from '../../rules/RuleEngine';
@@ -32,10 +32,10 @@ export const MovementEffects = {
      */
     swapMovement: (typeA: PieceType, typeB: PieceType): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, from, piece, moves, pacts, game }) => {
+            onModifyMoves: (currentMoves, { board, from, piece, pacts, game }) => {
                 if (piece.type === typeA || piece.type === typeB) {
                     const targetType = piece.type === typeA ? typeB : typeA;
-                    moves.length = 0;
+                    const newMoves: Move[] = [];
 
                     const rookDirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
                     const bishopDirs = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
@@ -50,12 +50,14 @@ export const MovementEffects = {
 
                     const dirs = getDirs(targetType);
                     if (targetType === 'knight') {
-                        MoveGenerator.addSteppingMoves(board, from, dirs, piece, moves);
+                        MoveGenerator.addSteppingMoves(board, from, dirs, piece, newMoves);
                     } else {
                         const range = RuleEngine.getMaxRange(piece, pacts || []);
-                        MoveGenerator.addSlidingMoves(board, from, dirs, piece, moves, range, pacts || [], game);
+                        MoveGenerator.addSlidingMoves(board, from, dirs, piece, newMoves, range, pacts || [], game);
                     }
+                    return newMoves;
                 }
+                return currentMoves;
             }
         }
     }),
@@ -76,17 +78,18 @@ export const MovementEffects = {
      */
     disableDiagonal: (pieceType: PieceType): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ from, piece, moves }) => {
+            onModifyMoves: (currentMoves, { from, piece }) => {
                 if (piece.type === pieceType) {
-                    for (let i = moves.length - 1; i >= 0; i--) {
-                        const m = moves[i];
+                    return currentMoves.filter(m => {
                         const dx = Math.abs(m.to.x - from.x);
                         const dy = Math.abs(m.to.y - from.y);
-                        if (dx > 0 && dy > 0 && dx === dy) moves.splice(i, 1);
-                    }
+                        return !(dx > 0 && dy > 0 && dx === dy);
+                    });
                 }
+                return currentMoves;
             }
-        }
+        },
+        priority: PactPriority.LATE
     }),
 
     /**
@@ -94,19 +97,22 @@ export const MovementEffects = {
      */
     blockMoves: (pieceType: PieceType, axes: ('horizontal' | 'vertical' | 'diagonal')[]): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ piece, from, moves, orientation }) => {
-                if (piece.type !== pieceType) return;
+            onModifyMoves: (currentMoves, { piece, from, orientation }) => {
+                if (piece.type !== pieceType) return currentMoves;
+                let moves = [...currentMoves];
                 for (const axis of axes) {
                     if (axis === 'horizontal') {
-                        MovementUtils.blockHorizontalMoves(moves, from, orientation ?? 0);
+                        moves = MovementUtils.blockHorizontalMoves(moves, from, orientation ?? 0);
                     } else if (axis === 'vertical') {
-                        MovementUtils.blockVerticalMoves(moves, from, orientation ?? 0);
+                        moves = MovementUtils.blockVerticalMoves(moves, from, orientation ?? 0);
                     } else if (axis === 'diagonal') {
-                        MovementUtils.blockDiagonalMoves(moves, from);
+                        moves = MovementUtils.blockDiagonalMoves(moves, from);
                     }
                 }
+                return moves;
             }
-        }
+        },
+        priority: PactPriority.LATE
     }),
 
     /**
@@ -114,9 +120,11 @@ export const MovementEffects = {
      */
     addSingleStepMoves: (pieceType: PieceType, dirs: { dx: number, dy: number }[]): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
-                if (piece.type !== pieceType) return;
-                MovementUtils.addSingleStepMoves(board, piece, from, moves, dirs, orientation ?? 0);
+            onModifyMoves: (currentMoves, { board, piece, from, orientation }) => {
+                if (piece.type !== pieceType) return currentMoves;
+                const newMoves = [...currentMoves];
+                MovementUtils.addSingleStepMoves(board, piece, from, newMoves, dirs, orientation ?? 0);
+                return newMoves;
             }
         }
     }),
@@ -126,15 +134,12 @@ export const MovementEffects = {
      */
     restrictFromEdge: (pieceType: PieceType): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: (params) => {
-                if (params.piece.type !== pieceType) return;
-                for (let i = params.moves.length - 1; i >= 0; i--) {
-                    if (PactUtils.isEdgeSquare(params.moves[i].to)) {
-                        params.moves.splice(i, 1);
-                    }
-                }
+            onModifyMoves: (currentMoves, params) => {
+                if (params.piece.type !== pieceType) return currentMoves;
+                return currentMoves.filter(m => !PactUtils.isEdgeSquare(m.to));
             }
-        }
+        },
+        priority: PactPriority.LATE
     }),
 
     /**
@@ -160,8 +165,8 @@ export const MovementEffects = {
         options: { capture?: boolean, canMoveToOccupied?: boolean } = { capture: false, canMoveToOccupied: false }
     ): PactEffect => ({
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, orientation }) => {
-                if (piece.type !== pieceType) return;
+            onModifyMoves: (currentMoves, { board, piece, from, orientation }) => {
+                if (piece.type !== pieceType) return currentMoves;
 
                 let dx = 0;
                 let dy = 0;
@@ -179,14 +184,15 @@ export const MovementEffects = {
                     const occupant = targetSquare?.piece;
 
                     if (!occupant) {
-                        moves.push(new Move(from, targetCoord, piece, null));
+                        return [...currentMoves, new Move(from, targetCoord, piece, null)];
                     } else if (options.capture && occupant.color !== piece.color) {
-                        moves.push(new Move(from, targetCoord, piece, occupant));
+                        return [...currentMoves, new Move(from, targetCoord, piece, occupant)];
                     } else if (options.canMoveToOccupied) {
                         // Special cases where moving onto occupied square is allowed but not a capture
-                        moves.push(new Move(from, targetCoord, piece, null));
+                        return [...currentMoves, new Move(from, targetCoord, piece, null)];
                     }
                 }
+                return currentMoves;
             }
         }
     })

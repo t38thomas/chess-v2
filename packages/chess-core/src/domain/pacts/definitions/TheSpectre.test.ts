@@ -88,7 +88,7 @@ describe('The Spectre Pact', () => {
             });
 
             const move = new Move(start, target, whiteRook);
-            malus.getRuleModifiers().onExecuteMove!(game, move, { playerId: 'white' } as any);
+            malus.getRuleModifiers().onExecuteMove!(game, move, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(events.length).toBeGreaterThan(0);
             expect(events[0].title).toBe('pact.toasts.spectre.possession.title');
@@ -106,7 +106,7 @@ describe('The Spectre Pact', () => {
             board.placePiece(new Coordinate(1, 1), whitePawn); // This is in the "way" but knights jump
 
             const move = new Move(start, target, whiteKnight);
-            malus.getRuleModifiers().onExecuteMove!(game, move, { playerId: 'white' } as any);
+            malus.getRuleModifiers().onExecuteMove!(game, move, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(board.getSquare(new Coordinate(1, 1))?.piece).not.toBeNull();
         });

@@ -80,36 +80,38 @@ describe('The Titan', () => {
     describe('Gigantism (Malus)', () => {
         it('should filter out moves to edge squares for Queen', () => {
             const modifiers = gigantismMalus.getRuleModifiers();
+            let moves = [
+                { to: new Coordinate(1, 1) }, // Valid
+                { to: new Coordinate(0, 1) }, // Edge (file 0)
+                { to: new Coordinate(1, 0) }, // Edge (rank 0)
+                { to: new Coordinate(7, 7) }, // Edge (rank 7, file 7)
+            ] as Move[];
             const params = {
                 piece: { type: 'queen' } as any,
-                moves: [
-                    { to: new Coordinate(1, 1) }, // Valid
-                    { to: new Coordinate(0, 1) }, // Edge (file 0)
-                    { to: new Coordinate(1, 0) }, // Edge (rank 0)
-                    { to: new Coordinate(7, 7) }, // Edge (rank 7, file 7)
-                ] as Move[]
+                moves
             } as any;
 
-            modifiers.onGetPseudoMoves!(params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
+            moves = modifiers.onModifyMoves!(moves, params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
-            expect(params.moves.length).toBe(1);
-            expect(params.moves[0].to.x).toBe(1);
-            expect(params.moves[0].to.y).toBe(1);
+            expect(moves.length).toBe(1);
+            expect(moves[0].to.x).toBe(1);
+            expect(moves[0].to.y).toBe(1);
         });
 
         it('should not filter moves for non-queen pieces', () => {
             const modifiers = gigantismMalus.getRuleModifiers();
+            let moves = [
+                { to: new Coordinate(0, 0) },
+                { to: new Coordinate(7, 7) },
+            ] as Move[];
             const params = {
                 piece: { type: 'rook' } as any,
-                moves: [
-                    { to: new Coordinate(0, 0) },
-                    { to: new Coordinate(7, 7) },
-                ] as Move[]
+                moves
             } as any;
 
-            modifiers.onGetPseudoMoves!(params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
+            moves = modifiers.onModifyMoves!(moves, params, { game, playerId: 'white', pactId: 'titan', state: {}, updateState: () => { } } as any);
 
-            expect(params.moves.length).toBe(2);
+            expect(moves.length).toBe(2);
         });
     });
 });

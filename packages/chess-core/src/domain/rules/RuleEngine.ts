@@ -27,22 +27,38 @@ export class RuleEngine {
         pacts: PactLogic[],
         subjectColor: PieceColor,
         game?: IChessGame
-    ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any> }[] {
-        const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any> }[] = [];
+    ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any>; priority: number }[] {
+        const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any>; priority: number }[] = [];
         const registry = PactRegistry.getInstance();
 
-        for (const pactLogic of pacts) {
-            const modifiers = registry.getCachedModifiers(pactLogic.id) || {};
+        for (const meta of pacts) {
+            const logic = registry.get(meta.id);
+            if (!logic) continue;
+
+            const modifiers = registry.getCachedModifiers(meta.id) || {};
             const modifier = (modifiers as any)[key];
             if (!modifier) continue;
 
-            const context = RuleEngine.buildContext(game, subjectColor, pactLogic.id);
+            const context = RuleEngine.buildContext(game, subjectColor, meta.id);
             if (!context) continue;
 
-            if (RuleEngine.evaluateModifierTarget(pactLogic, subjectColor, subjectColor)) {
-                result.push({ modifier, context });
+            if (RuleEngine.evaluateModifierTarget(logic, subjectColor, subjectColor)) {
+                // Find highest priority among effects that implement this modifier key
+                let maxPriority = 0; // PactPriority.NORMAL
+                if (logic.options && logic.options.effects) {
+                    for (const effect of logic.options.effects) {
+                        if (effect.modifiers && effect.modifiers[key]) {
+                            maxPriority = Math.max(maxPriority, effect.priority ?? 0);
+                        }
+                    }
+                }
+                result.push({ modifier, context, priority: maxPriority });
             }
         }
+
+        // Sort by priority descending (higher number = earlier execution)
+        result.sort((a, b) => b.priority - a.priority);
+
         return result;
     }
 
@@ -256,13 +272,14 @@ export class RuleEngine {
         });
     }
 
-    public static onGetPseudoMoves(board: BoardModel, from: Coordinate, piece: Piece, moves: Move[], pacts: PactLogic[], game?: IChessGame) {
-        const modifiers = RuleEngine.getAppliedModifiers('onGetPseudoMoves', pacts, piece.color, game);
-        for (const { modifier, context } of modifiers) {
-            modifier({
-                board, from, piece, moves, game, pacts,
+    public static onModifyMoves(board: BoardModel, from: Coordinate, piece: Piece, initialMoves: Move[], pacts: PactLogic[], game?: IChessGame): Move[] {
+        const modifiers = RuleEngine.getAppliedModifiers('onModifyMoves', pacts, piece.color, game);
+
+        return modifiers.reduce((currentMoves, { modifier, context }) => {
+            return modifier(currentMoves, {
+                board, from, piece, moves: currentMoves, game, pacts,
                 orientation: game?.orientation ?? 0
             }, context);
-        }
+        }, [...initialMoves]);
     }
 }

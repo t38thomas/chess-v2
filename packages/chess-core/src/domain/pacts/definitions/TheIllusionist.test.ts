@@ -17,11 +17,7 @@ describe('The Illusionist Pact', () => {
 
     describe('IllusionistBonus (Displace)', () => {
         it('should move a piece to an adjacent empty square', () => {
-            game.assignPact('white', {
-                id: 'illusionist',
-                bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'dummy_m', category: 'Passive' }
-            } as any);
+            game.assignPact('white', TheIllusionist);
             game.assignPact('black', {
                 id: 'dummy',
                 bonus: { id: 'dummy_b', category: 'Action' },
@@ -61,11 +57,7 @@ describe('The Illusionist Pact', () => {
         });
 
         it('should fail if no adjacent empty squares exist', () => {
-            game.assignPact('white', {
-                id: 'illusionist',
-                bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'dummy_m', category: 'Passive' }
-            } as any);
+            game.assignPact('white', TheIllusionist);
             game.assignPact('black', {
                 id: 'dummy',
                 bonus: { id: 'dummy_b', category: 'Action' },
@@ -90,16 +82,8 @@ describe('The Illusionist Pact', () => {
         });
 
         it('should respect cooldown', () => {
-            game.assignPact('white', {
-                id: 'illusionist',
-                bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'dummy_m', category: 'Passive' }
-            } as any);
-            game.assignPact('black', {
-                id: 'dummy',
-                bonus: { id: 'dummy_b', category: 'Action' },
-                malus: { id: 'dummy_m', category: 'Passive' }
-            } as any);
+            game.assignPact('white', TheIllusionist);
+            game.assignPact('black', { id: 'dummy', bonus: { id: 'dummy_b' }, malus: { id: 'dummy_m' } } as any);
 
             const targetPos = new Coordinate(4, 1);
             expect(game.useAbility('displace', targetPos)).toBe(true);
@@ -112,16 +96,8 @@ describe('The Illusionist Pact', () => {
 
     describe('IllusionistMalus (Vanished Illusion)', () => {
         it('should remove a pawn for both players if both have the pact', () => {
-            game.assignPact('white', {
-                id: 'illusionist',
-                bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'vanished_illusion', category: 'Passive' }
-            } as any);
-            game.assignPact('black', {
-                id: 'illusionist',
-                bonus: { id: 'displace', category: 'Action' },
-                malus: { id: 'vanished_illusion', category: 'Passive' }
-            } as any);
+            game.assignPact('white', TheIllusionist);
+            game.assignPact('black', TheIllusionist);
 
             expect(game.phase).toBe('playing');
 

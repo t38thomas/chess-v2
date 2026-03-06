@@ -39,33 +39,34 @@ export const TheHeavyCavalry = definePact('heavy_cavalry')
     .malus('heavy_armor', {
         target: 'self',
         modifiers: {
-            onGetPseudoMoves: (params) => {
-                const { board, piece, from, moves } = params;
-                if (piece.type !== 'knight') return;
+            onModifyMoves: (currentMoves, { board, piece, from }) => {
+                if (piece.type !== 'knight') return currentMoves;
 
-                for (let i = moves.length - 1; i >= 0; i--) {
-                    const m = moves[i];
-                    if (m.piece.type === 'knight') {
-                        const dx = m.to.x - from.x;
-                        const dy = m.to.y - from.y;
+                return currentMoves.filter(m => {
+                    if (m.piece.type !== 'knight') return true;
+                    const dx = m.to.x - from.x;
+                    const dy = m.to.y - from.y;
 
-                        let bx = from.x;
-                        let by = from.y;
+                    let bx = from.x;
+                    let by = from.y;
 
-                        if (Math.abs(dx) === 1 && Math.abs(dy) === 2) {
-                            by += Math.sign(dy);
-                        } else if (Math.abs(dx) === 2 && Math.abs(dy) === 1) {
-                            bx += Math.sign(dx);
-                        } else continue;
-
-                        const blockCoord = new Coordinate(bx, by);
-                        const blockSquare = board.getSquare(blockCoord);
-
-                        if (blockSquare?.piece && blockSquare.piece.color === piece.color && blockSquare.piece.type === 'pawn') {
-                            moves.splice(i, 1);
-                        }
+                    if (Math.abs(dx) === 1 && Math.abs(dy) === 2) {
+                        by += Math.sign(dy);
+                    } else if (Math.abs(dx) === 2 && Math.abs(dy) === 1) {
+                        bx += Math.sign(dx);
+                    } else {
+                        return true;
                     }
-                }
+
+                    const blockCoord = new Coordinate(bx, by);
+                    const blockSquare = board.getSquare(blockCoord);
+
+                    if (blockSquare?.piece && blockSquare.piece.color === piece.color && blockSquare.piece.type === 'pawn') {
+                        return false;
+                    }
+
+                    return true;
+                });
             }
         }
     })

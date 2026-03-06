@@ -31,17 +31,17 @@ describe('The Hawk Pact', () => {
             // Enable pact
             const rules = bonus.getRuleModifiers();
 
-            const canMoveThrough = rules.canMoveThroughFriendlies!(bishop, friendlyPawn);
+            const canMoveThrough = rules.canMoveThroughFriendlies!(bishop, friendlyPawn, { game, playerId: 'white', pactId: bonus.id } as any);
             expect(canMoveThrough).toBe(true);
 
             // Verify it doesn't apply to other pieces
             const rook = new Piece('rook', 'white', 'white-rook');
-            const canRookMoveThrough = rules.canMoveThroughFriendlies!(rook, friendlyPawn);
+            const canRookMoveThrough = rules.canMoveThroughFriendlies!(rook, friendlyPawn, { game, playerId: 'white', pactId: bonus.id } as any);
             expect(canRookMoveThrough).toBe(false);
 
             // Verify it doesn't apply to enemy pieces (obstacle)
             const enemyPawn = new Piece('pawn', 'black', 'black-pawn');
-            const canMoveThroughEnemy = rules.canMoveThroughFriendlies!(bishop, enemyPawn);
+            const canMoveThroughEnemy = rules.canMoveThroughFriendlies!(bishop, enemyPawn, { game, playerId: 'white', pactId: bonus.id } as any);
             expect(canMoveThroughEnemy).toBe(false);
         });
     });
@@ -58,11 +58,11 @@ describe('The Hawk Pact', () => {
             const rules = malus.getRuleModifiers();
 
             // Adjacent capture
-            const canCaptureAdjacent = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toAdjacent, from }, {} as any);
+            const canCaptureAdjacent = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toAdjacent, from }, { game, playerId: 'white', pactId: malus.id } as any);
             expect(canCaptureAdjacent).toBe(false);
 
             // Distant capture
-            const canCaptureDistant = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toDistant, from }, {} as any);
+            const canCaptureDistant = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toDistant, from }, { game, playerId: 'white', pactId: malus.id } as any);
             expect(canCaptureDistant).toBe(true);
         });
 
@@ -75,7 +75,7 @@ describe('The Hawk Pact', () => {
 
             const rules = malus.getRuleModifiers();
 
-            const canCapture = rules.canCapture!({ game, board: game.board, attacker: queen, victim: enemy, to: toAdjacent, from }, {} as any);
+            const canCapture = rules.canCapture!({ game, board: game.board, attacker: queen, victim: enemy, to: toAdjacent, from }, { game, playerId: 'white', pactId: malus.id } as any);
             expect(canCapture).toBe(true);
         });
     });

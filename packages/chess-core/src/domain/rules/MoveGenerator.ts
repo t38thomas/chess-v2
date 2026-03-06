@@ -93,9 +93,7 @@ export class MoveGenerator {
         }
 
         // Apply any perk-specific custom move additions
-        RuleEngine.onGetPseudoMoves(board, from, piece, moves, pacts, game);
-
-        return moves;
+        return RuleEngine.onModifyMoves(board, from, piece, moves, pacts, game);
     }
 
     private static isEmpty(board: BoardModel, x: number, y: number): boolean {

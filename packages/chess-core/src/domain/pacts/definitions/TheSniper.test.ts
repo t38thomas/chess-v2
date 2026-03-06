@@ -29,8 +29,8 @@ describe('The Sniper Pact', () => {
             board.placePiece(start, whiteRook);
             board.placePiece(new Coordinate(0, 1), whitePawn);
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
                 from: start,
@@ -53,8 +53,8 @@ describe('The Sniper Pact', () => {
             board.placePiece(new Coordinate(4, 5), whitePawn); // Friendly obstacle
             board.placePiece(new Coordinate(4, 7), blackPawn); // Target
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
                 from: start,
@@ -73,8 +73,8 @@ describe('The Sniper Pact', () => {
             board.placePiece(new Coordinate(0, 1), new Piece('pawn', 'white', 'p1'));
             board.placePiece(new Coordinate(0, 2), new Piece('pawn', 'white', 'p2'));
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
                 from: new Coordinate(0, 0),

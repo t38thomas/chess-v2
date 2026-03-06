@@ -24,13 +24,12 @@ describe('The Engineer Pact', () => {
             const start = new Coordinate(4, 4);
             board.placePiece(start, whiteRook);
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: bonus.id } as any);
 
             const diagMove = moves.find(m => m.to.x === 5 && m.to.y === 5);
             expect(diagMove).toBeDefined();
@@ -47,13 +46,12 @@ describe('The Engineer Pact', () => {
             board.placePiece(start, whiteRook);
             board.placePiece(target, blackPawn);
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: bonus.id } as any);
 
             const captureMove = moves.find(m => m.to.equals(target));
             expect(captureMove).toBeDefined();
@@ -70,13 +68,12 @@ describe('The Engineer Pact', () => {
             board.placePiece(start, whiteRook);
             board.placePiece(target, whitePawn);
 
-            const moves: Move[] = [];
-            bonus.getRuleModifiers().onGetPseudoMoves!({
+            let moves: Move[] = [];
+            moves = bonus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: bonus.id } as any);
 
             const invalidMove = moves.find(m => m.to.equals(target));
             expect(invalidMove).toBeUndefined();
@@ -90,19 +87,18 @@ describe('The Engineer Pact', () => {
             const start = new Coordinate(4, 4);
             board.placePiece(start, whiteRook);
 
-            const moves: Move[] = [
+            let moves: Move[] = [
                 new Move(start, new Coordinate(4, 6), whiteRook), // Vertical
                 new Move(start, new Coordinate(6, 4), whiteRook), // Horizontal
                 new Move(start, new Coordinate(4, 2), whiteRook), // Vertical
                 new Move(start, new Coordinate(2, 4), whiteRook), // Horizontal
             ];
 
-            malus.getRuleModifiers().onGetPseudoMoves!({
+            moves = malus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteRook,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(moves.length).toBe(2);
             expect(moves.every(m => m.to.x === start.x)).toBe(true);
@@ -114,16 +110,15 @@ describe('The Engineer Pact', () => {
             const start = new Coordinate(4, 4);
             board.placePiece(start, whiteQueen);
 
-            const moves: Move[] = [
+            let moves: Move[] = [
                 new Move(start, new Coordinate(6, 4), whiteQueen), // Horizontal
             ];
 
-            malus.getRuleModifiers().onGetPseudoMoves!({
+            moves = malus.getRuleModifiers().onModifyMoves!(moves, {
                 board,
                 piece: whiteQueen,
-                from: start,
-                moves
-            });
+                from: start
+            } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
             expect(moves.length).toBe(1);
         });

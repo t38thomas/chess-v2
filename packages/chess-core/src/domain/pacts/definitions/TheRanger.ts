@@ -24,9 +24,11 @@ export const TheRanger = definePact('ranger')
             }
         },
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves, game }, context) => {
-                if (piece.type !== 'bishop') return;
-                if (!context.state.snipeActive) return;
+            onModifyMoves: (currentMoves, { board, piece, from }, context) => {
+                if (piece.type !== 'bishop') return currentMoves;
+                if (!context.state.snipeActive) return currentMoves;
+
+                const newMoves = [...currentMoves];
 
                 MoveGenerator.BISHOP_DIRS.forEach(([dx, dy]) => {
                     const d1 = new Coordinate(from.x + dx, from.y + dy);
@@ -36,12 +38,12 @@ export const TheRanger = definePact('ranger')
                         if (coord.isValid()) {
                             const target = board.getSquare(coord);
                             if (target?.piece && target.piece.color !== piece.color) {
-                                const existingIndex = moves.findIndex(m => m.to.equals(coord));
+                                const existingIndex = newMoves.findIndex(m => m.to.equals(coord));
                                 if (existingIndex !== -1) {
-                                    const existing = moves[existingIndex];
-                                    moves[existingIndex] = new Move(existing.from, existing.to, existing.piece, existing.capturedPiece, existing.isCastling, existing.isEnPassant, existing.isSwap, true, existing.promotion);
+                                    const existing = newMoves[existingIndex];
+                                    newMoves[existingIndex] = new Move(existing.from, existing.to, existing.piece, existing.capturedPiece, existing.isCastling, existing.isEnPassant, existing.isSwap, true, existing.promotion);
                                 } else {
-                                    moves.push(new Move(from, coord, piece, target.piece, false, false, false, true));
+                                    newMoves.push(new Move(from, coord, piece, target.piece, false, false, false, true));
                                 }
                                 return true; // Piece found (blocked)
                             }
@@ -52,6 +54,8 @@ export const TheRanger = definePact('ranger')
 
                     if (!checkSquare(d1)) checkSquare(d2);
                 });
+
+                return newMoves;
             },
             onExecuteMove: (game, move, context) => {
                 if (move.isSnipe && context.state.snipeActive) {

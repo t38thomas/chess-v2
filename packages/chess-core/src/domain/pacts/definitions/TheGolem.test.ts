@@ -32,7 +32,7 @@ describe('The Golem Pact', () => {
             if (modifiers.canBeCaptured) {
                 const canCapture = modifiers.canBeCaptured({
                     game, board, attacker: blackQueen, victim: whiteKing, from: queenPos, to: kingPos
-                }, {} as any);
+                }, { game, playerId: 'white', pactId: bonus.id } as any);
                 expect(canCapture).toBe(false);
             } else {
                 expect(true).toBe(false); // Hook should be defined
@@ -54,7 +54,7 @@ describe('The Golem Pact', () => {
             if (modifiers.canBeCaptured) {
                 const canCapture = modifiers.canBeCaptured({
                     game, board, attacker: blackQueen, victim: whiteKing, from: queenPos, to: kingPos
-                }, {} as any);
+                }, { game, playerId: 'white', pactId: bonus.id } as any);
                 expect(canCapture).toBe(true);
             } else {
                 expect(true).toBe(false);
@@ -81,12 +81,12 @@ describe('The Golem Pact', () => {
             ];
 
             const modifiers = malus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteKing, from: kingPos, moves }, {} as any);
+            if (modifiers.onModifyMoves) {
+                let movesAfter = modifiers.onModifyMoves(moves, { board, piece: whiteKing, from: kingPos } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
                 // Should only have 4 moves left (the non-diagonals)
-                expect(moves.length).toBe(4);
-                expect(moves.every(m => {
+                expect(movesAfter.length).toBe(4);
+                expect(movesAfter.every(m => {
                     const dx = Math.abs(m.to.x - kingPos.x);
                     const dy = Math.abs(m.to.y - kingPos.y);
                     return !(dx > 0 && dy > 0 && dx === dy);
@@ -107,9 +107,9 @@ describe('The Golem Pact', () => {
             ];
 
             const modifiers = malus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteQueen, from: queenPos, moves }, {} as any);
-                expect(moves.length).toBe(1); // Should still be there
+            if (modifiers.onModifyMoves) {
+                let movesAfter = modifiers.onModifyMoves(moves, { board, piece: whiteQueen, from: queenPos } as any, { game, playerId: 'white', pactId: malus.id } as any);
+                expect(movesAfter.length).toBe(1); // Should still be there
             }
         });
     });

@@ -47,7 +47,7 @@ describe('The Ranger Pact', () => {
             board.placePiece(start, whiteBishop);
             board.placePiece(target, blackPawn);
 
-            const moves: Move[] = [];
+            let moves: Move[] = [];
 
             // Activate Snipe for the test
             const initialContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
@@ -56,8 +56,8 @@ describe('The Ranger Pact', () => {
             const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
 
             const modifiers = bonus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, {
                     board,
                     piece: whiteBishop,
                     from: start,
@@ -79,7 +79,7 @@ describe('The Ranger Pact', () => {
             board.placePiece(start, whiteBishop);
             board.placePiece(target, blackPawn);
 
-            const moves: Move[] = [];
+            let moves: Move[] = [];
 
             // Activate Snipe for the test
             const initialContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
@@ -88,8 +88,8 @@ describe('The Ranger Pact', () => {
             const freshContext = bonus.createContextWithState({ game, playerId: 'white', pactId: 'snipe' });
 
             const modifiers = bonus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, {
                     board,
                     piece: whiteBishop,
                     from: start,

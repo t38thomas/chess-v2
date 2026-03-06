@@ -12,9 +12,10 @@ import { PactUtils } from '../PactUtils';
 export const TheSniper = definePact('sniper')
     .bonus('long_sight', {
         modifiers: {
-            onGetPseudoMoves: ({ board, piece, from, moves }) => {
-                if (piece.type !== 'rook') return;
+            onModifyMoves: (currentMoves, { board, piece, from }) => {
+                if (piece.type !== 'rook') return currentMoves;
 
+                const newMoves = [...currentMoves];
                 const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
                 dirs.forEach(([dx, dy]) => {
                     let x = from.x + dx;
@@ -24,29 +25,28 @@ export const TheSniper = definePact('sniper')
                     while (x >= 0 && x < BoardModel.SIZE && y >= 0 && y < BoardModel.SIZE) {
                         const coord = new Coordinate(x, y);
                         const target = board.getSquare(coord);
-                        if (!target) break;
 
-                        if (target.piece) {
+                        if (target?.piece) {
                             obstaclesFound++;
-                            if (obstaclesFound === 1) {
-                                x += dx;
-                                y += dy;
-                                continue;
-                            } else if (obstaclesFound === 2) {
-                                if (target.piece.color !== piece.color && !moves.some(m => m.to.equals(coord))) {
-                                    moves.push(new Move(from, coord, piece, target.piece));
+                            if (obstaclesFound === 2) {
+                                // Can capture the second piece if it's an enemy
+                                if (target.piece.color !== piece.color && !newMoves.some(m => m.to.equals(coord))) {
+                                    newMoves.push(new Move(from, coord, piece, target.piece));
                                 }
-                                break;
+                                break; // Line of sight blocked by second obstacle
                             }
                         } else if (obstaclesFound === 1) {
-                            if (!moves.some(m => m.to.equals(coord))) {
-                                moves.push(new Move(from, coord, piece));
+                            // Empty square behind 1 obstacle
+                            if (!newMoves.some(m => m.to.equals(coord))) {
+                                newMoves.push(new Move(from, coord, piece, null));
                             }
                         }
+
                         x += dx;
                         y += dy;
                     }
                 });
+                return newMoves;
             }
         }
     })

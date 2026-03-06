@@ -22,38 +22,27 @@ export class MovementUtils {
         }
     }
 
-    public static blockHorizontalMoves(moves: Move[], from: Coordinate, orientation: number = 0): void {
+    public static blockHorizontalMoves(moves: Move[], from: Coordinate, orientation: number = 0): Move[] {
         const isHorizontal = (orientation % 2 === 0)
             ? (m: Move) => m.to.y === from.y && m.to.x !== from.x
             : (m: Move) => m.to.x === from.x && m.to.y !== from.y;
 
-        for (let i = moves.length - 1; i >= 0; i--) {
-            if (isHorizontal(moves[i])) {
-                moves.splice(i, 1);
-            }
-        }
+        return moves.filter(m => !isHorizontal(m));
     }
 
-    public static blockVerticalMoves(moves: Move[], from: Coordinate, orientation: number = 0): void {
+    public static blockVerticalMoves(moves: Move[], from: Coordinate, orientation: number = 0): Move[] {
         const isVertical = (orientation % 2 === 0)
             ? (m: Move) => m.to.x === from.x && m.to.y !== from.y
             : (m: Move) => m.to.y === from.y && m.to.x !== from.x;
 
-        for (let i = moves.length - 1; i >= 0; i--) {
-            if (isVertical(moves[i])) {
-                moves.splice(i, 1);
-            }
-        }
+        return moves.filter(m => !isVertical(m));
     }
 
-    public static blockDiagonalMoves(moves: Move[], from: Coordinate): void {
-        for (let i = moves.length - 1; i >= 0; i--) {
-            const m = moves[i];
+    public static blockDiagonalMoves(moves: Move[], from: Coordinate): Move[] {
+        return moves.filter(m => {
             const dx = Math.abs(m.to.x - from.x);
             const dy = Math.abs(m.to.y - from.y);
-            if (dx === dy && dx !== 0) {
-                moves.splice(i, 1);
-            }
-        }
+            return dx !== dy || dx === 0;
+        });
     }
 }

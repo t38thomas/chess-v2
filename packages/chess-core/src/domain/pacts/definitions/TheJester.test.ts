@@ -23,10 +23,10 @@ describe('The Jester Pact', () => {
             const bishopPos = new Coordinate(4, 4);
             board.placePiece(bishopPos, whiteBishop);
 
-            const moves: any[] = [];
+            let moves: any[] = [];
             const modifiers = bonus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteBishop, from: bishopPos, moves });
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, { board, piece: whiteBishop, from: bishopPos, moves }, { game, playerId: 'white', pactId: bonus.id } as any);
 
                 // Should find Knight moves
                 const knightSquares = [
@@ -55,11 +55,11 @@ describe('The Jester Pact', () => {
             board.placePiece(knightPos, whiteKnight);
 
             // Default Knight moves (should be cleared)
-            const moves: any[] = [{ to: new Coordinate(5, 6) }];
+            let moves: any[] = [{ to: new Coordinate(5, 6) }];
 
             const modifiers = malus.getRuleModifiers();
-            if (modifiers.onGetPseudoMoves) {
-                modifiers.onGetPseudoMoves({ board, piece: whiteKnight, from: knightPos, moves, game, perks: [] });
+            if (modifiers.onModifyMoves) {
+                moves = modifiers.onModifyMoves(moves, { board, piece: whiteKnight, from: knightPos, moves, game, perks: [] } as any, { game, playerId: 'white', pactId: malus.id } as any);
 
                 // Should NOT have the original Knight move
                 expect(moves.some(m => m.to.equals(new Coordinate(5, 6)))).toBe(false);
