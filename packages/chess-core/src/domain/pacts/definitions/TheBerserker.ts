@@ -15,7 +15,7 @@ interface BerserkerState {
 export const TheBerserker = definePact<BerserkerState>('berserker')
     .bonus('frenzy', {
         target: 'self',
-        initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null }),
+        initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null as string | null }),
         modifiers: {
             onExecuteMove: (game, move, context) => {
                 if (move.piece.color !== context.playerId) return;

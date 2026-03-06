@@ -9,6 +9,8 @@ import { BoardUtils } from './utils/BoardUtils';
 export interface PieceQueryResult extends Array<{ piece: Piece; coord: Coordinate }> {
     ofTypes(types: PieceType[]): PieceQueryResult;
     byId(id: string): { piece: Piece; coord: Coordinate } | undefined;
+    at(coord: Coordinate): { piece: Piece; coord: Coordinate } | undefined;
+    inRange(from: Coordinate, range: number): PieceQueryResult;
 }
 
 export interface PactContext {
@@ -35,7 +37,9 @@ export interface PactContextWithState<T> extends PactContext {
             enemy: () => PieceQueryResult;
             ofTypes: (types: PieceType[]) => PieceQueryResult;
             byId: (id: string) => { piece: Piece; coord: Coordinate } | undefined;
+            at: (coord: Coordinate) => { piece: Piece; coord: Coordinate } | undefined;
         };
+        isCheckmated: (color?: PieceColor) => boolean;
     };
 
 }
@@ -43,12 +47,12 @@ export interface PactContextWithState<T> extends PactContext {
 /**
  * Represents a reusable piece of pact logic.
  */
-export interface PactEffect {
-    modifiers?: RuleModifiers;
+export interface PactEffect<T = any> {
+    modifiers?: RuleModifiers<T>;
     onEvent?: <K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
         payload: any,
-        context: PactContext
+        context: PactContextWithState<T>
     ) => void;
 }
 
@@ -105,45 +109,46 @@ export interface TurnModifierContext {
     eventType: GameEvent;
 }
 
-export interface RuleModifiers {
+export interface RuleModifiers<T = any> {
     // Movement Hooks
-    onGetPseudoMoves?: (params: MoveParams, context: PactContextWithState<any>) => void;
+    onGetPseudoMoves?: (params: MoveParams, context: PactContextWithState<T>) => void;
 
     // Movement overrides
-    getMaxRange?: (piece: Piece, context: PactContextWithState<any>) => number;
-    getFixedDistances?: (piece: Piece, context: PactContextWithState<any>) => number[] | null;
-    canDoubleMove?: (piece: Piece, y: number, startY: number, context: PactContextWithState<any>) => boolean;
-    canDiagonalDash?: (piece: Piece, context: PactContextWithState<any>) => boolean;
-    canSidewaysMove?: (piece: Piece, context: PactContextWithState<any>) => boolean;
-    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context: PactContextWithState<any>) => boolean;
-    canMoveLikeKnight?: (pieceType: PieceType, context: PactContextWithState<any>) => boolean;
-    hasEcholocation?: (piece: Piece, context: PactContextWithState<any>) => boolean;
-    canMovePiece?: (params: MoveContext, context: PactContextWithState<any>) => boolean;
+    getMaxRange?: (piece: Piece, context: PactContextWithState<T>) => number;
+    getFixedDistances?: (piece: Piece, context: PactContextWithState<T>) => number[] | null;
+    canDoubleMove?: (piece: Piece, y: number, startY: number, context: PactContextWithState<T>) => boolean;
+    canDiagonalDash?: (piece: Piece, context: PactContextWithState<T>) => boolean;
+    canSidewaysMove?: (piece: Piece, context: PactContextWithState<T>) => boolean;
+    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context: PactContextWithState<T>) => boolean;
+    canMoveLikeKnight?: (pieceType: PieceType, context: PactContextWithState<T>) => boolean;
+    hasEcholocation?: (piece: Piece, context: PactContextWithState<T>) => boolean;
+    canMovePiece?: (params: MoveContext, context: PactContextWithState<T>) => boolean;
 
     // Promotion overrides
-    getAllowedPromotionTypes?: (piece: Piece, context: PactContextWithState<any>) => PieceType[];
+    getAllowedPromotionTypes?: (piece: Piece, context: PactContextWithState<T>) => PieceType[];
 
     // Capture overrides
-    canCapture?: (params: CaptureContext, context: PactContextWithState<any>) => boolean;
+    canCapture?: (params: CaptureContext, context: PactContextWithState<T>) => boolean;
 
     // King Safety
-    canCastleWhileMoved?: (piece: Piece, context: PactContextWithState<any>) => boolean;
-    canCastle?: (piece: Piece, context: PactContextWithState<any>) => boolean;
-    mustMoveKingInCheck?: (color: PieceColor, context: PactContextWithState<any>) => boolean;
+    canCastleWhileMoved?: (piece: Piece, context: PactContextWithState<T>) => boolean;
+    canCastle?: (piece: Piece, context: PactContextWithState<T>) => boolean;
+    mustMoveKingInCheck?: (color: PieceColor, context: PactContextWithState<T>) => boolean;
 
     // Turn Economy & Special Rules
-    modifyNextTurn?: (params: TurnModifierContext, context: PactContextWithState<any>) => PieceColor | null;
-    onExecuteMove?: (game: IChessGame, move: Move, context: PactContextWithState<any>) => void;
+    modifyNextTurn?: (params: TurnModifierContext, context: PactContextWithState<T>) => PieceColor | null;
+    onExecuteMove?: (game: IChessGame, move: Move, context: PactContextWithState<T>) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (params: CaptureContext, context: PactContextWithState<any>) => boolean;
-    isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<any>) => boolean;
+    canBeCaptured?: (params: CaptureContext, context: PactContextWithState<T>) => boolean;
+    isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<T>) => boolean;
 }
 
 export abstract class PactLogic<T = any> {
     abstract id: string;
     public target: 'self' | 'enemy' | 'global' = 'self';
     public siblingId?: string;
+    public validateState?: (state: T) => boolean;
 
     /**
      * Returns the initial state for this pact.
@@ -192,6 +197,11 @@ export abstract class PactLogic<T = any> {
                 const nextState = typeof update === 'function'
                     ? (update as Function)(currentState)
                     : { ...currentState, ...update };
+
+                if (this.validateState && !this.validateState(nextState)) {
+                    console.warn(`[PactSystem] State validation failed for pact: ${this.id}`);
+                }
+
                 this.setState(context.game, context.playerId, nextState);
             },
 
@@ -206,7 +216,9 @@ export abstract class PactLogic<T = any> {
 
                     const wrap = (pieces: { piece: Piece, coord: Coordinate }[]) => Object.assign(pieces, {
                         ofTypes: (types: PieceType[]) => wrap(pieces.filter(p => types.includes(p.piece.type))),
-                        byId: (id: string) => pieces.find(p => p.piece.id === id)
+                        byId: (id: string) => pieces.find(p => p.piece.id === id),
+                        at: (coord: Coordinate) => pieces.find(p => p.coord.x === coord.x && p.coord.y === coord.y),
+                        inRange: (from: Coordinate, range: number) => wrap(pieces.filter(p => Math.max(Math.abs(p.coord.x - from.x), Math.abs(p.coord.y - from.y)) <= range))
                     }) as PieceQueryResult;
 
 
@@ -215,8 +227,13 @@ export abstract class PactLogic<T = any> {
                         friendly: () => wrap(getPieces(color)),
                         enemy: () => wrap(getPieces(color === 'white' ? 'black' : 'white')),
                         ofTypes: (types: PieceType[]) => wrap(BoardUtils.findPiecesByTypes(context.game, color, types)),
-                        byId: (id: string) => wrap(getPieces(color)).byId(id)
+                        byId: (id: string) => wrap(getPieces(color)).byId(id),
+                        at: (coord: Coordinate) => wrap(getPieces(color)).at(coord)
                     };
+                },
+                isCheckmated: (colorOverride?: PieceColor) => {
+                    const color = colorOverride || context.playerId;
+                    return context.game.status === 'checkmate' && context.game.turn === color;
                 }
             }
 
@@ -226,7 +243,7 @@ export abstract class PactLogic<T = any> {
 
 
     // Hooks primarily for RuleEngine integration
-    getRuleModifiers(): RuleModifiers {
+    getRuleModifiers(): RuleModifiers<T> {
         return {};
     }
 
@@ -291,7 +308,7 @@ class GenericPact<T = any> extends PactLogic<T> {
         return this.options.initialState ? this.options.initialState() : null;
     }
 
-    getRuleModifiers(): RuleModifiers {
+    getRuleModifiers(): RuleModifiers<T> {
         const wrapModifier = (fn: Function) => {
             return (...args: any[]) => {
                 const lastArg = args[args.length - 1];
@@ -303,7 +320,7 @@ class GenericPact<T = any> extends PactLogic<T> {
             };
         };
 
-        const wrapAll = (mods: RuleModifiers): RuleModifiers => {
+        const wrapAll = (mods: RuleModifiers<T>): RuleModifiers<T> => {
             const result: any = {};
             for (const key in mods) {
                 const val = (mods as any)[key];
@@ -320,11 +337,11 @@ class GenericPact<T = any> extends PactLogic<T> {
         const effectModifiers = (this.options.effects || [])
             .map(e => e.modifiers)
             .filter(m => m !== undefined)
-            .map(m => wrapAll(m!));
+            .map(m => wrapAll(m! as RuleModifiers<T>));
 
         if (effectModifiers.length === 0) return base;
 
-        return composeRuleModifiers([...effectModifiers, base]);
+        return composeRuleModifiers([...effectModifiers, base]) as RuleModifiers<T>;
     }
 
 
@@ -379,8 +396,15 @@ class GenericPact<T = any> extends PactLogic<T> {
  */
 export interface PactLogicOptions<T = any> {
     target?: 'self' | 'enemy' | 'global';
-    effects?: PactEffect[];
-    modifiers?: RuleModifiers;
+    effects?: PactEffect<T>[];
+    modifiers?: RuleModifiers<T>;
+    /**
+     * Optional state validation function. 
+     * Called whenever updateState is invoked to verify the new state.
+     */
+    validateState?: (state: T) => boolean;
+
+
     onMove?: (payload: GameEventPayloads['move'], context: PactContextWithState<T>) => void;
     onCapture?: (payload: GameEventPayloads['capture'], context: PactContextWithState<T>) => void;
     onCheckmate?: (payload: GameEventPayloads['checkmate'], context: PactContextWithState<T>) => void;

@@ -5,7 +5,7 @@ import { Perk } from '../models/Pact';
 import { Move } from '../models/Move';
 import { IChessGame, GameEvent } from '../GameTypes';
 import { PactRegistry } from '../pacts/PactRegistry';
-import { PactLogic, PactContextWithState, CaptureContext, MoveContext, TurnModifierContext } from '../pacts/PactLogic';
+import { PactLogic, PactContextWithState, CaptureContext, MoveContext, TurnModifierContext, RuleModifiers } from '../pacts/PactLogic';
 
 export class RuleEngine {
 
@@ -23,89 +23,81 @@ export class RuleEngine {
         return logic?.createContextWithState({ game, playerId, pactId });
     }
 
+    private static getAppliedModifiers<K extends keyof RuleModifiers>(
+        key: K,
+        perks: Perk[],
+        subjectColor: PieceColor,
+        game?: IChessGame
+    ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any> }[] {
+        const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<any> }[] = [];
+        const registry = PactRegistry.getInstance();
+
+        for (const perk of perks) {
+            const pactLogic = registry.get(perk.id) as PactLogic;
+            if (!pactLogic) continue;
+
+            const modifiers = registry.getCachedModifiers(perk.id) || {};
+            const modifier = (modifiers as any)[key];
+            if (!modifier) continue;
+
+            const context = RuleEngine.buildContext(game, subjectColor, perk.id);
+            if (!context) continue;
+
+            if (RuleEngine.evaluateModifierTarget(pactLogic, subjectColor, subjectColor)) {
+                result.push({ modifier, context });
+            }
+        }
+        return result;
+    }
+
     // --- PAWN RULES ---
 
     public static canPawnDoubleMove(piece: Piece, y: number, startY: number, perks: Perk[], game?: IChessGame): boolean {
         let allowed = y === startY;
-        const registry = PactRegistry.getInstance();
+        const modifiers = RuleEngine.getAppliedModifiers('canDoubleMove', perks, piece.color, game);
 
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.canDoubleMove;
-            if (modifier) {
-                const context = RuleEngine.buildContext(game, piece.color, perk.id);
-                if (context && !RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) continue;
-                // If a pact defines a modifier, it takes precedence
-                if (context) allowed = modifier(piece, y, startY, context);
-                // If any pact expressly forbids it, we stop and return false
-                if (!allowed) return false;
-            }
+        for (const { modifier, context } of modifiers) {
+            allowed = modifier(piece, y, startY, context);
+            if (!allowed) return false;
         }
         return allowed;
     }
 
     public static canPawnDiagonalDash(piece: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, piece.color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) return false;
-            return pactLogic?.getRuleModifiers()?.canDiagonalDash?.(piece, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('canDiagonalDash', perks, piece.color, game);
+        return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     public static canPawnSidewaysMove(piece: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, piece.color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) return false;
-            return pactLogic?.getRuleModifiers()?.canSidewaysMove?.(piece, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('canSidewaysMove', perks, piece.color, game);
+        return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     // --- MOVEMENT RANGE ---
 
     public static getMaxRange(piece: Piece, perks: Perk[], game?: IChessGame): number {
         let max = 8;
-        const registry = PactRegistry.getInstance();
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.getMaxRange;
-            const context = RuleEngine.buildContext(game, piece.color, perk.id);
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) {
-                max = Math.min(max, modifier(piece, context));
-            }
+        const modifiers = RuleEngine.getAppliedModifiers('getMaxRange', perks, piece.color, game);
+        for (const { modifier, context } of modifiers) {
+            max = Math.min(max, modifier(piece, context));
         }
         return max;
     }
 
     public static getFixedDistances(piece: Piece, perks: Perk[], game?: IChessGame): number[] | null {
-        const registry = PactRegistry.getInstance();
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.getFixedDistances;
-            const context = RuleEngine.buildContext(game, piece.color, perk.id);
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) {
-                const dists = modifier(piece, context);
-                if (dists) return dists;
-            }
+        const modifiers = RuleEngine.getAppliedModifiers('getFixedDistances', perks, piece.color, game);
+        for (const { modifier, context } of modifiers) {
+            const dists = modifier(piece, context);
+            if (dists) return dists;
         }
         return null;
     }
 
     public static canMoveLikeKnight(pieceType: PieceType, perks: Perk[], usedPerks: Set<string>, game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        for (const perk of perks) {
-            if (usedPerks.has(perk.id)) continue;
-            const pactLogic = registry.get(perk.id);
-            const color = "white"; // TODO correct color mapping later? Knight is symmetric
-            const context = RuleEngine.buildContext(game, color, perk.id);
-            if (context && RuleEngine.evaluateModifierTarget(pactLogic, color, color)) {
-                if (pactLogic?.getRuleModifiers()?.canMoveLikeKnight?.(pieceType, context)) return true;
-            }
-        }
-        return false;
+        const unusedPerks = perks.filter(p => !usedPerks.has(p.id));
+        const color = "white"; // TODO correct color mapping later? Knight is symmetric
+        const modifiers = RuleEngine.getAppliedModifiers('canMoveLikeKnight', unusedPerks, color, game);
+        return modifiers.some(({ modifier, context }) => modifier(pieceType, context));
     }
 
     public static canMovePiece(game: IChessGame, from: Coordinate, perks: Perk[], board?: BoardModel): boolean {
@@ -117,17 +109,12 @@ export class RuleEngine {
             if (cooldown && cooldown > 0) return false;
         }
 
-        const registry = PactRegistry.getInstance();
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.canMovePiece;
-            const pieceColor = square?.piece?.color || "white";
-            const context = RuleEngine.buildContext(game, pieceColor, perk.id);
+        const pieceColor = square?.piece?.color || "white";
+        const modifiers = RuleEngine.getAppliedModifiers('canMovePiece', perks, pieceColor, game);
+        const params: MoveContext = { game, board: targetBoard, from };
 
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, pieceColor, pieceColor)) {
-                const params: MoveContext = { game, board: targetBoard, from };
-                if (modifier(params, context) === false) return false;
-            }
+        for (const { modifier, context } of modifiers) {
+            if (modifier(params, context) === false) return false;
         }
         return true;
     }
@@ -137,70 +124,43 @@ export class RuleEngine {
     public static getAllowedPromotionTypes(piece: Piece, perks: Perk[], game?: IChessGame): PieceType[] {
         const allTypes: PieceType[] = ['queen', 'rook', 'bishop', 'knight'];
         let allowed = new Set(allTypes);
-        const registry = PactRegistry.getInstance();
+        const modifiers = RuleEngine.getAppliedModifiers('getAllowedPromotionTypes', perks, piece.color, game);
 
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.getAllowedPromotionTypes;
-            const context = RuleEngine.buildContext(game, piece.color, perk.id);
-
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) {
-                const types = modifier(piece, context);
-                const currentAllowed = new Set(types);
-                allowed = new Set([...allowed].filter(x => currentAllowed.has(x)));
-            }
+        for (const { modifier, context } of modifiers) {
+            const types = modifier(piece, context);
+            const currentAllowed = new Set(types);
+            allowed = new Set([...allowed].filter(x => currentAllowed.has(x)));
         }
 
         return Array.from(allowed);
     }
 
     public static canMoveThroughFriendlies(mover: Piece, obstacle: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, mover.color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, mover.color, mover.color)) return false;
-            return pactLogic?.getRuleModifiers()?.canMoveThroughFriendlies?.(mover, obstacle, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('canMoveThroughFriendlies', perks, mover.color, game);
+        return modifiers.some(({ modifier, context }) => modifier(mover, obstacle, context));
     }
 
     public static hasEcholocation(piece: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, piece.color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) return false;
-            return pactLogic?.getRuleModifiers()?.hasEcholocation?.(piece, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('hasEcholocation', perks, piece.color, game);
+        return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     // --- CAPTURE RULES ---
 
     public static canCapture(game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, perks: Perk[]): boolean {
-        const registry = PactRegistry.getInstance();
         const params: CaptureContext = { game, board, attacker, victim, from, to };
 
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.canCapture;
-            const context = RuleEngine.buildContext(game, attacker.color, perk.id);
-
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, attacker.color, attacker.color)) {
-                if (modifier(params, context) === false) return false;
-            }
+        const attackerModifiers = RuleEngine.getAppliedModifiers('canCapture', perks, attacker.color, game);
+        for (const { modifier, context } of attackerModifiers) {
+            if (modifier(params, context) === false) return false;
         }
 
         // Check if victim has a pact that prevents it from being captured
         if (game) {
             const victimPacts = game.pacts[victim.color].map(p => [p.bonus, p.malus]).flat();
-            for (const perk of victimPacts) {
-                const pactLogic = registry.get(perk.id);
-                const modifier = pactLogic?.getRuleModifiers()?.canBeCaptured;
-                const context = RuleEngine.buildContext(game, victim.color, perk.id);
-
-                if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, victim.color, victim.color)) {
-                    if (modifier(params, context) === false) return false;
-                }
+            const victimModifiers = RuleEngine.getAppliedModifiers('canBeCaptured', victimPacts, victim.color, game);
+            for (const { modifier, context } of victimModifiers) {
+                if (modifier(params, context) === false) return false;
             }
         }
 
@@ -210,66 +170,42 @@ export class RuleEngine {
     // --- KING SAFETY ---
 
     public static canCastleWhileMoved(piece: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, piece.color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) return false;
-            return pactLogic?.getRuleModifiers()?.canCastleWhileMoved?.(piece, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('canCastleWhileMoved', perks, piece.color, game);
+        return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     public static canCastle(piece: Piece, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.canCastle;
-            const context = RuleEngine.buildContext(game, piece.color, perk.id);
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) {
-                if (modifier(piece, context) === false) return false;
-            }
+        const modifiers = RuleEngine.getAppliedModifiers('canCastle', perks, piece.color, game);
+        for (const { modifier, context } of modifiers) {
+            if (modifier(piece, context) === false) return false;
         }
         return true;
     }
 
     public static mustMoveKingInCheck(color: PieceColor, perks: Perk[], game?: IChessGame): boolean {
-        const registry = PactRegistry.getInstance();
-        return perks.some(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, color, p.id);
-            if (!context || !RuleEngine.evaluateModifierTarget(pactLogic, color, color)) return false;
-            return pactLogic?.getRuleModifiers()?.mustMoveKingInCheck?.(color, context) || false;
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('mustMoveKingInCheck', perks, color, game);
+        return modifiers.some(({ modifier, context }) => modifier(color, context));
     }
 
     // --- TURN ECONOMY & EVENTS ---
 
     public static onExecuteMove(game: IChessGame, move: Move, perks: Perk[]) {
-        const registry = PactRegistry.getInstance();
         const pieceColor = move.piece?.color || "white";
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const context = RuleEngine.buildContext(game, pieceColor, perk.id);
-            if (context && RuleEngine.evaluateModifierTarget(pactLogic, pieceColor, pieceColor)) {
-                pactLogic?.getRuleModifiers()?.onExecuteMove?.(game, move, context);
-            }
+        const modifiers = RuleEngine.getAppliedModifiers('onExecuteMove', perks, pieceColor, game);
+        for (const { modifier, context } of modifiers) {
+            modifier(game, move, context);
         }
     }
 
     public static getNextTurn(game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, perks: Perk[]): PieceColor {
         const opponent: PieceColor = currentTurn === 'white' ? 'black' : 'white';
-        const registry = PactRegistry.getInstance();
+        const modifiers = RuleEngine.getAppliedModifiers('modifyNextTurn', perks, currentTurn, game);
 
         // 1. Check if any pact wants to modify the turn sequence
-        for (const perk of perks) {
-            const pactLogic = registry.get(perk.id);
-            const modifier = pactLogic?.getRuleModifiers()?.modifyNextTurn;
-            const context = RuleEngine.buildContext(game, currentTurn, perk.id);
-            if (modifier && context && RuleEngine.evaluateModifierTarget(pactLogic, currentTurn, currentTurn)) {
-                const params: TurnModifierContext = { game, currentTurn, eventType };
-                const res = modifier(params, context);
-                if (res) return res;
-            }
+        for (const { modifier, context } of modifiers) {
+            const params: TurnModifierContext = { game, currentTurn, eventType };
+            const res = modifier(params, context);
+            if (res) return res;
         }
 
         // 2. Check extra turns stored in game state
@@ -327,16 +263,12 @@ export class RuleEngine {
     }
 
     public static onGetPseudoMoves(board: BoardModel, from: Coordinate, piece: Piece, moves: Move[], perks: Perk[], game?: IChessGame) {
-        const registry = PactRegistry.getInstance();
-        perks.forEach(p => {
-            const pactLogic = registry.get(p.id);
-            const context = RuleEngine.buildContext(game, piece.color, p.id);
-            if (context && RuleEngine.evaluateModifierTarget(pactLogic, piece.color, piece.color)) {
-                pactLogic?.getRuleModifiers()?.onGetPseudoMoves?.({
-                    board, from, piece, moves, game, perks,
-                    orientation: game?.orientation ?? 0
-                }, context);
-            }
-        });
+        const modifiers = RuleEngine.getAppliedModifiers('onGetPseudoMoves', perks, piece.color, game);
+        for (const { modifier, context } of modifiers) {
+            modifier({
+                board, from, piece, moves, game, perks,
+                orientation: game?.orientation ?? 0
+            }, context);
+        }
     }
 }
