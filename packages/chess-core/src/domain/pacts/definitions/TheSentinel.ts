@@ -1,6 +1,11 @@
 import { definePact } from '../PactLogic';
 import { BoardUtils } from '../utils/BoardUtils';
 
+/**
+ * The Sentinel Pact
+ * Bonus (Vigilance): Pieces adjacent to the King cannot be captured.
+ * Malus (Anchored): The King cannot move if any friendly piece is adjacent to it.
+ */
 export const TheSentinel = definePact('sentinel')
     .bonus('vigilance', {
         target: 'self',

@@ -90,6 +90,7 @@ export function createGameMock(overrides?: Partial<IChessGame>): IChessGame {
         endMatch: vi.fn(),
         applyCooldown: vi.fn(),
         grantExtraTurn: vi.fn(),
+        rng: Math.random,
         ...overrides
     };
     return mock as IChessGame;

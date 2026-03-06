@@ -8,6 +8,7 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheNecromancer = definePact('necromancer')
     .bonus('reclaimer', {
+        target: 'self',
         activeAbility: {
             id: 'reclaimer',
             name: 'reclaimer',
@@ -38,11 +39,13 @@ export const TheNecromancer = definePact('necromancer')
         }
     })
     .malus('ascension_cost', {
+        target: 'self',
         modifiers: {
             modifyNextTurn: (params, context) => {
                 if (params.eventType === 'promotion') {
                     const opponentColor = context.playerId === 'white' ? 'black' : 'white';
-                    params.game.extraTurns[opponentColor] = (params.game.extraTurns[opponentColor] || 0) + 1;
+                    // Use domain command instead of direct mutation of game.extraTurns
+                    params.game.grantExtraTurn!(opponentColor, 1);
                     PactUtils.notifyPactEffect(params.game, 'necromancer', 'ascension_cost', 'malus', 'trending-up');
                 }
                 return null;
@@ -50,5 +53,6 @@ export const TheNecromancer = definePact('necromancer')
         }
     })
     .build();
+
 
 

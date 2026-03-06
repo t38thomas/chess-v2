@@ -32,6 +32,11 @@ export class ChessGame implements IChessGame {
     public enPassantTarget: Coordinate | null; // Square vulnerable to en passant
     public orientation: number = 0; // 0, 1, 2, 3 (clockwise)
     private listeners: ((event: GameEvent, payload?: unknown) => void)[] = [];
+    /**
+     * Random number generator used by pact logic. Replace with a seeded function
+     * in tests to get deterministic results. Defaults to Math.random.
+     */
+    public rng: () => number = Math.random;
     constructor(config: MatchConfig = DEFAULT_MATCH_CONFIG) {
         PactFactory.initialize();
         this.matchConfig = config;

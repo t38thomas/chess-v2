@@ -9,6 +9,7 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheAlchemist = definePact('alchemist')
     .bonus('transmutation', {
+        target: 'self',
         activeAbility: {
             id: 'transmutation',
             name: 'transmutation',
@@ -37,9 +38,11 @@ export const TheAlchemist = definePact('alchemist')
         }
     })
     .malus('volatile_reagents', {
+        target: 'self',
         onMove: (move, context) => {
             if (move.capturedPiece || move.promotion) {
-                context.game.pieceCooldowns.set(move.piece!.id, 2);
+                // Use domain command instead of direct pieceCooldowns mutation
+                context.game.applyCooldown!(move.piece!.id, 2);
                 PactUtils.notifyPactEffect(context.game, 'alchemist', 'stun', 'malus', 'flask');
             }
         },
@@ -66,5 +69,6 @@ export const TheAlchemist = definePact('alchemist')
         }
     })
     .build();
+
 
 

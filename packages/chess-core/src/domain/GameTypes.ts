@@ -70,4 +70,10 @@ export interface IChessGame {
     endMatch?(winner: PieceColor | null, reason: 'checkmate' | 'stalemate' | 'draw' | 'resignation'): void;
     applyCooldown?(pieceId: string, turns: number): void;
     grantExtraTurn?(color: PieceColor, count?: number): void;
+    /**
+     * A seedable random number generator function. Returns a float in [0, 1).
+     * Preferred over direct `Math.random()` calls in pact logic to allow
+     * deterministic testing. Defaults to `Math.random` if not provided.
+     */
+    rng?: () => number;
 }

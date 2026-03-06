@@ -7,8 +7,11 @@ import { PactUtils } from '../PactUtils';
  * Malus (Inevitable Fate): If you have an opportunity to capture an undefended piece and don't take it, you must sacrifice a piece.
  */
 export const TheOracle = definePact('oracle')
-    .bonus('prescience', {})
+    .bonus('prescience', {
+        target: 'self',
+    })
     .malus('inevitable_fate', {
+        target: 'self',
         onTurnStart: (context) => {
             const { game, playerId } = context;
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
@@ -30,12 +33,15 @@ export const TheOracle = definePact('oracle')
                 }
 
                 if (!satisfied) {
+                    // Use game.rng instead of Math.random for deterministic results
+                    const rng = game.rng ?? Math.random;
                     let victimId: string;
                     if (capablePieceIds.includes(move.piece.id)) {
                         victimId = move.piece.id;
                         PactUtils.removePiece(game, move.to);
                     } else {
-                        victimId = capablePieceIds[Math.floor(Math.random() * capablePieceIds.length)];
+                        const idx = Math.floor(rng() * capablePieceIds.length);
+                        victimId = capablePieceIds[idx];
                         const victim = context.query.pieces().friendly().byId(victimId);
                         if (victim) PactUtils.removePiece(game, victim.coord);
                     }
@@ -45,5 +51,6 @@ export const TheOracle = definePact('oracle')
         }
     })
     .build();
+
 
 

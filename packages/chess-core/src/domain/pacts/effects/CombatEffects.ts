@@ -15,15 +15,6 @@ export const CombatEffects = {
     }),
 
     /**
-     * Restricts the types of pieces a pawn can promote to.
-     */
-    restrictPromotion: (allowedTypes: PieceType[] = []): PactEffect => ({
-        modifiers: {
-            getAllowedPromotionTypes: () => allowedTypes
-        }
-    }),
-
-    /**
      * Prevents a piece from capturing diagonally.
      */
     restrictDiagonalCapture: (attackerType: PieceType): PactEffect => ({
