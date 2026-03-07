@@ -423,7 +423,7 @@ export const it: Translations = {
         design_flaw: { name: 'Difetto', description: 'Le Torri non possono muovere in orizzontale.' },
         distant_predator: { name: 'Predatore Distante', description: 'Gli Alfieri catturano a distanza 1 solo se hanno saltato un pezzo questo turno.' },
         young_queen: { name: 'Regina Giovane', description: 'Catture limitate per generazione (Gen 0: solo Re, Gen 1: no Regina/Torre).' },
-        paradox: { name: 'Paradosso', description: 'Perdi 3 pedoni specifici dopo il Time Stop (Deterministico).' },
+        paradox: { name: 'Paradosso', description: 'Perdi 3 pedoni specifici dopo il Time Stop.' },
 
     },
     errors: {

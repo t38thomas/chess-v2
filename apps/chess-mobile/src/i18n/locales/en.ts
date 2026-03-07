@@ -420,7 +420,7 @@ export const en = {
         design_flaw: { name: 'Design Flaw', description: 'Rooks cannot move horizontally.' },
         distant_predator: { name: 'Distant Predator', description: 'Bishops cannot capture at range 1 unless they jumped a piece this turn.' },
         young_queen: { name: 'Young Queen', description: 'Restricted captures based on generation (Gen 0: King only, Gen 1: No Queen/Rook).' },
-        paradox: { name: 'Paradox', description: 'Lose 3 specific pawns after Time Stop (Deterministic).' },
+        paradox: { name: 'Paradox', description: 'Lose 3 specific pawns after Time Stop.' },
 
     },
     errors: {
