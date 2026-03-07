@@ -150,14 +150,22 @@ export class ChessGame implements IChessGame {
         const abilityPerk = playerPacts.find(p => p.id === abilityId);
 
         if (!abilityPerk || !abilityPerk.activeAbility) return false;
-        if (this.perkUsage[this.turn].has(abilityId)) return false;
+
+        const stateCooldownKey = `${abilityId}_${this.turn}_cooldown`;
+        const currentCooldown = (this.pactState[stateCooldownKey] as number) || 0;
+        if (currentCooldown > 0) return false;
+
+        if (!abilityPerk.activeAbility.cooldown && this.perkUsage[this.turn].has(abilityId)) return false;
 
         const success = RuleEngine.useAbility(this, abilityId, params, playerPacts);
 
         // Mark as used if successful (unless repeatable)
         if (success) {
             const logic = PactRegistry.getInstance().get(abilityId);
-            if (!logic?.activeAbility?.repeatable) {
+
+            if (logic?.activeAbility?.cooldown) {
+                this.pactState[stateCooldownKey] = logic.activeAbility.cooldown;
+            } else if (!logic?.activeAbility?.repeatable) {
                 this.perkUsage[this.turn].add(abilityId);
             }
 
@@ -179,7 +187,12 @@ export class ChessGame implements IChessGame {
         if (this.phase !== 'playing') return [];
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
         return playerPacts
-            .filter(p => p.activeAbility && !this.perkUsage[this.turn].has(p.id))
+            .filter(p => {
+                if (!p.activeAbility) return false;
+                const currentCooldown = (this.pactState[`${p.id}_${this.turn}_cooldown`] as number) || 0;
+                if (currentCooldown > 0) return false;
+                return p.activeAbility.cooldown || !this.perkUsage[this.turn].has(p.id);
+            })
             .map(p => p.id);
     }
 
@@ -384,6 +397,15 @@ export class ChessGame implements IChessGame {
             }
         });
 
+        const activePlayerPactsAfterMove = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
+        activePlayerPactsAfterMove.forEach(p => {
+            const stateCooldownKey = `${p.id}_${this.turn}_cooldown`;
+            const cd = (this.pactState[stateCooldownKey] as number) || 0;
+            if (cd > 0) {
+                this.pactState[stateCooldownKey] = cd - 1;
+            }
+        });
+
         this.emit('turn_start', this.turn);
         return true;
     }
@@ -430,6 +452,15 @@ export class ChessGame implements IChessGame {
                 if (cd > 0) {
                     this.pieceCooldowns.set(p.id, cd - 1);
                 }
+            }
+        });
+
+        const activePlayerPactsAfterRotate = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
+        activePlayerPactsAfterRotate.forEach(p => {
+            const stateCooldownKey = `${p.id}_${this.turn}_cooldown`;
+            const cd = (this.pactState[stateCooldownKey] as number) || 0;
+            if (cd > 0) {
+                this.pactState[stateCooldownKey] = cd - 1;
             }
         });
 

@@ -1,6 +1,6 @@
 # Commit Versioning Report
 
-Final computed version logic based on the repository history: **4.2.5**
+Final computed version logic based on the repository history: **4.2.6**
 
 ## History Log
 
@@ -85,3 +85,4 @@ Final computed version logic based on the repository history: **4.2.5**
 - `chore: version bump and save changes` -> **v4.2.3** (patch)
 - `test script npm` -> **v4.2.4** (patch)
 - `modifiche` -> **v4.2.5** (patch)
+- `toast corretti` -> **v4.2.6** (patch)

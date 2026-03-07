@@ -421,7 +421,23 @@ class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
     }
 
     getTurnCounters(context: PactContext): TurnCounter[] {
-        return this.options.getTurnCounters ? this.options.getTurnCounters(this.createContextWithState(context)) : [];
+        const counters = this.options.getTurnCounters ? this.options.getTurnCounters(this.createContextWithState(context)) : [];
+
+        // Auto-inject cooldown counter if activeAbility has a cooldown
+        if (this.activeAbility?.cooldown) {
+            const cd = (context.game.pactState[`${this.id}_${context.playerId}_cooldown`] as number) || 0;
+            if (cd > 0) {
+                counters.push({
+                    id: `${this.id}_cooldown`,
+                    label: this.activeAbility.name,
+                    value: cd,
+                    pactId: this.id,
+                    type: 'cooldown'
+                });
+            }
+        }
+
+        return counters;
     }
 
 }
