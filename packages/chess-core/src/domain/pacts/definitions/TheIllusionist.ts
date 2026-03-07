@@ -10,12 +10,16 @@ interface DisplaceParams {
     to: Coordinate;
 }
 
+interface IllusionistState {
+    vanished_illusion_applied?: boolean;
+}
+
 /**
  * The Illusionist Pact
  * Bonus (Displace): Active ability to move a piece to an adjacent empty square (user choice).
  * Malus (Vanished Illusion): Start the match with a random pawn removed.
  */
-export const TheIllusionist = definePact('illusionist')
+export const TheIllusionist = definePact<{}, IllusionistState>('illusionist')
     .bonus('displace', {
         icon: 'shimmer',
         ranking: 5,

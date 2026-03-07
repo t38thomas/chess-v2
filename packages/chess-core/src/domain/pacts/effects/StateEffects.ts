@@ -4,8 +4,8 @@ import { GameEvent, GameEventPayloads } from '../../GameTypes';
 /** Minimal state shape required by StateEffects: a plain record of primitive/object values. */
 type StateRecord = Record<string, unknown>;
 
-export interface CounterOptions<T extends StateRecord = StateRecord> {
-    key: string;
+export interface CounterOptions<T extends StateRecord = StateRecord, K extends keyof T = keyof T> {
+    key: K & string;
     maxValue: number;
     incrementOn: Array<keyof GameEventPayloads | GameEvent | string>;
     resetOn?: Array<keyof GameEventPayloads | GameEvent | string>;
@@ -22,18 +22,18 @@ export const StateEffects = {
      * Creates a generic counter that increments on specific events and resets on others.
      * When it hits maxValue, it triggers onMax and resets to 0.
      */
-    counter: <T extends StateRecord = StateRecord>(options: CounterOptions<T>): PactEffect<T> => {
+    counter: <T extends StateRecord = StateRecord, K extends keyof T = keyof T>(options: CounterOptions<T, K>): PactEffect<T> => {
         return {
             onEvent: (event, payload, context) => {
                 const ctx = context as PactContextWithState<T>;
-                let currentVal = ((ctx.state as StateRecord)[options.key] as number | undefined) ?? 0;
+                let currentVal = (ctx.state[options.key] as unknown as number | undefined) ?? 0;
 
-                if (options.filter && !options.filter(event, payload, ctx)) return;
+                if (options.filter && !options.filter(event, (payload as any), ctx)) return;
 
                 // Check reset first
                 if (options.resetOn && options.resetOn.includes(event)) {
                     if (currentVal !== 0) {
-                        ctx.updateState({ [options.key]: 0 } as Partial<T>);
+                        ctx.updateState({ [options.key]: 0 } as unknown as Partial<T>);
                         options.onReset?.(ctx);
                         currentVal = 0;
                     }
@@ -43,10 +43,10 @@ export const StateEffects = {
                 if (options.incrementOn.includes(event)) {
                     currentVal += 1;
                     if (currentVal >= options.maxValue) {
-                        ctx.updateState({ [options.key]: 0 } as Partial<T>);
+                        ctx.updateState({ [options.key]: 0 } as unknown as Partial<T>);
                         options.onMax(ctx, payload);
                     } else {
-                        ctx.updateState({ [options.key]: currentVal } as Partial<T>);
+                        ctx.updateState({ [options.key]: currentVal } as unknown as Partial<T>);
                         options.onIncrement?.(ctx, currentVal);
                     }
                 }
@@ -58,11 +58,11 @@ export const StateEffects = {
      * Creates a streak counter. Typically used when you want something to happen after N turns
      * without breaking the streak (e.g. going 5 turns without capturing).
      */
-    onStreak: <T extends StateRecord = StateRecord>(options: Omit<CounterOptions<T>, 'key'> & { key?: string }): PactEffect<T> => {
-        return StateEffects.counter<T>({
+    onStreak: <T extends StateRecord = StateRecord, K extends keyof T = keyof T>(options: Omit<CounterOptions<T, K>, 'key'> & { key?: K }): PactEffect<T> => {
+        return StateEffects.counter<T, any>({
             ...options,
             key: options.key || 'streak_counter'
-        });
+        } as CounterOptions<T, any>);
     },
 
     /**
@@ -70,8 +70,8 @@ export const StateEffects = {
      * expires after a set number of turns.
      * Access the data in other hooks via `ctx.state[options.key][recordKey].data`.
      */
-    temporaryState: <TData = unknown, T extends StateRecord = StateRecord>(options: {
-        key: string;
+    temporaryState: <TData = unknown, T extends StateRecord = StateRecord, K extends keyof T = keyof T>(options: {
+        key: K & string;
         durationInTurns: number;
         triggerOn: Array<keyof GameEventPayloads | GameEvent | string>;
         extractData: (payload: unknown, event: string) => { recordKey?: string, data: TData } | null;
@@ -113,7 +113,7 @@ export const StateEffects = {
                 }
 
                 if (changed) {
-                    ctx.updateState({ [options.key]: currentState } as Partial<T>);
+                    ctx.updateState({ [options.key]: currentState } as unknown as Partial<T>);
                 }
             }
         };
@@ -122,16 +122,20 @@ export const StateEffects = {
     /**
      * Executes the given callback exactly once per match when the trigger condition is met.
      */
-    oncePerMatch: <T extends StateRecord = StateRecord>(options: {
-        key: string;
+    oncePerMatch: <T extends StateRecord, K extends keyof T>(options: {
+        key: K & string;
         triggerOn: Array<keyof GameEventPayloads | GameEvent | string>;
         filter?: (event: string, payload: unknown, context: PactContextWithState<T>) => boolean;
         onTrigger: (context: PactContextWithState<T>, payload: unknown) => void;
     }): PactEffect<T> => {
+        // Ensure that the key points to a boolean type in T
+        type AssertBoolean<U> = U extends boolean ? U : never;
+        type StateKeyType = AssertBoolean<T[K]>;
+
         return {
             onEvent: (event, payload, context) => {
                 const ctx = context as PactContextWithState<T>;
-                if (((ctx.state as StateRecord)[options.key])) return;
+                if (ctx.state[options.key] as StateKeyType) return;
 
                 if (options.triggerOn.includes(event)) {
                     if (options.filter && !options.filter(event, payload, ctx)) return;

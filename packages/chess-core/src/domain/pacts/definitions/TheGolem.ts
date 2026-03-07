@@ -13,7 +13,7 @@ interface GolemState {
  *                    Every 3 King moves, grant an extra turn. UI counter tracks progress.
  * Malus (Lead Feet): King cannot move diagonally.
  */
-export const TheGolem = definePact<GolemState>('golem')
+export const TheGolem = definePact<GolemState, {}>('golem')
     .bonus('stone_skin', {
         icon: 'wall',
         ranking: 4,

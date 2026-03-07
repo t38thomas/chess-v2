@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Flow): Pawns can move backward one square (no capture).
  * Malus (Ebb): Pawns cannot capture diagonally.
  */
-export const TheTidecaller = definePact<Record<string, unknown>>('tidecaller')
+export const TheTidecaller = definePact<{}, {}>('tidecaller')
     .bonus('flow', {
         icon: 'water',
         ranking: 3,

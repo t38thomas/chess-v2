@@ -12,7 +12,7 @@ interface VoidJumpParams {
  * Bonus (Void Jump): Swap positions of two friendly pieces. Max uses: 3.
  * Malus (Ritual Sacrifice): To jump, you must sacrifice your currently most advanced piece.
  */
-export const TheVoidJumper = definePact<Record<string, unknown>>('void_jumper')
+export const TheVoidJumper = definePact<{}, {}>('void_jumper')
     .bonus('void_jump', {
         icon: 'axis-arrow',
         ranking: 5,

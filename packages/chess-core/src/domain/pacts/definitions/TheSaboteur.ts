@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Diagonal Dash): Pawns can move and capture diagonally.
  * Malus (Cut Supplies): Cannot promote to Queen.
  */
-export const TheSaboteur = definePact<Record<string, unknown>>('saboteur')
+export const TheSaboteur = definePact<{}, {}>('saboteur')
     .bonus('diagonal_dash', {
         icon: 'arrow-top-right',
         ranking: 3,

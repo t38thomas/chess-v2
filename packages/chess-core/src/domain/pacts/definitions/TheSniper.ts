@@ -9,7 +9,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Long Sight): Rooks can capture pieces behind exactly one obstacle.
  * Malus (Reload): Rooks get a 2-turn cooldown after capturing.
  */
-export const TheSniper = definePact<Record<string, unknown>>('sniper')
+export const TheSniper = definePact<{}, {}>('sniper')
     .bonus('long_sight', {
         icon: 'telescope',
         ranking: 4,

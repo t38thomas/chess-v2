@@ -12,7 +12,7 @@ interface DiplomatBonusState {
     has_crossed_midfield?: boolean;
 }
 
-export const TheDiplomat = definePact<DiplomatBonusState, Record<string, unknown>>('diplomat')
+export const TheDiplomat = definePact<DiplomatBonusState, {}>('diplomat')
     .bonus('diplomatic_immunity', {
         icon: 'passport',
         ranking: 5,

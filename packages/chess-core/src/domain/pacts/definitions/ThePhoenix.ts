@@ -5,6 +5,7 @@ import { Move } from '../../models/Move';
 
 interface PhoenixState {
     rebirth_turn?: number;
+    phoenix_rebirth_used?: boolean;
 }
 
 /**
@@ -12,7 +13,7 @@ interface PhoenixState {
  * Bonus (Rebirth): Once per match, if your Queen is captured, a random pawn is promoted to an immune Queen for 1 turn.
  * Malus (Wingless): Start the match without rooks.
  */
-export const ThePhoenix = definePact<PhoenixState>('phoenix')
+export const ThePhoenix = definePact<PhoenixState, {}>('phoenix')
     .bonus('rebirth', {
         icon: 'fire',
         ranking: 4,

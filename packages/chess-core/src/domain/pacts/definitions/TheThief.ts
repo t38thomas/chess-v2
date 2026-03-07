@@ -11,7 +11,7 @@ type ThiefBonusState = Record<string, number>;
  * Bonus (Pickpocket): Friendly pawns stun adjacent enemy major pieces for 2 turns.
  * Malus (Wanted): Pawns cannot promote.
  */
-export const TheThief = definePact<ThiefBonusState, Record<string, unknown>>('thief')
+export const TheThief = definePact<ThiefBonusState, {}>('thief')
     .bonus('pickpocket', {
         initialState: () => ({}),
         onMove: (move, context) => {

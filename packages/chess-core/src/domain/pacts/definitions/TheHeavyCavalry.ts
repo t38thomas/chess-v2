@@ -7,7 +7,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Trample): Knights trample (remove) adjacent enemy pawns upon landing.
  * Malus (Heavy Armor): Knights cannot jump over friendly pawns (Mao-style blocking).
  */
-export const TheHeavyCavalry = definePact<Record<string, unknown>>('heavy_cavalry')
+export const TheHeavyCavalry = definePact<{}, {}>('heavy_cavalry')
     .bonus('trample', {
         icon: 'horse-variant',
         ranking: 4,

@@ -12,7 +12,7 @@ interface BerserkerState {
  * Bonus (Frenzy): Catching a pawn gives an extra non-capture move.
  * Malus (Missing Knight): Start with one less random knight.
  */
-export const TheBerserker = definePact<BerserkerState>('berserker')
+export const TheBerserker = definePact<BerserkerState, {}>('berserker')
     .bonus('frenzy', {
         icon: 'axe',
         ranking: 4,

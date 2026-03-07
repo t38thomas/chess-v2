@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Arena): Pieces on dark squares are immune to pawn and minor piece captures.
  * Malus (Disarmed): Start the match without bishops.
  */
-export const TheGladiator = definePact<Record<string, unknown>>('gladiator')
+export const TheGladiator = definePact<{}, {}>('gladiator')
     .bonus('arena', {
         icon: 'stadium',
         ranking: 3,

@@ -8,7 +8,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Incorporeal): Non-pawn pieces can move through friendly pawns.
  * Malus (Possession): Friendy pawns moved through are killed.
  */
-export const TheSpectre = definePact<Record<string, unknown>>('spectre')
+export const TheSpectre = definePact<{}, {}>('spectre')
     .bonus('incorporeal', {
         icon: 'ghost-outline',
         ranking: 4,

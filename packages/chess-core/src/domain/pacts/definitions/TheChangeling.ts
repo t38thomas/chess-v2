@@ -38,7 +38,7 @@ export const TheChangeling = definePact<ChangelingState, ChangelingState>('chang
         ],
         modifiers: {
             onModifyMoves: (currentMoves, params, context) => {
-                const state = context.state['mimicry_activeMimics'];
+                const state = context.state.mimicry_activeMimics;
                 if (!state) return currentMoves;
 
                 const mimicData = state[params.piece.id];
@@ -114,7 +114,7 @@ export const TheChangeling = definePact<ChangelingState, ChangelingState>('chang
         getTurnCounters: (context) => {
             const counters: any[] = [];
 
-            const val = (context.state['unstable_identity'] as number) || 0;
+            const val = context.state.unstable_identity || 0;
 
             counters.push({
                 id: 'unstable_identity_counter',
@@ -126,7 +126,7 @@ export const TheChangeling = definePact<ChangelingState, ChangelingState>('chang
                 subLabel: `${val}/5`
             });
 
-            const mimics = context.state['mimicry_activeMimics'];
+            const mimics = context.state.mimicry_activeMimics;
             if (mimics) {
                 const mimicCount = Object.keys(mimics).length;
                 if (mimicCount > 0) {

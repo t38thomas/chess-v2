@@ -13,7 +13,7 @@ interface SwarmBonusState {
  * Bonus (Hydra): Spawns a new pawn on the starting rank when one of your pawns is captured (deterministic column). UI counter active.
  * Malus (Hive Queen): If your Queen is captured, you instantly lose the match.
  */
-export const TheSwarm = definePact<SwarmBonusState>('swarm')
+export const TheSwarm = definePact<SwarmBonusState, {}>('swarm')
     .bonus('hydra', {
         icon: 'bacteria',
         ranking: 5,

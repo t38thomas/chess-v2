@@ -8,7 +8,7 @@ import { PieceColor } from '../../models/Piece';
  * Bonus (Vigilance): Pieces adjacent to the King (except when in check) cannot be captured.
  * Malus (Anchored): The King cannot move if any friendly piece is adjacent to it (except to escape check).
  */
-export const TheSentinel = definePact<Record<string, unknown>>('sentinel')
+export const TheSentinel = definePact<{}, {}>('sentinel')
     .bonus('vigilance', {
         icon: 'shield-cross',
         ranking: 4,

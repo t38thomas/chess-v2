@@ -13,7 +13,7 @@ interface RangerState {
  * Bonus (Snipe): Active toggle. While active, Bishops capture at distance 1-2 without moving.
  * Malus (Short Sighted): Bishops have a maximum range of 4 squares.
  */
-export const TheRanger = definePact<RangerState>('ranger')
+export const TheRanger = definePact<RangerState, {}>('ranger')
     .bonus('snipe', {
         icon: 'bow-arrow',
         ranking: 4,

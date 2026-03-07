@@ -12,7 +12,7 @@ interface HawkBonusState {
     jumpedThisTurn?: boolean;
 }
 
-export const TheHawk = definePact<HawkBonusState, Record<string, unknown>>('hawk')
+export const TheHawk = definePact<HawkBonusState, {}>('hawk')
     .bonus('high_flyer', {
         icon: 'bird',
         ranking: 4,
@@ -55,9 +55,9 @@ export const TheHawk = definePact<HawkBonusState, Record<string, unknown>>('hawk
                 if (params.attacker.type !== 'bishop' || params.attacker.color !== context.playerId) return true;
                 const dx = Math.abs(params.to.x - params.from.x);
                 const dy = Math.abs(params.to.y - params.from.y);
-                const sharedState: HawkBonusState = context.getSiblingState?.() || {};
+                const sharedState = context.getSiblingState();
 
-                if (sharedState.jumpedThisTurn) {
+                if (sharedState?.jumpedThisTurn) {
                     return dx <= 1 && dy <= 1;
                 }
 
@@ -65,8 +65,8 @@ export const TheHawk = definePact<HawkBonusState, Record<string, unknown>>('hawk
             }
         },
         getTurnCounters: (context) => {
-            const sharedState: HawkBonusState = context.getSiblingState() || {};
-            if (sharedState.jumpedThisTurn) {
+            const sharedState = context.getSiblingState();
+            if (sharedState?.jumpedThisTurn) {
                 return [{
                     id: 'hawk_boost',
                     label: 'claws_ready',

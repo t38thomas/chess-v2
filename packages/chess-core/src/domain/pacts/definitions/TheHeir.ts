@@ -11,7 +11,7 @@ interface HeirBonusState {
  * Bonus (Bloodline): When your Queen is captured, a random minor piece is promoted to a new Queen.
  * Malus (Young Queen): Captures are restricted by Queen generation (Gen 0: King only, Gen 1: No Queen/Rook).
  */
-export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir')
+export const TheHeir = definePact<HeirBonusState, HeirBonusState>('heir')
     .bonus('bloodline', {
         icon: 'water-plus',
         ranking: 5,
@@ -26,10 +26,10 @@ export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir
                 if (minorPieces.length > 0) {
                     const [successor] = PactUtils.pickRandom(minorPieces, 1, game.rng);
                     if (successor) {
-                        const gens = (context.state.generations || {}) as Record<string, number>;
+                        const gens: Record<string, number> = context.state.generations;
                         const currentGen = gens[capturedPiece.id] ?? 0;
                         PactUtils.promotePiece(game, successor.coord, 'queen');
-                        context.updateState((prev: HeirBonusState) => ({
+                        context.updateState((prev) => ({
                             generations: {
                                 ...(prev.generations || {}),
                                 [successor.piece.id]: currentGen + 1
@@ -50,8 +50,8 @@ export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir
         modifiers: {
             canCapture: (params, context) => {
                 if (params.attacker.type === 'queen') {
-                    const sharedState = context.getSiblingState() as HeirBonusState | null;
-                    const gens = (sharedState?.generations || {}) as Record<string, number>;
+                    const sharedState = context.getSiblingState();
+                    const gens: Record<string, number> = sharedState?.generations ?? {};
                     const gen = gens[params.attacker.id] ?? 0;
 
                     if (gen === 0) return params.victim.type === 'king';
@@ -65,8 +65,8 @@ export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir
             const queens = context.query.pieces().ofTypes(['queen']);
             if (queens.length === 0) return [];
 
-            const sharedState = context.getSiblingState() as HeirBonusState | null;
-            const gens = (sharedState?.generations || {}) as Record<string, number>;
+            const sharedState = context.getSiblingState();
+            const gens: Record<string, number> = sharedState?.generations ?? {};
             const maxGen = Math.max(...queens.map(q => gens[q.piece.id] ?? 0));
 
             return [{

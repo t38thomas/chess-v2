@@ -7,7 +7,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Life Thirst): Capturing the enemy Queen or Rook resurrects a friendly minor piece.
  * Malus (Vampire Curse): The King can never castle.
  */
-export const TheVampire = definePact<Record<string, unknown>>('vampire')
+export const TheVampire = definePact<{}, {}>('vampire')
     .bonus('life_thirst', {
         icon: 'blood-bag',
         ranking: 5,

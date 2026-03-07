@@ -1,6 +1,6 @@
 # Guida Completa alla Creazione di un Patto in PactChess
 
-> **Versione:** 2.1 (Archi 10/10) · **Lingua:** Italiano (codice/identificatori in inglese)  
+> **Versione:** 3.0 (Type-Safe State) · **Lingua:** Italiano (codice/identificatori in inglese)  
 > **Pubblico:** Sviluppatori TypeScript con conoscenza base del dominio scacchistico
 
 ---
@@ -65,32 +65,32 @@ export interface PactDefinition {
 }
 
 /** Opzioni per costruire un lato (bonus o malus) tramite il builder. */
-export interface PactLogicOptions<T = any> {
+export interface PactLogicOptions<TState = any, TSiblingState = any> {
     // --- Scope ---
     target?: 'self' | 'enemy' | 'global';   // Default: 'self'
 
     // --- Modificatori di Regola (hook statici/deterministici) ---
-    modifiers?: RuleModifiers;
+    modifiers?: RuleModifiers<TState, TSiblingState>;
 
     // --- Event Hooks (logica imperativa a runtime) ---
-    onMove?:     (payload: Move,     ctx: PactContextWithState<T>) => void;
-    onCapture?:  (payload: Move,     ctx: PactContextWithState<T>) => void;
-    onPromotion?:(payload: { piece: Piece, type: PieceType, coord: Coordinate }, ctx: PactContextWithState<T>) => void;
-    onTurnStart?:(payload: PieceColor, ctx: PactContextWithState<T>) => void;
-    onTurnEnd?:  (payload: PieceColor, ctx: PactContextWithState<T>) => void;
-    onCheckmate?:(payload: { winner: PieceColor }, ctx: PactContextWithState<T>) => void;
+    onMove?:     (payload: Move,     ctx: PactContextWithState<TState, TSiblingState>) => void;
+    onCapture?:  (payload: Move,     ctx: PactContextWithState<TState, TSiblingState>) => void;
+    onPromotion?:(payload: { piece: Piece, type: PieceType, coord: Coordinate }, ctx: PactContextWithState<TState, TSiblingState>) => void;
+    onTurnStart?:(payload: PieceColor, ctx: PactContextWithState<TState, TSiblingState>) => void;
+    onTurnEnd?:  (payload: PieceColor, ctx: PactContextWithState<TState, TSiblingState>) => void;
+    onCheckmate?:(payload: { winner: PieceColor }, ctx: PactContextWithState<TState, TSiblingState>) => void;
 
     // --- Effetti Riutilizzabili (dal namespace Effects.*) ---
-    effects?: PactEffect[];
+    effects?: PactEffect<TState>[];
 
     // --- Stato Persistente ---
-    initialState?: () => T;  // Factory dell'initial state serializzabile
+    initialState?: () => TState;  // Factory dell'initial state serializzabile
 
     // --- Abilità Attiva (opzionale) ---
-    activeAbility?: ActiveAbilityConfig<T>;
+    activeAbility?: ActiveAbilityConfig<TState>;
 
     // --- UI Counters (opzionale) ---
-    getTurnCounters?: (ctx: PactContextWithState<T>) => TurnCounter[];
+    getTurnCounters?: (ctx: PactContextWithState<TState, TSiblingState>) => TurnCounter[];
 }
 ```
 
@@ -115,15 +115,21 @@ import { Effects } from '../PactEffects';
  * 
  * Rank bonus: +2 | Rank malus: -2
  */
-export const TheHawk = definePact('hawk')
+export const TheHawk = definePact<HawkBonusState, {}>('hawk')
     .bonus('high_flyer', {
         target: 'self',
-        // Usiamo un Effect riutilizzabile dal catalogo Effects.movement
         effects: [Effects.movement.canMoveThroughFriendlies('bishop')]
     })
     .malus('distant_predator', {
         target: 'self',
-        effects: [Effects.combat.restrictAdjacentCapture('bishop')]
+        modifiers: {
+            canCapture: (params, context) => {
+                const sharedState = context.getSiblingState();
+                if (sharedState?.jumpedThisTurn) return true;
+                // ...
+                return true;
+            }
+        }
     })
     .build();
 ```
@@ -303,7 +309,10 @@ Lo stato è memorizzato in `game.pactState`:
 game.pactState["frenzy_white"] = { isFrenzyActive: true, frenzyPieceId: "p1" };
 ```
 
-La classe `PactLogic` fornisce `getState()` e `setState()` come helper protetti. Nel builder (`GenericPact`), il context già espone `context.state` e `context.updateState()`.
+La classe `PactLogic` fornisce `getState()` e `setState()` come helper protetti. Nel builder (`GenericPact`), il context già espone `context.state` e `context.updateState()`. Grazie ai generics di `definePact<TBonus, TMalus>`, `context.state` è automaticamente tipizzato correttamente senza bisogno di cast.
+
+> [!IMPORTANT]
+> **Type Safety**: Non usare mai cast `as` per accedere allo stato. Se un effetto richiede una chiave specifica (es. `oncePerMatch`), assicurati che tale chiave sia dichiarata nell'interfaccia dello stato passata a `definePact`.
 
 > ⚠️ **Importante**: Lo stato deve essere serializzabile in JSON (no funzioni, no classi). Questo è necessario per la sincronizzazione online e la replay delle partite.
 

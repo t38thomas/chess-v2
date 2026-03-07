@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Bayonet): Pawns capture straight forward instead of diagonally. UI counter active.
  * Malus (Old Guard): Pawns cannot double move on their first turn.
  */
-export const TheVeteran = definePact<Record<string, unknown>>('veteran')
+export const TheVeteran = definePact<{}, {}>('veteran')
     .bonus('bayonet', {
         icon: 'knife',
         ranking: 3,

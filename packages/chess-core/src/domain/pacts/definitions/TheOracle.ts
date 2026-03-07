@@ -10,7 +10,7 @@ interface OracleMalusState {
  * Bonus (Prescience): UI counter shows undefended enemy pieces.
  * Malus (Inevitable Fate): If you have an opportunity to capture an undefended piece and don't take it, you must sacrifice a piece.
  */
-export const TheOracle = definePact<Record<string, unknown>, OracleMalusState>('oracle')
+export const TheOracle = definePact<{}, OracleMalusState>('oracle')
     .bonus('prescience', {
         target: 'self',
         icon: 'eye',

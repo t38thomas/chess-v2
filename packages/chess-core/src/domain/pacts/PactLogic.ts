@@ -25,13 +25,11 @@ export interface PactContext {
     callStack?: string[];
 }
 
-export interface PactContextWithState<T, TSibling = Record<string, unknown>> extends PactContext {
+export interface PactContextWithState<T, TSibling = unknown> extends PactContext {
     readonly state: Readonly<T>;
     updateState: (update: Partial<T> | ((prev: Readonly<T>) => Readonly<T>)) => void;
     /**
      * Gets the state of the sibling logic (bonus if this is malus, or vice-versa).
-     * WHY: sibling pact state type cannot be known statically at the call site;
-     * callers must narrow the result themselves.
      */
     getSiblingState: () => Readonly<TSibling> | null;
     /**
@@ -61,7 +59,7 @@ export enum PactPriority {
 /**
  * Represents a reusable piece of pact logic.
  */
-export interface PactEffect<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
+export interface PactEffect<T = any, TSibling = any> {
     modifiers?: RuleModifiers<T, TSibling>;
     priority?: number; // Defines execution order (higher priority runs earlier), default 0
     onEvent?: <K extends keyof GameEventPayloads>(
@@ -247,7 +245,8 @@ class PactContextFlyweight<T, TSibling> implements PactContextWithState<T, TSibl
 
     public getSiblingState(): Readonly<TSibling> | null {
         if (!this.logic.siblingId) return null;
-        return this.logic.getState(this.game, this.playerId, this.logic.siblingId) as unknown as TSibling;
+        // Accessing internal state of sibling logic
+        return (this.logic as any).getRawState(this.game, this.playerId, this.logic.siblingId) as Readonly<TSibling>;
     }
 }
 
@@ -276,24 +275,27 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
     }
 
     /**
-     * Helper to get or initialize the state for this pact from the game instance.
-     * WHY: pactState is a heterogeneous map keyed by pact+color. The cast to T is
-     * unavoidable at this single boundary point; all callers inside the domain
-     * receive properly-typed PactContextWithState<T, TSibling>.
+     * Internal helper to get raw state without type safety.
      */
-    public getState(game: IChessGame, color: PieceColor, pactId?: string): T {
-        const id = pactId || this.id;
-        const key = `${id}_${color}`;
+    protected getRawState(game: IChessGame, color: PieceColor, pactId: string): any {
+        const key = `${pactId}_${color}`;
         if (!game.pactState) {
             (game as IChessGame & { pactState: Record<string, unknown> }).pactState = {};
         }
         if (game.pactState[key] === undefined || game.pactState[key] === null) {
-            const initial = this.getInitialState();
+            // This is a bit of a hack: ideally we'd know if this is the main pact or a sibling
+            // to call getInitialState(), but for siblings we often just want the defaults.
+            const initial = pactId === this.id ? this.getInitialState() : {};
             game.pactState[key] = initial !== null ? initial : {};
         }
-        // WHY: pactState is a heterogeneous Record<string, unknown>. This is the
-        // single narrowing point where we assert the correct generic type T.
-        return game.pactState[key] as T;
+        return game.pactState[key];
+    }
+
+    /**
+     * Helper to get or initialize the state for this pact from the game instance.
+     */
+    public getState(game: IChessGame, color: PieceColor): T {
+        return this.getRawState(game, color, this.id);
     }
 
 
@@ -412,13 +414,13 @@ class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown
         const effectModifiers = sortedEffects
             .map(e => e.modifiers)
             .filter(m => m !== undefined)
-            .map(m => wrapAll(m! as RuleModifiers<T>));
+            .map(m => wrapAll(m! as any));
 
         if (effectModifiers.length === 0) return base;
 
         // WHY: composeRuleModifiers operates on ModifierFn (erased types) internally.
         // The cast is safe because wrapAll already wrapped all functions in the correct context.
-        return composeRuleModifiers([...effectModifiers, base] as Partial<RuleModifiers>[]) as RuleModifiers<T>;
+        return composeRuleModifiers([...effectModifiers, base] as any) as RuleModifiers<T, TSibling>;
     }
 
 
@@ -502,10 +504,10 @@ class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown
 /**
  * Builder for defining pacts declaratively.
  */
-export interface PactLogicOptions<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
+export interface PactLogicOptions<T = any, TSibling = any> {
     target?: 'self' | 'enemy' | 'global';
-    effects?: PactEffect<T>[];
-    modifiers?: RuleModifiers<T>;
+    effects?: PactEffect<T, TSibling>[];
+    modifiers?: RuleModifiers<T, TSibling>;
     /**
      * Optional state validation function. 
      * Called whenever updateState is invoked to verify the new state.
@@ -537,14 +539,13 @@ export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<strin
     constructor(private readonly pactId: string) { }
 
     bonus<T = TBonus>(id: string, options: PactLogicOptions<T, TMalus>): PactBuilder<T, TMalus> {
-        this.bonusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TBonus, TMalus>;
-        return this as unknown as PactBuilder<T, TMalus>;
+        this.bonusLogic = { id, ...options } as any;
+        return this as any;
     }
 
     malus<T = TMalus>(id: string, options: PactLogicOptions<T, TBonus>): PactBuilder<TBonus, T> {
-        this.malusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TMalus, TBonus>;
-        // WHY: same as bonus() — fluent builder pattern requires this cast when redefining TMalus.
-        return this as unknown as PactBuilder<TBonus, T>;
+        this.malusLogic = { id, ...options } as any;
+        return this as any;
     }
 
     build(): PactDefinition {

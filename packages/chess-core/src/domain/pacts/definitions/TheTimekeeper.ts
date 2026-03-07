@@ -6,7 +6,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Time Stop): Once per match, grant yourself an extra turn at the cost of 3 specific pawns (deterministic). UI counter active.
  * Malus (Paradox): Associated with the Time Stop cost.
  */
-export const TheTimekeeper = definePact('timekeeper')
+export const TheTimekeeper = definePact<{}, {}>('timekeeper')
     .bonus('time_stop', {
         icon: 'clock-remove',
         ranking: 5,

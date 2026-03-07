@@ -6,7 +6,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Reclaimer): Active ability to resurrect the last captured friendly piece (any except Queen). Cooldown: 5 turns.
  * Malus (Ascension Cost): When you promote a piece, your opponent gets an extra turn.
  */
-export const TheNecromancer = definePact<Record<string, unknown>>('necromancer')
+export const TheNecromancer = definePact<{}, {}>('necromancer')
     .bonus('reclaimer', {
         icon: 'refresh',
         ranking: 5,

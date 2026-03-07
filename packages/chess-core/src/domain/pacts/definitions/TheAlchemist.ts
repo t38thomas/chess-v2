@@ -12,7 +12,7 @@ interface TransmutationParams {
  * Bonus (Transmutation): Active ability to swap two friendly non-king pieces (2 uses, cooldown 2).
  * Malus (Volatile Reagents): Capturing or promoting a piece stuns it for 2 turns.
  */
-export const TheAlchemist = definePact('alchemist')
+export const TheAlchemist = definePact<{}, {}>('alchemist')
     .bonus('transmutation', {
         icon: 'flask',
         ranking: 3,
