@@ -1,5 +1,6 @@
 import http from 'http';
 import { MatchService } from '../application/MatchService';
+import packageJson from '../../package.json';
 
 export const createHttpServer = (matchService: MatchService) => {
     return http.createServer(async (req, res) => {
@@ -24,6 +25,20 @@ export const createHttpServer = (matchService: MatchService) => {
             }));
             return;
         }
+
+        if (req.method === 'GET' && req.url === '/hello') {
+            res.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            });
+            res.end(JSON.stringify({
+                status: 'ok',
+                message: 'hello',
+                version: packageJson.version
+            }));
+            return;
+        }
+
         res.writeHead(404);
         res.end();
     });

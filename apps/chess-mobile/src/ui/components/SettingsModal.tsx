@@ -9,6 +9,7 @@ import { Divider } from './Divider';
 import { useTranslation } from '../../i18n';
 import { useSoundContext } from '../context/SoundContext';
 import { useGameSettings } from '../../context/GameSettingsContext';
+import * as packageJson from "../../../package.json"
 
 interface SettingsModalProps {
     visible: boolean;
@@ -124,6 +125,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                     fullWidth
                     style={{ marginTop: spacing[6] }}
                 />
+
+                {/* App Version */}
+                <Text variant="caption" color="secondary" style={{ textAlign: 'center', marginTop: spacing[4] }}>
+                    v{packageJson.version}
+                </Text>
             </View>
         </BaseModal>
     );
