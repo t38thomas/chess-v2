@@ -12,7 +12,8 @@
     "web": "npm run build && cd apps/chess-mobile && npm run web",
     "mobile": "npm run build && cd apps/chess-mobile && npm run android",
     "server": "npm run build && cd apps/chess-server && npm run dev",
-    "export-android": "npm run build && cd apps/chess-mobile/android && gradlew assembleRelease"
+    "export-android": "npm run build && cd apps/chess-mobile/android && gradlew assembleRelease",
+    "push": "node push.js"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
