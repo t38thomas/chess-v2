@@ -24,7 +24,7 @@ export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir
             if (capturedPiece?.color === playerId && capturedPiece.type === 'queen') {
                 const minorPieces = context.query.pieces().ofTypes(['rook', 'bishop', 'knight']);
                 if (minorPieces.length > 0) {
-                    const [successor] = PactUtils.pickRandom(minorPieces, 1);
+                    const [successor] = PactUtils.pickRandom(minorPieces, 1, game.rng);
                     if (successor) {
                         const gens = (context.state.generations || {}) as Record<string, number>;
                         const currentGen = gens[capturedPiece.id] ?? 0;

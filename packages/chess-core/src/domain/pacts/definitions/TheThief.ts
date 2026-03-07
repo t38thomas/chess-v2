@@ -11,8 +11,8 @@ type ThiefBonusState = Record<string, number>;
  * Bonus (Pickpocket): Friendly pawns stun adjacent enemy major pieces for 2 turns.
  * Malus (Wanted): Pawns cannot promote.
  */
-export const TheThief = definePact('thief')
-    .bonus<ThiefBonusState>('pickpocket', {
+export const TheThief = definePact<ThiefBonusState, Record<string, unknown>>('thief')
+    .bonus('pickpocket', {
         initialState: () => ({}),
         onMove: (move, context) => {
             const { game, playerId } = context;
@@ -27,11 +27,11 @@ export const TheThief = definePact('thief')
                         if (dx === 0 && dy === 0) continue;
                         const neighbor = new Coordinate(pawnCoord.x + dx, pawnCoord.y + dy);
                         if (neighbor.isValid()) {
-                            const enemyPiece = game.board.getSquare(neighbor)?.piece;
+                            const enemySquare = game.board.getSquare(neighbor);
+                            const enemyPiece = enemySquare?.piece;
                             if (enemyPiece && enemyPiece.color !== playerId && (enemyPiece.type === 'rook' || enemyPiece.type === 'queen')) {
-                                const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}` as keyof ThiefBonusState;
-                                const state = context.state;
-                                const lastTurn = state[historyKey] ?? -10;
+                                const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}`;
+                                const lastTurn = context.state[historyKey] ?? -10;
                                 if (game.totalTurns - lastTurn > 2 && (game.pieceCooldowns.get(enemyPiece.id) ?? 0) < 2) {
                                     game.applyCooldown!(enemyPiece.id, 2);
                                     context.updateState({ [historyKey]: game.totalTurns });
@@ -71,5 +71,3 @@ export const TheThief = definePact('thief')
         effects: [Effects.rules.restrictPromotion(['knight'])]
     })
     .build();
-
-

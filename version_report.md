@@ -1,6 +1,6 @@
 # Commit Versioning Report
 
-Final computed version logic based on the repository history: **4.2.7**
+Final computed version logic based on the repository history: **4.2.8**
 
 ## History Log
 
@@ -87,3 +87,4 @@ Final computed version logic based on the repository history: **4.2.7**
 - `modifiche` -> **v4.2.5** (patch)
 - `toast corretti` -> **v4.2.6** (patch)
 - `cooldown automatizzati` -> **v4.2.7** (patch)
+- `bug fixes` -> **v4.2.8** (patch)

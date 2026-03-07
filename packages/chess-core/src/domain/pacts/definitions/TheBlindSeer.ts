@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Echolocation): Sliding pieces can see through other pieces.
  * Malus (Darkness): Sliding pieces (Rook, Bishop, Queen) have a maximum move/view range of 3 squares.
  */
-export const TheBlindSeer = definePact('blind_seer')
+export const TheBlindSeer = definePact<Record<string, unknown>>('blind_seer')
     .bonus('echolocation', {
         icon: 'radar',
         ranking: 3,

@@ -6,7 +6,7 @@ import { BoardUtils } from '../utils/BoardUtils';
  * Bonus (Shadow Cloak): Pieces on edge squares cannot be captured from distance > 1.
  * Malus (Blind Light): Pieces cannot capture from central squares.
  */
-export const TheShadow = definePact('shadow')
+export const TheShadow = definePact<Record<string, unknown>>('shadow')
     .bonus('shadow_cloak', {
         icon: 'incognito',
         ranking: 4,

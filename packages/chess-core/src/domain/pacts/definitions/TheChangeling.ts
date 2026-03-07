@@ -113,6 +113,7 @@ export const TheChangeling = definePact<ChangelingState, ChangelingState>('chang
         ],
         getTurnCounters: (context) => {
             const counters: any[] = [];
+
             const val = (context.state['unstable_identity'] as number) || 0;
 
             counters.push({

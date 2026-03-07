@@ -31,6 +31,11 @@ export class ChessGame implements IChessGame {
     public lastMovedPiecePos: Coordinate | null = null;
     public enPassantTarget: Coordinate | null; // Square vulnerable to en passant
     public orientation: number = 0; // 0, 1, 2, 3 (clockwise)
+
+    // Type-safe registry for ability cooldowns/uses instead of generic pactState strings
+    public abilityCooldowns: Record<string, Record<string, number>> = { white: {}, black: {} };
+    public abilityUses: Record<string, Record<string, number>> = { white: {}, black: {} };
+
     private listeners: ((event: GameEvent, payload?: unknown) => void)[] = [];
     /**
      * Random number generator used by pact logic. Replace with a seeded function
@@ -55,9 +60,10 @@ export class ChessGame implements IChessGame {
         this.perkUsage.white.clear();
         this.perkUsage.black.clear();
         this.capturedPieces.white = [];
-        this.capturedPieces.white = [];
         this.capturedPieces.black = [];
         this.orientation = 0;
+        this.abilityCooldowns = { white: {}, black: {} };
+        this.abilityUses = { white: {}, black: {} };
     }
 
     public assignPact(color: PieceColor, pact: PactDefinition) {
@@ -140,7 +146,32 @@ export class ChessGame implements IChessGame {
      * Preferred over direct mutation of `game.extraTurns[color]` from pact logic.
      */
     public grantExtraTurn(color: PieceColor, count: number = 1): void {
-        this.extraTurns[color] = (this.extraTurns[color] || 0) + count;
+        this.extraTurns[color] += count;
+    }
+
+    /**
+     * Centralized method to advance cooldowns for a player at the start of their turn.
+     * Decrements piece-specific cooldowns and pact/ability cooldowns.
+     */
+    private advanceTurnCooldowns(nextPlayer: PieceColor): void {
+        const squares = this.board.getAllSquares();
+        for (const square of squares) {
+            const piece = square.piece;
+            if (piece && piece.color === nextPlayer) {
+                const cd = this.pieceCooldowns.get(piece.id) || 0;
+                if (cd > 0) {
+                    this.pieceCooldowns.set(piece.id, cd - 1);
+                }
+            }
+        }
+
+        const activePlayerPacts = this.pacts[nextPlayer].map(p => [p.bonus, p.malus]).flat();
+        for (const p of activePlayerPacts) {
+            const cd = this.abilityCooldowns[nextPlayer]?.[p.id] || 0;
+            if (cd > 0) {
+                this.abilityCooldowns[nextPlayer][p.id] = cd - 1;
+            }
+        }
     }
 
     public useAbility(abilityId: string, params?: unknown): boolean {
@@ -151,15 +182,21 @@ export class ChessGame implements IChessGame {
 
         if (!abilityPerk || !abilityPerk.activeAbility) return false;
 
-        const stateCooldownKey = `${abilityId}_${this.turn}_cooldown`;
-        const currentCooldown = (this.pactState[stateCooldownKey] as number) || 0;
+        // Type Safety verification of incoming params
+        if (abilityPerk.activeAbility.validateParams && params !== undefined) {
+            if (!abilityPerk.activeAbility.validateParams(params)) {
+                console.warn(`[PactSystem] Invalid parameters provided for ability ${abilityId}`);
+                return false;
+            }
+        }
+
+        const currentCooldown = this.abilityCooldowns[this.turn]?.[abilityId] || 0;
         if (currentCooldown > 0) return false;
 
         // Check maxUses
         const logic = PactRegistry.getInstance().get(abilityId);
         if (logic?.activeAbility?.maxUses !== undefined) {
-            const stateUsesKey = `${abilityId}_${this.turn}_uses`;
-            const currentUses = (this.pactState[stateUsesKey] as number) || 0;
+            const currentUses = this.abilityUses[this.turn]?.[abilityId] || 0;
             if (currentUses >= logic.activeAbility.maxUses) return false;
         }
 
@@ -170,22 +207,22 @@ export class ChessGame implements IChessGame {
         // Mark as used if successful (unless repeatable)
         if (success) {
             if (logic?.activeAbility?.cooldown) {
-                this.pactState[stateCooldownKey] = logic.activeAbility.cooldown;
+                this.abilityCooldowns[this.turn][abilityId] = logic.activeAbility.cooldown;
             } else if (!logic?.activeAbility?.repeatable) {
                 this.perkUsage[this.turn].add(abilityId);
             }
 
             // Increment maxUses counter
             if (logic?.activeAbility?.maxUses !== undefined) {
-                const stateUsesKey = `${abilityId}_${this.turn}_uses`;
-                const currentUses = (this.pactState[stateUsesKey] as number) || 0;
-                this.pactState[stateUsesKey] = currentUses + 1;
+                const currentUses = this.abilityUses[this.turn]?.[abilityId] || 0;
+                this.abilityUses[this.turn][abilityId] = currentUses + 1;
             }
 
             this.emit('ability_activated', { abilityId, playerId: this.turn });
 
             if (logic?.activeAbility?.consumesTurn) {
                 this.turn = RuleEngine.getNextTurn(this, this.turn, 'ability_activated', playerPacts);
+                this.advanceTurnCooldowns(this.turn);
                 this.emit('turn_start', this.turn);
             }
 
@@ -203,13 +240,13 @@ export class ChessGame implements IChessGame {
         return playerPacts
             .filter(p => {
                 if (!p.activeAbility) return false;
-                const currentCooldown = (this.pactState[`${p.id}_${this.turn}_cooldown`] as number) || 0;
+                const currentCooldown = this.abilityCooldowns[this.turn]?.[p.id] || 0;
                 if (currentCooldown > 0) return false;
 
                 // Check maxUses
                 const logic = registry.get(p.id);
                 if (logic?.activeAbility?.maxUses !== undefined) {
-                    const currentUses = (this.pactState[`${p.id}_${this.turn}_uses`] as number) || 0;
+                    const currentUses = this.abilityUses[this.turn]?.[p.id] || 0;
                     if (currentUses >= logic.activeAbility.maxUses) return false;
                 }
 
@@ -406,27 +443,8 @@ export class ChessGame implements IChessGame {
 
         this.emit(eventType, move);
 
-        // Central Cooldown Management: Decrement cooldowns for the player who is about to start their turn
-        // We do this AFTER the move event so that passive effects triggered by the move (like Pickpocket) 
-        // can set cooldowns that are immediately decremented by the upcoming turn.
-        const pieces = this.board.getAllSquares().map(s => s.piece).filter(p => p !== null);
-        pieces.forEach(p => {
-            if (p && p.color === this.turn) {
-                const cd = this.pieceCooldowns.get(p.id) || 0;
-                if (cd > 0) {
-                    this.pieceCooldowns.set(p.id, cd - 1);
-                }
-            }
-        });
-
-        const activePlayerPactsAfterMove = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
-        activePlayerPactsAfterMove.forEach(p => {
-            const stateCooldownKey = `${p.id}_${this.turn}_cooldown`;
-            const cd = (this.pactState[stateCooldownKey] as number) || 0;
-            if (cd > 0) {
-                this.pactState[stateCooldownKey] = cd - 1;
-            }
-        });
+        // Central Cooldown Management
+        this.advanceTurnCooldowns(this.turn);
 
         this.emit('turn_start', this.turn);
         return true;
@@ -466,25 +484,8 @@ export class ChessGame implements IChessGame {
         // Update Game Status (checkmate etc)
         this.updateGameStatus();
 
-        // Cooldowns
-        const pieces = this.board.getAllSquares().map(s => s.piece).filter(p => p !== null);
-        pieces.forEach(p => {
-            if (p && p.color === this.turn) {
-                const cd = this.pieceCooldowns.get(p.id) || 0;
-                if (cd > 0) {
-                    this.pieceCooldowns.set(p.id, cd - 1);
-                }
-            }
-        });
-
-        const activePlayerPactsAfterRotate = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
-        activePlayerPactsAfterRotate.forEach(p => {
-            const stateCooldownKey = `${p.id}_${this.turn}_cooldown`;
-            const cd = (this.pactState[stateCooldownKey] as number) || 0;
-            if (cd > 0) {
-                this.pactState[stateCooldownKey] = cd - 1;
-            }
-        });
+        // Central Cooldown Management
+        this.advanceTurnCooldowns(this.turn);
 
         this.emit('turn_start', this.turn);
         return true;
@@ -596,8 +597,9 @@ export class ChessGame implements IChessGame {
         this.perkUsage.black.clear();
         this.capturedPieces.white = [];
         this.capturedPieces.black = [];
-        this.capturedPieces.black = [];
         this.orientation = 0;
+        this.abilityCooldowns = { white: {}, black: {} };
+        this.abilityUses = { white: {}, black: {} };
     }
 
     public jumpToMove(index: number): boolean {

@@ -10,19 +10,19 @@ interface OracleMalusState {
  * Bonus (Prescience): UI counter shows undefended enemy pieces.
  * Malus (Inevitable Fate): If you have an opportunity to capture an undefended piece and don't take it, you must sacrifice a piece.
  */
-export const TheOracle = definePact('oracle')
+export const TheOracle = definePact<Record<string, unknown>, OracleMalusState>('oracle')
     .bonus('prescience', {
         target: 'self',
         icon: 'eye',
         ranking: 3,
         category: 'special',
     })
-    .malus<OracleMalusState>('inevitable_fate', {
+    .malus('inevitable_fate', {
         target: 'self',
         icon: 'skull',
         ranking: 4,
         category: 'special',
-        initialState: () => ({ capablePieceIds: [] }),
+        initialState: (): OracleMalusState => ({ capablePieceIds: [] }),
         onTurnStart: (context) => {
             const { game, playerId } = context;
             const capablePieceIds = PactUtils.getCaptureOpportunities(game, playerId, true);
@@ -34,7 +34,7 @@ export const TheOracle = definePact('oracle')
 
             if (isPlayerMove) {
                 const capablePieceIds = context.state.capablePieceIds;
-                if (capablePieceIds.length === 0) return;
+                if (!capablePieceIds || capablePieceIds.length === 0) return;
 
                 let satisfied = false;
                 if (move.capturedPiece) {
@@ -44,13 +44,17 @@ export const TheOracle = definePact('oracle')
 
                 if (!satisfied) {
                     // Use game.rng instead of Math.random for deterministic results
-                    const rng = game.rng ?? Math.random;
+                    const rng = game.rng;
+                    if (!rng) {
+                        console.warn('[PactSystem] TheOracle: game.rng is missing, falling back to Math.random (non-deterministic)');
+                    }
+                    const generator = rng || Math.random;
                     let victimId: string;
                     if (capablePieceIds.includes(move.piece.id)) {
                         victimId = move.piece.id;
                         PactUtils.removePiece(game, move.to);
                     } else {
-                        const idx = Math.floor(rng() * capablePieceIds.length);
+                        const idx = Math.floor(generator() * capablePieceIds.length);
                         victimId = capablePieceIds[idx];
                         const victim = context.query.pieces().friendly().byId(victimId);
                         if (victim) PactUtils.removePiece(game, victim.coord);
@@ -60,7 +64,7 @@ export const TheOracle = definePact('oracle')
             }
         },
         getTurnCounters: (context) => {
-            const count = context.state.capablePieceIds.length;
+            const count = context.state.capablePieceIds?.length || 0;
             if (count > 0) {
                 return [{
                     id: 'inevitable_fate_pending',
@@ -74,6 +78,3 @@ export const TheOracle = definePact('oracle')
         }
     })
     .build();
-
-
-

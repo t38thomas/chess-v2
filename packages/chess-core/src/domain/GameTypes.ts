@@ -61,6 +61,8 @@ export interface IChessGame {
     enPassantTarget: Coordinate | null;
     orientation: number; // 0, 1, 2, 3 (clockwise rotations)
     winner?: PieceColor | null;
+    abilityCooldowns?: Record<string, Record<string, number>>;
+    abilityUses?: Record<string, Record<string, number>>;
 
     emit<E extends keyof GameEventPayloads>(event: E, payload: GameEventPayloads[E]): void;
     emit(event: GameEvent, payload?: unknown): void;

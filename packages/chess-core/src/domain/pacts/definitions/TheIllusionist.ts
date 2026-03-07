@@ -1,9 +1,14 @@
 import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
-import { PactUtils } from '../PactUtils';
+import { PactUtils, isCoordinate } from '../PactUtils';
 import { Effects } from '../PactEffects';
 
 const DISPLACE_COOLDOWN = 3;
+
+interface DisplaceParams {
+    from: Coordinate;
+    to: Coordinate;
+}
 
 /**
  * The Illusionist Pact
@@ -25,13 +30,19 @@ export const TheIllusionist = definePact('illusionist')
             targetType: 'square',
             maxTargets: 2,
             consumesTurn: true,
+            validateParams: (p): p is DisplaceParams => {
+                if (!p || typeof p !== 'object') return false;
+                const params = p as Record<string, unknown>;
+                return isCoordinate(params.from) && isCoordinate(params.to);
+            },
             execute: (context, params) => {
                 const { game } = context;
-                const p = params as { from: Coordinate; to: Coordinate } | undefined;
-                if (!p?.from || !p?.to) return false;
+                const p = params as Record<string, unknown>;
+                if (!p || !isCoordinate(p.from) || !isCoordinate(p.to)) return false;
+                const { from, to } = params as DisplaceParams;
 
-                const fromPos = new Coordinate(p.from.x, p.from.y);
-                const toPos = new Coordinate(p.to.x, p.to.y);
+                const fromPos = new Coordinate(from.x, from.y);
+                const toPos = new Coordinate(to.x, to.y);
 
                 const sourceSquare = game.board.getSquare(fromPos);
                 const destSquare = game.board.getSquare(toPos);
@@ -63,7 +74,7 @@ export const TheIllusionist = definePact('illusionist')
                     const { game } = context;
                     const pawns = context.query.pieces().ofTypes(['pawn']);
                     if (pawns.length > 0) {
-                        const victim = PactUtils.pickRandom(pawns, 1)[0];
+                        const victim = PactUtils.pickRandom(pawns, 1, game.rng)[0];
                         if (victim) {
                             PactUtils.removePiece(game, victim.coord);
                             PactUtils.notifyPactEffect(game, 'illusionist', 'vanished_illusion', 'malus', 'ghost-off');

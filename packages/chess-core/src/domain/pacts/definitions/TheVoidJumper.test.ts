@@ -248,5 +248,17 @@ describe('The Void Jumper Pact', () => {
             expect(game.board.getSquare(p2Coord)?.piece?.type).toBe('pawn');
             expect(game.board.getSquare(victimCoord)?.piece).toBeNull();
         });
+
+        it('should reject invalid generic params on Ability invocation', () => {
+            game.assignPact('white', TheVoidJumper);
+
+            // payload vuoto
+            let success = game.useAbility('void_jump');
+            expect(success).toBe(false);
+
+            // malformato string
+            success = game.useAbility('void_jump', { from: { x: 'a', y: 1 }, to: { x: 0, y: 0 } });
+            expect(success).toBe(false);
+        });
     });
 });

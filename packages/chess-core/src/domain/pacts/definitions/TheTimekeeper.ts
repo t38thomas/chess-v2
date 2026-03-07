@@ -20,7 +20,7 @@ export const TheTimekeeper = definePact('timekeeper')
             targetType: 'none',
             execute: (context) => {
                 const { game, playerId } = context;
-                game.extraTurns[playerId] = (game.extraTurns[playerId] || 0) + 1;
+                game.grantExtraTurn!(playerId, 1);
                 PactUtils.notifyPactEffect(game, 'timekeeper', 'time_stop', 'bonus', 'clock-stop');
 
                 const pawns = context.query.pieces().ofTypes(['pawn']);
@@ -41,7 +41,6 @@ export const TheTimekeeper = definePact('timekeeper')
     .malus('paradox', {
         icon: 'infinity',
         ranking: -4,
-        category: 'Board Transform',})
+        category: 'Board Transform',
+    })
     .build();
-
-

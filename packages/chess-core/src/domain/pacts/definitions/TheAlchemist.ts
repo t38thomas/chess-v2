@@ -1,6 +1,11 @@
 import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
-import { PactUtils } from '../PactUtils';
+import { PactUtils, isCoordinate } from '../PactUtils';
+
+interface TransmutationParams {
+    from: Coordinate;
+    to: Coordinate;
+}
 
 /**
  * The Alchemist Pact
@@ -23,13 +28,19 @@ export const TheAlchemist = definePact('alchemist')
             targetType: 'square',
             maxTargets: 2,
             consumesTurn: true,
+            validateParams: (p): p is TransmutationParams => {
+                if (!p || typeof p !== 'object') return false;
+                const params = p as Record<string, unknown>;
+                return isCoordinate(params.from) && isCoordinate(params.to);
+            },
             execute: (context, params) => {
                 const { game, playerId } = context;
-                const p = params as { from: Coordinate; to: Coordinate } | undefined;
-                if (!p || !p.from || !p.to) return false;
+                const p = params as Record<string, unknown>;
+                if (!p || !isCoordinate(p.from) || !isCoordinate(p.to)) return false;
+                const { from, to } = params as TransmutationParams;
 
-                const fromCoord = new Coordinate(p.from.x, p.from.y);
-                const toCoord = new Coordinate(p.to.x, p.to.y);
+                const fromCoord = new Coordinate(from.x, from.y);
+                const toCoord = new Coordinate(to.x, to.y);
 
                 const sq1 = game.board.getSquare(fromCoord);
                 const sq2 = game.board.getSquare(toCoord);

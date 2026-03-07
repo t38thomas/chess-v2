@@ -61,6 +61,27 @@ describe('The Illusionist Pact', () => {
             expect(game.turn).toBe('black');
         });
 
+        it('should reject invalid generic params on Ability invocation', () => {
+            game.assignPact('white', TheIllusionist);
+            game.assignPact('black', {
+                id: 'dummy',
+                bonus: { id: 'dummy_b', category: 'Action' },
+                malus: { id: 'dummy_m', category: 'Passive' }
+            } as any);
+
+            // payload assente
+            let result = game.useAbility('displace');
+            expect(result).toBe(false);
+
+            // from malformato
+            result = game.useAbility('displace', { from: null, to: { x: 1, y: 1 } });
+            expect(result).toBe(false);
+
+            // from senza x
+            result = game.useAbility('displace', { from: { y: 1 }, to: { x: 1, y: 1 } });
+            expect(result).toBe(false);
+        });
+
         it('should fail if no adjacent empty squares exist', () => {
             game.assignPact('white', TheIllusionist);
             game.assignPact('black', {

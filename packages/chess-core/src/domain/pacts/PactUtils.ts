@@ -6,8 +6,15 @@ import { PieceUtils } from './utils/PieceUtils';
 import { Piece, PieceType, PieceColor } from '../models/Piece';
 import { MovementUtils } from './utils/MovementUtils';
 
+/** Type guard to check if an unknown payload is a valid Coordinate at runtime. */
+export function isCoordinate(val: unknown): val is Coordinate {
+    return !!val && typeof val === 'object' && 'x' in val && typeof (val as Record<string, unknown>).x === 'number' && 'y' in val && typeof (val as Record<string, unknown>).y === 'number';
+}
 
-
+/** Type guard to check if an unknown payload has a valid 'target' Coordinate (common for square-targeting abilities). */
+export function isCoordinateTarget(val: unknown): val is { target: Coordinate } {
+    return !!val && typeof val === 'object' && 'target' in val && isCoordinate((val as Record<string, unknown>).target);
+}
 
 export type PactVisualEffect = 'stun' | 'heal' | 'buff' | 'debuff' | 'silence' | 'swap' | 'revive' | 'damage';
 export type PactVisualIcon = 'flask' | 'shield' | 'sword' | 'snowflake' | 'swap-horizontal' | 'heart' | 'skull' | 'zap' | 'eye' | 'flame' | 'leaf';
@@ -65,12 +72,14 @@ export class PactUtils {
     public static blockDiagonalMoves = MovementUtils.blockDiagonalMoves;
 
     // Common helpers
-    public static pickRandom<T>(items: T[], count: number, rng: () => number = Math.random): T[] {
+    public static pickRandom<T>(items: T[], count: number, rng?: () => number): T[] {
         if (items.length === 0) return [];
+        const generator = rng || Math.random;
+
         // Fisher-Yates shuffle (unbiased, works correctly with seeded rng)
         const arr = [...items];
         for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(rng() * (i + 1));
+            const j = Math.floor(generator() * (i + 1));
             [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr.slice(0, count);

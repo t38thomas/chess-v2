@@ -90,6 +90,7 @@ export interface ActiveAbilityConfig<TState = Record<string, unknown>, TSibling 
     consumesTurn?: boolean;
     repeatable?: boolean;
     maxTargets?: number;
+    validateParams?: (params: unknown) => params is TParams;
     execute: (context: PactContextWithState<TState, TSibling>, params: TParams) => boolean;
 }
 
@@ -159,6 +160,97 @@ export interface RuleModifiers<T = Record<string, unknown>, TSibling = Record<st
     isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<T, TSibling>) => boolean;
 }
 
+/**
+ * Flyweight implementation of the pact context to reduce memory allocation
+ * and provide built-in caching for expensive queries.
+ */
+class PactContextFlyweight<T, TSibling> implements PactContextWithState<T, TSibling> {
+    public game: IChessGame;
+    public playerId: PieceColor;
+    public pactId: string;
+    public callStack: string[];
+    public state: Readonly<T>;
+
+    private _query: PactContextWithState<T, TSibling>['query'];
+    private _pieceCache: Map<string, PieceQueryResult> = new Map();
+    private _checkmateCache: Map<PieceColor, boolean> = new Map();
+
+    constructor(
+        context: PactContext,
+        state: T,
+        private logic: PactLogic<T, TSibling>
+    ) {
+        this.game = context.game;
+        this.playerId = context.playerId;
+        this.pactId = context.pactId;
+        this.callStack = context.callStack || [];
+        this.state = state;
+
+        this._query = {
+            pieces: (colorOverride?: PieceColor) => {
+                const color = colorOverride || this.playerId;
+
+                const getCached = (c: PieceColor) => {
+                    const cacheKey = `pieces_${c}`;
+                    if (this._pieceCache.has(cacheKey)) {
+                        return this._pieceCache.get(cacheKey)!;
+                    }
+                    const wrap = (pieces: { piece: Piece, coord: Coordinate }[]) => Object.assign(pieces, {
+                        ofTypes: (types: PieceType[]) => wrap(pieces.filter(p => types.includes(p.piece.type))),
+                        byId: (id: string) => pieces.find(p => p.piece.id === id),
+                        atCoord: (coord: Coordinate) => pieces.find(p => p.coord.x === coord.x && p.coord.y === coord.y),
+                        inRange: (from: Coordinate, range: number) => wrap(pieces.filter(p => Math.max(Math.abs(p.coord.x - from.x), Math.abs(p.coord.y - from.y)) <= range))
+                    }) as PieceQueryResult;
+
+                    const result = wrap(BoardUtils.findPieces(this.game, c));
+                    this._pieceCache.set(cacheKey, result);
+                    return result;
+                };
+
+                return {
+                    all: () => getCached(color),
+                    friendly: () => getCached(color),
+                    enemy: () => getCached(color === 'white' ? 'black' : 'white'),
+                    ofTypes: (types: PieceType[]) => getCached(color).ofTypes(types),
+                    byId: (id: string) => getCached(color).byId(id),
+                    atCoord: (coord: Coordinate) => getCached(color).atCoord(coord),
+                    inRange: (from: Coordinate, range: number) => getCached(color).inRange(from, range)
+                };
+            },
+            isCheckmated: (colorOverride?: PieceColor) => {
+                const color = colorOverride || this.playerId;
+                if (this._checkmateCache.has(color)) return this._checkmateCache.get(color)!;
+
+                const result = this.game.status === 'checkmate' && this.game.turn === color;
+                this._checkmateCache.set(color, result);
+                return result;
+            }
+        };
+    }
+
+    public get query() { return this._query; }
+
+    public updateState(update: Partial<T> | ((prev: Readonly<T>) => Readonly<T>)): void {
+        const currentState = this.logic.getState(this.game, this.playerId);
+        const nextState = typeof update === 'function'
+            ? (update as (prev: Readonly<T>) => Readonly<T>)(currentState)
+            : { ...currentState, ...update };
+
+        if (this.logic.validateState && !this.logic.validateState(nextState)) {
+            console.warn(`[PactSystem] State validation failed for pact: ${this.pactId}`);
+        }
+
+        this.logic.setState(this.game, this.playerId, nextState);
+        // Sync flyweight state
+        this.state = nextState;
+    }
+
+    public getSiblingState(): Readonly<TSibling> | null {
+        if (!this.logic.siblingId) return null;
+        return this.logic.getState(this.game, this.playerId, this.logic.siblingId) as unknown as TSibling;
+    }
+}
+
 export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
     abstract id: string;
     public target: 'self' | 'enemy' | 'global' = 'self';
@@ -189,7 +281,7 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
      * unavoidable at this single boundary point; all callers inside the domain
      * receive properly-typed PactContextWithState<T, TSibling>.
      */
-    protected getState(game: IChessGame, color: PieceColor, pactId?: string): T {
+    public getState(game: IChessGame, color: PieceColor, pactId?: string): T {
         const id = pactId || this.id;
         const key = `${id}_${color}`;
         if (!game.pactState) {
@@ -208,7 +300,7 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
     /**
      * Helper to update the state for this pact.
      */
-    protected setState(game: IChessGame, color: PieceColor, state: T): void {
+    public setState(game: IChessGame, color: PieceColor, state: T): void {
         const key = `${this.id}_${color}`;
         if (!game.pactState) {
             (game as IChessGame & { pactState: Record<string, unknown> }).pactState = {};
@@ -218,58 +310,7 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
 
     public createContextWithState(context: PactContext): PactContextWithState<T, TSibling> {
         const state = this.getState(context.game, context.playerId);
-
-        return {
-            ...context,
-            callStack: context.callStack || [],
-            state,
-            updateState: (update) => {
-                const currentState = this.getState(context.game, context.playerId);
-                const nextState = typeof update === 'function'
-                    ? update(currentState)
-                    : { ...currentState, ...update };
-
-                if (this.validateState && !this.validateState(nextState)) {
-                    console.warn(`[PactSystem] State validation failed for pact: ${this.id}`);
-                }
-
-                this.setState(context.game, context.playerId, nextState);
-            },
-
-            getSiblingState: () => {
-                if (!this.siblingId) return null;
-                // WHY: sibling type TSibling is unknown at this point; callers narrow it.
-                return this.getState(context.game, context.playerId, this.siblingId) as unknown as TSibling;
-            },
-            query: {
-                pieces: (colorOverride?: PieceColor) => {
-                    const color = colorOverride || context.playerId;
-                    const getPieces = (c: PieceColor) => BoardUtils.findPieces(context.game, c);
-
-                    const wrap = (pieces: { piece: Piece, coord: Coordinate }[]) => Object.assign(pieces, {
-                        ofTypes: (types: PieceType[]) => wrap(pieces.filter(p => types.includes(p.piece.type))),
-                        byId: (id: string) => pieces.find(p => p.piece.id === id),
-                        atCoord: (coord: Coordinate) => pieces.find(p => p.coord.x === coord.x && p.coord.y === coord.y),
-                        inRange: (from: Coordinate, range: number) => wrap(pieces.filter(p => Math.max(Math.abs(p.coord.x - from.x), Math.abs(p.coord.y - from.y)) <= range))
-                    }) as PieceQueryResult;
-
-
-                    return {
-                        all: () => wrap(getPieces(color)),
-                        friendly: () => wrap(getPieces(color)),
-                        enemy: () => wrap(getPieces(color === 'white' ? 'black' : 'white')),
-                        ofTypes: (types: PieceType[]) => wrap(BoardUtils.findPiecesByTypes(context.game, color, types)),
-                        byId: (id: string) => wrap(getPieces(color)).byId(id),
-                        atCoord: (coord: Coordinate) => wrap(getPieces(color)).atCoord(coord)
-                    };
-                },
-                isCheckmated: (colorOverride?: PieceColor) => {
-                    const color = colorOverride || context.playerId;
-                    return context.game.status === 'checkmate' && context.game.turn === color;
-                }
-            }
-
-        };
+        return new PactContextFlyweight(context, state, this);
     }
 
 
@@ -326,10 +367,10 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
 /**
  * A concrete implementation of PactLogic that accepts functions to define its behavior.
  */
-class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
+class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown>> extends PactLogic<T, TSibling> {
     constructor(
         public readonly id: string,
-        public readonly options: PactLogicOptions<T>
+        public readonly options: PactLogicOptions<T, TSibling>
     ) {
         super();
         this.activeAbility = options.activeAbility;
@@ -425,7 +466,7 @@ class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
 
         // Auto-inject cooldown counter if activeAbility has a cooldown
         if (this.activeAbility?.cooldown) {
-            const cd = (context.game.pactState[`${this.id}_${context.playerId}_cooldown`] as number) || 0;
+            const cd = context.game.abilityCooldowns?.[context.playerId]?.[this.id] || 0;
             if (cd > 0) {
                 counters.push({
                     id: `${this.id}_cooldown`,
@@ -433,6 +474,21 @@ class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
                     value: cd,
                     pactId: this.id,
                     type: 'cooldown'
+                });
+            }
+        }
+
+        // Auto-inject uses counter if activeAbility has maxUses
+        if (this.activeAbility?.maxUses !== undefined) {
+            const currentUses = context.game.abilityUses?.[context.playerId]?.[this.id] || 0;
+            const remaining = this.activeAbility.maxUses - currentUses;
+            if (remaining >= 0) {
+                counters.push({
+                    id: `${this.id}_uses`,
+                    label: `perks.${this.id}.name`,
+                    value: remaining,
+                    pactId: this.id,
+                    type: 'uses'
                 });
             }
         }
@@ -475,18 +531,18 @@ export interface PactLogicOptions<T = Record<string, unknown>, TSibling = Record
 }
 
 export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<string, unknown>> {
-    private bonusLogic?: { id: string } & PactLogicOptions<TBonus>;
-    private malusLogic?: { id: string } & PactLogicOptions<TMalus>;
+    private bonusLogic?: { id: string } & PactLogicOptions<TBonus, TMalus>;
+    private malusLogic?: { id: string } & PactLogicOptions<TMalus, TBonus>;
 
     constructor(private readonly pactId: string) { }
 
-    bonus<T = TBonus>(id: string, options: PactLogicOptions<T>): PactBuilder<T, TMalus> {
-        this.bonusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TBonus>;
+    bonus<T = TBonus>(id: string, options: PactLogicOptions<T, TMalus>): PactBuilder<T, TMalus> {
+        this.bonusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TBonus, TMalus>;
         return this as unknown as PactBuilder<T, TMalus>;
     }
 
-    malus<T = TMalus>(id: string, options: PactLogicOptions<T>): PactBuilder<TBonus, T> {
-        this.malusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TMalus>;
+    malus<T = TMalus>(id: string, options: PactLogicOptions<T, TBonus>): PactBuilder<TBonus, T> {
+        this.malusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TMalus, TBonus>;
         // WHY: same as bonus() — fluent builder pattern requires this cast when redefining TMalus.
         return this as unknown as PactBuilder<TBonus, T>;
     }
@@ -496,8 +552,8 @@ export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<strin
             throw new Error(`Pact ${this.pactId} must have both a bonus and a malus defined.`);
         }
 
-        const bonus = new GenericPact(this.bonusLogic.id, this.bonusLogic);
-        const malus = new GenericPact(this.malusLogic.id, this.malusLogic);
+        const bonus = new GenericPact<TBonus, TMalus>(this.bonusLogic.id, this.bonusLogic);
+        const malus = new GenericPact<TMalus, TBonus>(this.malusLogic.id, this.malusLogic);
 
         // Links siblings
         bonus.siblingId = malus.id;
@@ -630,7 +686,7 @@ export interface TurnCounter {
     label: string; // Internal name or key for translation
     value: number;
     pactId: string; // The pact ID to get the icon from registry
-    type: 'cooldown' | 'counter';
+    type: 'cooldown' | 'counter' | 'uses';
     maxValue?: number; // Optional for progress bars
     subLabel?: string; // Optional sub-label (e.g. "turns left")
 }

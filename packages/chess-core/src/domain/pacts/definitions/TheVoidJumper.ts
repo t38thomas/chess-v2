@@ -1,13 +1,18 @@
 import { definePact } from '../PactLogic';
 import { Coordinate } from '../../models/Coordinate';
-import { PactUtils } from '../PactUtils';
+import { PactUtils, isCoordinate } from '../PactUtils';
+
+interface VoidJumpParams {
+    from: Coordinate;
+    to: Coordinate;
+}
 
 /**
  * The Void Jumper Pact
  * Bonus (Void Jump): Swap positions of two friendly pieces. Max uses: 3.
  * Malus (Ritual Sacrifice): To jump, you must sacrifice your currently most advanced piece.
  */
-export const TheVoidJumper = definePact('void_jumper')
+export const TheVoidJumper = definePact<Record<string, unknown>>('void_jumper')
     .bonus('void_jump', {
         icon: 'axis-arrow',
         ranking: 5,
@@ -20,13 +25,19 @@ export const TheVoidJumper = definePact('void_jumper')
             targetType: 'square',
             consumesTurn: true,
             maxUses: 3,
+            validateParams: (p): p is VoidJumpParams => {
+                if (!p || typeof p !== 'object') return false;
+                const params = p as Record<string, unknown>;
+                return isCoordinate(params.from) && isCoordinate(params.to);
+            },
             execute: (context, params) => {
                 const { game, playerId } = context;
-                const p = params as { from: Coordinate; to: Coordinate } | undefined;
-                if (!p?.from || !p?.to) return false;
+                const p = params as Record<string, unknown>;
+                if (!p || !isCoordinate(p.from) || !isCoordinate(p.to)) return false;
+                const { from, to } = params as VoidJumpParams;
 
-                const fromCoord = new Coordinate(p.from.x, p.from.y);
-                const toCoord = new Coordinate(p.to.x, p.to.y);
+                const fromCoord = new Coordinate(from.x, from.y);
+                const toCoord = new Coordinate(to.x, to.y);
 
                 const sq1 = game.board.getSquare(fromCoord);
                 const sq2 = game.board.getSquare(toCoord);
@@ -46,7 +57,6 @@ export const TheVoidJumper = definePact('void_jumper')
     .malus('ritual_sacrifice', {
         icon: 'skull',
         ranking: -5,
-        category: 'Board Transform',})
+        category: 'Board Transform',
+    })
     .build();
-
-

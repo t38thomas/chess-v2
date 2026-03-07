@@ -39,6 +39,18 @@ describe('The Alchemist', () => {
             expect(result).toBe(false);
         });
 
+        it('should reject invalid generic params on Ability invocation', () => {
+            game.assignPact('white', TheAlchemist);
+
+            // payload vuoto
+            let success = game.useAbility('transmutation');
+            expect(success).toBe(false);
+
+            // wrong type
+            success = game.useAbility('transmutation', { from: { x: 'a', y: 1 }, to: { x: 1, y: 1 } });
+            expect(success).toBe(false);
+        });
+
         it('should not swap the King', () => {
             const context = { game, playerId: 'white', pactId: 'transmutation' };
             const result = bonus.activeAbility?.execute(
@@ -60,7 +72,7 @@ describe('The Alchemist', () => {
             expect(success).toBe(true);
 
             // Cooldown and turn reset for testing
-            game.pactState['transmutation_white_cooldown'] = 0;
+            game.abilityCooldowns['white']['transmutation'] = 0;
             game.turn = 'white';
 
             // Second use
@@ -68,7 +80,7 @@ describe('The Alchemist', () => {
             expect(success).toBe(true);
 
             // Cooldown and turn reset
-            game.pactState['transmutation_white_cooldown'] = 0;
+            game.abilityCooldowns['white']['transmutation'] = 0;
             game.turn = 'white';
 
             // Third use - should fail

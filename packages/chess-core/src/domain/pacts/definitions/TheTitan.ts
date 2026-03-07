@@ -7,7 +7,7 @@ import { PactUtils } from '../PactUtils';
  * Bonus (Earthquake): When the Queen moves, all adjacent pieces (except the King) are pushed away one square.
  * Malus (Gigantism): The Queen cannot move to or capture on edge squares (rank 0, 7 or file 0, 7).
  */
-export const TheTitan = definePact('titan')
+export const TheTitan = definePact<Record<string, unknown>>('titan')
     .bonus('earthquake', {
         icon: 'image-filter-hdr',
         ranking: 4,

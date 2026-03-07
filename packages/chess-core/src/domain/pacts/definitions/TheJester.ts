@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Chaos): Bishops move like Knights. UI counter active.
  * Malus (Jester): Knights move like Bishops. UI counter active.
  */
-export const TheJester = definePact('jester')
+export const TheJester = definePact<Record<string, unknown>>('jester')
     .bonus('chaos', {
         icon: 'drama-masks',
         ranking: 3,

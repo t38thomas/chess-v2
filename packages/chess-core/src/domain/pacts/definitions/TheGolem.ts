@@ -1,6 +1,11 @@
 import { definePact } from '../PactLogic';
 import { Effects } from '../PactEffects';
 import { PactUtils } from '../PactUtils';
+import { Move } from '../../models/Move';
+
+interface GolemState {
+    king_moves?: number;
+}
 
 /**
  * The Golem Pact
@@ -8,7 +13,7 @@ import { PactUtils } from '../PactUtils';
  *                    Every 3 King moves, grant an extra turn. UI counter tracks progress.
  * Malus (Lead Feet): King cannot move diagonally.
  */
-export const TheGolem = definePact('golem')
+export const TheGolem = definePact<GolemState>('golem')
     .bonus('stone_skin', {
         icon: 'wall',
         ranking: 4,
@@ -21,7 +26,7 @@ export const TheGolem = definePact('golem')
                 maxValue: 3,
                 incrementOn: ['move'],
                 filter: (event, payload, context) => {
-                    const move = payload as any;
+                    const move = payload as Move;
                     return move.piece.type === 'king' && move.piece.color === context.playerId;
                 },
                 onMax: (context) => {
@@ -31,7 +36,7 @@ export const TheGolem = definePact('golem')
             })
         ],
         getTurnCounters: (context) => {
-            const val = (context.state['king_moves'] as number) || 0;
+            const val = context.state.king_moves || 0;
             return [{
                 id: 'golem_king_moves',
                 label: 'king_moves_streak',
@@ -51,4 +56,3 @@ export const TheGolem = definePact('golem')
         effects: [Effects.movement.disableDiagonal('king')]
     })
     .build();
-

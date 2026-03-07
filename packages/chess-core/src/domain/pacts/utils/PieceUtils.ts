@@ -75,7 +75,8 @@ export class PieceUtils {
             : Math.min(...candidateDetails.map(c => c.coord!.y));
 
         const bestCandidates = candidateDetails.filter(c => c.coord!.y === bestRank);
-        const victim = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+        const rng = game.rng || Math.random;
+        const victim = bestCandidates[Math.floor(rng() * bestCandidates.length)];
         game.board.removePiece(victim.coord!);
         return victim.piece;
     }
@@ -85,7 +86,8 @@ export class PieceUtils {
         const candidates = captured.filter(p => types.includes(p.type));
         if (candidates.length === 0) return null;
 
-        const victim = candidates[Math.floor(Math.random() * candidates.length)];
+        const rng = game.rng || Math.random;
+        const victim = candidates[Math.floor(rng() * candidates.length)];
         return PieceUtils.resurrectPiece(game, color, victim.type);
     }
 }

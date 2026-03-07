@@ -6,7 +6,7 @@ import { Effects } from '../PactEffects';
  * Bonus (Turret): Rooks can move and capture 1 square diagonally.
  * Malus (Design Flaw): Rooks cannot move horizontally.
  */
-export const TheEngineer = definePact('engineer')
+export const TheEngineer = definePact<Record<string, unknown>>('engineer')
     .bonus('turret', {
         icon: 'cctv',
         ranking: 3,

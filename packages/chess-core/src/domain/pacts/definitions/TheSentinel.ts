@@ -8,7 +8,7 @@ import { PieceColor } from '../../models/Piece';
  * Bonus (Vigilance): Pieces adjacent to the King (except when in check) cannot be captured.
  * Malus (Anchored): The King cannot move if any friendly piece is adjacent to it (except to escape check).
  */
-export const TheSentinel = definePact('sentinel')
+export const TheSentinel = definePact<Record<string, unknown>>('sentinel')
     .bonus('vigilance', {
         icon: 'shield-cross',
         ranking: 4,
@@ -54,6 +54,11 @@ export const TheSentinel = definePact('sentinel')
                 const piece = square?.piece;
 
                 if (piece?.type === 'king') {
+                    // Recursion Guard: If we are already calculating this specific rule, skip it.
+                    if ((context.callStack || []).filter(s => s === 'anchored:canMovePiece').length > 1) {
+                        return true;
+                    }
+
                     // Previene soft-lock: il Re può muoversi se è sotto scacco, anche se ha adiacenti
                     const opponentColor: PieceColor = piece.color === 'white' ? 'black' : 'white';
                     const opponentPacts = params.game.pacts[opponentColor].map(p => [p.bonus, p.malus]).flat();
