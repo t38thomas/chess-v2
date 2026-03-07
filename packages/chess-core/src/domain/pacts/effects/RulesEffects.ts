@@ -1,4 +1,4 @@
-import { PactEffect } from '../PactLogic';
+import { PactEffect, CaptureContext, MoveContext } from '../PactLogic';
 import { PieceType, Piece } from '../../models/Piece';
 import { PactUtils } from '../PactUtils';
 
@@ -6,9 +6,9 @@ export const RulesEffects = {
     /**
      * Restricts the types of pieces a pawn can promote to.
      */
-    restrictPromotion: (allowedTypes: PieceType[]): PactEffect => ({
+    restrictPromotion: (allowedTypes: PieceType[] | ((p: Piece) => PieceType[])): PactEffect => ({
         modifiers: {
-            getAllowedPromotionTypes: () => allowedTypes
+            getAllowedPromotionTypes: (piece) => typeof allowedTypes === 'function' ? allowedTypes(piece) : allowedTypes
         }
     }),
 
@@ -61,6 +61,24 @@ export const RulesEffects = {
             canMoveThroughFriendlies: (mover, obstacle) => {
                 return moverFilter(mover) && obstacleFilter(obstacle);
             }
+        }
+    }),
+
+    /**
+     * Prevents capture of pieces that match a condition.
+     */
+    preventCapture: (condition: (params: CaptureContext) => boolean): PactEffect => ({
+        modifiers: {
+            canBeCaptured: (params) => !condition(params)
+        }
+    }),
+
+    /**
+     * Restricts movement based on a condition.
+     */
+    restrictMovement: (condition: (params: MoveContext) => boolean): PactEffect => ({
+        modifiers: {
+            canMovePiece: (params) => !condition(params)
         }
     })
 };

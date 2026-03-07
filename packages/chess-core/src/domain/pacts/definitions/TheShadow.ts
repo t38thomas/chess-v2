@@ -8,6 +8,9 @@ import { BoardUtils } from '../utils/BoardUtils';
  */
 export const TheShadow = definePact('shadow')
     .bonus('shadow_cloak', {
+        icon: 'incognito',
+        ranking: 4,
+        category: 'Capture Rules',
         target: 'self',
         modifiers: {
             canBeCaptured: (params) => {
@@ -33,6 +36,9 @@ export const TheShadow = definePact('shadow')
         }
     })
     .malus('blind_light', {
+        icon: 'spotlight',
+        ranking: -3,
+        category: 'Capture Rules',
         target: 'self',
         modifiers: {
             canCapture: (params) => {

@@ -8,10 +8,16 @@ import { Effects } from '../PactEffects';
  */
 export const TheGladiator = definePact('gladiator')
     .bonus('arena', {
+        icon: 'stadium',
+        ranking: 3,
+        category: 'King Safety',
         target: 'self',
         effects: [Effects.combat.immuneToPawnAndMinorCapturesOnDarkSquares()]
     })
     .malus('disarmed', {
+        icon: 'sword-cross',
+        ranking: -2,
+        category: 'Board Transform',
         target: 'self',
         effects: [Effects.rules.removePiecesAtStart('bishop')]
     })

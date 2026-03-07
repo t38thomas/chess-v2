@@ -8,9 +8,15 @@ import { Effects } from '../PactEffects';
  */
 export const TheBlindSeer = definePact('blind_seer')
     .bonus('echolocation', {
+        icon: 'radar',
+        ranking: 3,
+        category: 'Visibility',
         effects: [Effects.movement.hasEcholocation()]
     })
     .malus('darkness', {
+        icon: 'eye-off',
+        ranking: -4,
+        category: 'Visibility',
         effects: [Effects.movement.maxRange(3, (p) => ['rook', 'bishop', 'queen', 'queen'].includes(p.type))]
     })
     .build();

@@ -9,6 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheVampire = definePact('vampire')
     .bonus('life_thirst', {
+        icon: 'blood-bag',
+        ranking: 5,
+        category: 'Capture Rules',
         onCapture: (params, context) => {
             const victim = params.capturedPiece;
             const attacker = params.piece;
@@ -21,6 +24,9 @@ export const TheVampire = definePact('vampire')
     })
 
     .malus('vampire_curse', {
+        icon: 'cross',
+        ranking: -5,
+        category: 'King Safety',
         effects: [Effects.rules.disableCastling()]
     })
     .build();

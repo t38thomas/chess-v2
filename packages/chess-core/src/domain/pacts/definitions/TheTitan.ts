@@ -9,6 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheTitan = definePact('titan')
     .bonus('earthquake', {
+        icon: 'image-filter-hdr',
+        ranking: 4,
+        category: 'Board Transform',
         modifiers: {
             onExecuteMove: (game, move, context) => {
                 const square = game.board.getSquare(move.to);
@@ -37,6 +40,9 @@ export const TheTitan = definePact('titan')
         }
     })
     .malus('gigantism', {
+        icon: 'arrow-expand-all',
+        ranking: -2,
+        category: 'Movement',
         effects: [Effects.movement.restrictFromEdge('queen')]
     })
     .build();

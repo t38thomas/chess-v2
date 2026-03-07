@@ -9,6 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheAlchemist = definePact('alchemist')
     .bonus('transmutation', {
+        icon: 'flask',
+        ranking: 3,
+        category: 'Action',
         target: 'self',
         activeAbility: {
             id: 'transmutation',
@@ -39,6 +42,9 @@ export const TheAlchemist = definePact('alchemist')
         }
     })
     .malus('volatile_reagents', {
+        icon: 'flask-outline',
+        ranking: -2,
+        category: 'Other',
         target: 'self',
         onMove: (move, context) => {
             if (move.capturedPiece || move.promotion) {

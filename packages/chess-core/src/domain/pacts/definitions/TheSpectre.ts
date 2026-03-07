@@ -10,9 +10,15 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSpectre = definePact('spectre')
     .bonus('incorporeal', {
+        icon: 'ghost-outline',
+        ranking: 4,
+        category: 'Movement',
         effects: [Effects.movement.canMoveThrough(m => m.type !== 'pawn', o => o.type === 'pawn')]
     })
     .malus('possession', {
+        icon: 'hand-pointing-right',
+        ranking: -3,
+        category: 'Board Transform',
         modifiers: {
             onExecuteMove: (game, move) => {
                 if (move.isCastling || move.isEnPassant || move.isSwap || move.piece.type === 'knight') return;

@@ -8,6 +8,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheNecromancer = definePact('necromancer')
     .bonus('reclaimer', {
+        icon: 'refresh',
+        ranking: 5,
+        category: 'Action',
         target: 'self',
         activeAbility: {
             id: 'reclaimer',
@@ -39,6 +42,9 @@ export const TheNecromancer = definePact('necromancer')
         }
     })
     .malus('ascension_cost', {
+        icon: 'currency-usd',
+        ranking: -4,
+        category: 'Turn Economy',
         target: 'self',
         modifiers: {
             modifyNextTurn: (params, context) => {

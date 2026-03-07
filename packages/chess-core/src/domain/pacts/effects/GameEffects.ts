@@ -28,5 +28,23 @@ export const GameEffects = {
         onEvent: (event, payload, context) => {
             PactUtils.notifyPactEffect(context.game, context.pactId, eventKey, type, icon);
         }
+    }),
+
+    /**
+     * Lifecycle trigger: on turn start.
+     */
+    onTurnStart: <T>(action: (context: any) => void): PactEffect<T> => ({
+        onEvent: (event, payload, context) => {
+            if (event === 'turn_start') action(context);
+        }
+    }),
+
+    /**
+     * Lifecycle trigger: on capture.
+     */
+    onCapture: <T>(action: (payload: any, context: any) => void): PactEffect<T> => ({
+        onEvent: (event, payload, context) => {
+            if (event === 'capture') action(payload, context);
+        }
     })
 };

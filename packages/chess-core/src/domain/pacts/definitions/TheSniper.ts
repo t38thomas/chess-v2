@@ -11,6 +11,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheSniper = definePact('sniper')
     .bonus('long_sight', {
+        icon: 'telescope',
+        ranking: 4,
+        category: 'Capture Rules',
         modifiers: {
             onModifyMoves: (currentMoves, { board, piece, from }) => {
                 if (piece.type !== 'rook') return currentMoves;
@@ -46,6 +49,9 @@ export const TheSniper = definePact('sniper')
         }
     })
     .malus('reload', {
+        icon: 'reload',
+        ranking: -2,
+        category: 'Turn Economy',
         modifiers: {
             onExecuteMove: (game, move) => {
                 if (move.piece.type === 'rook' && (move.capturedPiece || move.isEnPassant)) {

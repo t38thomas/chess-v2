@@ -11,8 +11,11 @@ interface HeirBonusState {
  * Bonus (Bloodline): When your Queen is captured, a random minor piece is promoted to a new Queen.
  * Malus (Young Queen): Captures are restricted by Queen generation (Gen 0: King only, Gen 1: No Queen/Rook).
  */
-export const TheHeir = definePact<HeirBonusState>('heir')
+export const TheHeir = definePact<HeirBonusState, Record<string, unknown>>('heir')
     .bonus('bloodline', {
+        icon: 'water-plus',
+        ranking: 5,
+        category: 'Board Transform',
         target: 'self',
         initialState: () => ({ generations: {} }),
         onCapture: (payload, context) => {
@@ -40,12 +43,16 @@ export const TheHeir = definePact<HeirBonusState>('heir')
         }
     })
     .malus('young_queen', {
+        icon: 'baby-carriage',
+        ranking: -3,
+        category: 'Capture Rules',
         target: 'self',
         modifiers: {
             canCapture: (params, context) => {
                 if (params.attacker.type === 'queen') {
-                    const sharedState = context.getSiblingState<HeirBonusState>() ?? { generations: {} };
-                    const gen = sharedState.generations?.[params.attacker.id] ?? 0;
+                    const sharedState = context.getSiblingState() as HeirBonusState | null;
+                    const gens = (sharedState?.generations || {}) as Record<string, number>;
+                    const gen = gens[params.attacker.id] ?? 0;
 
                     if (gen === 0) return params.victim.type === 'king';
                     if (gen === 1) return params.victim.type !== 'queen' && params.victim.type !== 'rook';
@@ -58,8 +65,9 @@ export const TheHeir = definePact<HeirBonusState>('heir')
             const queens = context.query.pieces().ofTypes(['queen']);
             if (queens.length === 0) return [];
 
-            const sharedState = context.getSiblingState<HeirBonusState>() ?? { generations: {} };
-            const maxGen = Math.max(...queens.map(q => sharedState.generations?.[q.piece.id] ?? 0));
+            const sharedState = context.getSiblingState() as HeirBonusState | null;
+            const gens = (sharedState?.generations || {}) as Record<string, number>;
+            const maxGen = Math.max(...queens.map(q => gens[q.piece.id] ?? 0));
 
             return [{
                 id: 'queen_generation',

@@ -9,6 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheHeavyCavalry = definePact('heavy_cavalry')
     .bonus('trample', {
+        icon: 'horse-variant',
+        ranking: 4,
+        category: 'Capture Rules',
         target: 'self',
         modifiers: {
             onExecuteMove: (game, move) => {
@@ -50,6 +53,9 @@ export const TheHeavyCavalry = definePact('heavy_cavalry')
         }
     })
     .malus('heavy_armor', {
+        icon: 'shield-lock',
+        ranking: -2,
+        category: 'Movement',
         target: 'self',
         modifiers: {
             onModifyMoves: (currentMoves, { board, piece, from }) => {

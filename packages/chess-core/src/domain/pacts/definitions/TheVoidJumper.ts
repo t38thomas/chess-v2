@@ -9,6 +9,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheVoidJumper = definePact('void_jumper')
     .bonus('void_jump', {
+        icon: 'axis-arrow',
+        ranking: 5,
+        category: 'Action',
         activeAbility: {
             id: 'void_jump',
             name: 'void_jump',
@@ -40,7 +43,10 @@ export const TheVoidJumper = definePact('void_jumper')
             }
         }
     })
-    .malus('ritual_sacrifice', {})
+    .malus('ritual_sacrifice', {
+        icon: 'skull',
+        ranking: -5,
+        category: 'Board Transform',})
     .build();
 
 

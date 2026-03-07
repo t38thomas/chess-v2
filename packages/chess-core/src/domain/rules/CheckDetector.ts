@@ -14,7 +14,8 @@ export class CheckDetector {
         square: Coordinate,
         byColor: PieceColor,
         pacts: PactLogic[] = [],
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ): boolean {
         // Check all squares for enemy pieces that can attack this square
         const allSquares = board.getAllSquares();
@@ -24,7 +25,7 @@ export class CheckDetector {
 
             // Generate pseudo-legal moves for this piece
             // NOTE: We pass null for enPassantTarget to avoid infinite recursion
-            const moves = MoveGenerator.getPseudoLegalMoves(board, sq.piece, sq.coordinate, null, pacts, new Set(), game);
+            const moves = MoveGenerator.getPseudoLegalMoves(board, sq.piece, sq.coordinate, null, pacts, new Set(), game, callStack);
 
             // Check if any move targets our square
             if (moves.some(m => m.to.equals(square))) {
@@ -51,13 +52,13 @@ export class CheckDetector {
     /**
      * Check if the king of the given color is in check
      */
-    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame): boolean {
+    public static isKingInCheck(board: BoardModel, kingColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []): boolean {
         const kingPos = this.findKing(board, kingColor);
         if (!kingPos) return false; // No king found (shouldn't happen in valid game)
 
         const enemyColor: PieceColor = kingColor === 'white' ? 'black' : 'white';
         // When checking if the king is in check, we must consider the enemy pieces' perks
-        return this.isSquareUnderAttack(board, kingPos, enemyColor, pacts, game);
+        return this.isSquareUnderAttack(board, kingPos, enemyColor, pacts, game, callStack);
     }
 
     /**
@@ -70,7 +71,8 @@ export class CheckDetector {
         kingColor: PieceColor,
         pacts: PactLogic[] = [],
         isSwap: boolean = false,
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ): boolean {
         // We need to simulate the move and check
         const sourceSquare = board.getSquare(from);
@@ -88,7 +90,7 @@ export class CheckDetector {
 
         // Check if king is in check
         // Note: For wouldLeaveKingInCheck, we should consider the CURRENT board context perks
-        const inCheck = this.isKingInCheck(board, kingColor, pacts, game);
+        const inCheck = this.isKingInCheck(board, kingColor, pacts, game, callStack);
 
         // Restore board
         sourceSquare.piece = originalPiece;

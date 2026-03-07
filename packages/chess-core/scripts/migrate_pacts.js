@@ -1,37 +1,7 @@
-import { IconName } from "./Icon";
-import { PactDefinition, PactLogic } from '../pacts/PactLogic';
-import * as PactDefinitions from '../pacts/definitions';
+const fs = require('fs');
+const path = require('path');
 
-export type PerkCategory =
-    | 'Movement'
-    | 'Promotion'
-    | 'Turn Economy'
-    | 'Capture Rules'
-    | 'King Safety'
-    | 'Board Transform'
-    | 'Visibility'
-    | 'Action'
-    | 'Other';
-
-export interface Perk {
-    id: string;
-    name: string; // Translation key
-    icon: IconName;
-    description: string; // Translation key
-    ranking: number;
-    category: PerkCategory;
-}
-
-export interface Pact {
-    id: string;
-    title: string; // Translation key
-    bonus: Perk;
-    malus: Perk;
-    description: string; // Translation key
-}
-
-
-export const LEGACY_PERK_LIBRARY: Record<string, Perk> = {
+const LEGACY_PERK_LIBRARY = {
     // --- 1. IL NEGROMANTE ---
     reclaimer: { id: 'reclaimer', name: 'reclaimer', icon: 'refresh', description: 'desc_reclaimer', ranking: 5, category: 'Action' },
     ascension_cost: { id: 'ascension_cost', name: 'ascension_cost', icon: 'currency-usd', description: 'desc_ascension_cost', ranking: -4, category: 'Turn Economy' },
@@ -153,81 +123,36 @@ export const LEGACY_PERK_LIBRARY: Record<string, Perk> = {
     paradox: { id: 'paradox', name: 'paradox', icon: 'infinity', description: 'desc_paradox', ranking: -4, category: 'Board Transform' }
 };
 
-export const LEGACY_PACT_CARDS: Pact[] = [
-    { id: 'necromancer', title: 'title_necromancer', bonus: LEGACY_PERK_LIBRARY.reclaimer, malus: LEGACY_PERK_LIBRARY.ascension_cost, description: 'desc_pact_necromancer' },
-    { id: 'saboteur', title: 'title_saboteur', bonus: LEGACY_PERK_LIBRARY.diagonal_dash, malus: LEGACY_PERK_LIBRARY.cut_supplies, description: 'desc_pact_saboteur' },
-    { id: 'heavy_cavalry', title: 'title_heavy_cavalry', bonus: LEGACY_PERK_LIBRARY.trample, malus: LEGACY_PERK_LIBRARY.heavy_armor, description: 'desc_pact_heavy_cavalry' },
-    { id: 'changeling', title: 'title_changeling', bonus: LEGACY_PERK_LIBRARY.mimicry, malus: LEGACY_PERK_LIBRARY.unstable_identity, description: 'desc_pact_changeling' },
-    { id: 'berserker', title: 'title_berserker', bonus: LEGACY_PERK_LIBRARY.frenzy, malus: LEGACY_PERK_LIBRARY.missing_knight, description: 'desc_pact_berserker' },
-    { id: 'sniper', title: 'title_sniper', bonus: LEGACY_PERK_LIBRARY.long_sight, malus: LEGACY_PERK_LIBRARY.reload, description: 'desc_pact_sniper' },
-    { id: 'tidecaller', title: 'title_tidecaller', bonus: LEGACY_PERK_LIBRARY.flow, malus: LEGACY_PERK_LIBRARY.ebb, description: 'desc_pact_tidecaller' },
-    { id: 'blind_seer', title: 'title_blind_seer', bonus: LEGACY_PERK_LIBRARY.echolocation, malus: LEGACY_PERK_LIBRARY.darkness, description: 'desc_pact_blind_seer' },
-    { id: 'void_jumper', title: 'title_void_jumper', bonus: LEGACY_PERK_LIBRARY.void_jump, malus: LEGACY_PERK_LIBRARY.ritual_sacrifice, description: 'desc_pact_void_jumper' },
-    { id: 'ranger', title: 'title_ranger', bonus: LEGACY_PERK_LIBRARY.snipe, malus: LEGACY_PERK_LIBRARY.short_sighted, description: 'desc_pact_ranger' },
-    { id: 'illusionist', title: 'title_illusionist', bonus: LEGACY_PERK_LIBRARY.displace, malus: LEGACY_PERK_LIBRARY.vanished_illusion, description: 'desc_pact_illusionist' },
-    { id: 'oracle', title: 'title_oracle', bonus: LEGACY_PERK_LIBRARY.prescience, malus: LEGACY_PERK_LIBRARY.inevitable_fate, description: 'desc_pact_oracle' },
-    { id: 'vampire', title: 'title_vampire', bonus: LEGACY_PERK_LIBRARY.life_thirst, malus: LEGACY_PERK_LIBRARY.vampire_curse, description: 'desc_pact_vampire' },
-    { id: 'shadow', title: 'title_shadow', bonus: LEGACY_PERK_LIBRARY.shadow_cloak, malus: LEGACY_PERK_LIBRARY.blind_light, description: 'desc_pact_shadow' },
-    { id: 'swarm', title: 'title_swarm', bonus: LEGACY_PERK_LIBRARY.hydra, malus: LEGACY_PERK_LIBRARY.hive_queen, description: 'desc_pact_swarm' },
-    { id: 'phoenix', title: 'title_phoenix', bonus: LEGACY_PERK_LIBRARY.rebirth, malus: LEGACY_PERK_LIBRARY.wingless, description: 'desc_pact_phoenix' },
-    { id: 'alchemist', title: 'title_alchemist', bonus: LEGACY_PERK_LIBRARY.transmutation, malus: LEGACY_PERK_LIBRARY.volatile_reagents, description: 'desc_pact_alchemist' },
-    { id: 'veteran', title: 'title_veteran', bonus: LEGACY_PERK_LIBRARY.bayonet, malus: LEGACY_PERK_LIBRARY.old_guard, description: 'desc_pact_veteran' },
-    { id: 'golem', title: 'title_golem', bonus: LEGACY_PERK_LIBRARY.stone_skin, malus: LEGACY_PERK_LIBRARY.lead_feet, description: 'desc_pact_golem' },
-    { id: 'spectre', title: 'title_spectre', bonus: LEGACY_PERK_LIBRARY.incorporeal, malus: LEGACY_PERK_LIBRARY.possession, description: 'desc_pact_spectre' },
-    { id: 'sentinel', title: 'title_sentinel', bonus: LEGACY_PERK_LIBRARY.vigilance, malus: LEGACY_PERK_LIBRARY.anchored, description: 'desc_pact_sentinel' },
-    { id: 'gladiator', title: 'title_gladiator', bonus: LEGACY_PERK_LIBRARY.arena, malus: LEGACY_PERK_LIBRARY.disarmed, description: 'desc_pact_gladiator' },
-    { id: 'diplomat', title: 'title_diplomat', bonus: LEGACY_PERK_LIBRARY.diplomatic_immunity, malus: LEGACY_PERK_LIBRARY.internal_sabotage, description: 'desc_pact_diplomat' },
-    { id: 'jester', title: 'title_jester', bonus: LEGACY_PERK_LIBRARY.chaos, malus: LEGACY_PERK_LIBRARY.jester, description: 'desc_pact_jester' },
-    { id: 'titan', title: 'title_titan', bonus: LEGACY_PERK_LIBRARY.earthquake, malus: LEGACY_PERK_LIBRARY.gigantism, description: 'desc_pact_titan' },
-    { id: 'thief', title: 'title_thief', bonus: LEGACY_PERK_LIBRARY.pickpocket, malus: LEGACY_PERK_LIBRARY.wanted, description: 'desc_pact_thief' },
-    { id: 'engineer', title: 'title_engineer', bonus: LEGACY_PERK_LIBRARY.turret, malus: LEGACY_PERK_LIBRARY.design_flaw, description: 'desc_pact_engineer' },
-    { id: 'hawk', title: 'title_hawk', bonus: LEGACY_PERK_LIBRARY.high_flyer, malus: LEGACY_PERK_LIBRARY.distant_predator, description: 'desc_pact_hawk' },
-    { id: 'heir', title: 'title_heir', bonus: LEGACY_PERK_LIBRARY.bloodline, malus: LEGACY_PERK_LIBRARY.young_queen, description: 'desc_pact_heir' },
-    { id: 'timekeeper', title: 'title_timekeeper', bonus: LEGACY_PERK_LIBRARY.time_stop, malus: LEGACY_PERK_LIBRARY.paradox, description: 'desc_pact_timekeeper' },
-];
+const dir = path.join(__dirname, '../src/domain/pacts/definitions');
+const files = fs.readdirSync(dir).filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'));
 
-export const PERK_LIBRARY: Record<string, Perk> = { ...LEGACY_PERK_LIBRARY };
-export const PACT_CARDS: Pact[] = [...LEGACY_PACT_CARDS];
+let changedCount = 0;
+for (const f of files) {
+    const filePath = path.join(dir, f);
+    let original = fs.readFileSync(filePath, 'utf8');
+    let content = original;
 
-// Hydrate PERK_LIBRARY and PACT_CARDS dynamically from SPoD metadata
-const definitions = Object.values(PactDefinitions).filter((v): v is PactDefinition =>
-    v !== null && typeof v === 'object' && 'bonus' in v && 'malus' in v && 'id' in v
-);
+    // Use a RegExp to find the start of bonus and malus blocks
+    const reg = /((?:\.bonus|\.malus)\s*\(\s*['"](\w+)['"]\s*,\s*\{)/g;
 
-for (const def of definitions) {
-    const bonusLogic = def.bonus as PactLogic;
-    const malusLogic = def.malus as PactLogic;
+    content = content.replace(reg, (match, prefix, id) => {
+        const perk = LEGACY_PERK_LIBRARY[id];
+        if (!perk) return match;
 
-    // Se il bonus ha l'icona metadati definita, assumiamo che sia migrato nel nuovo formato SPoD
-    if (bonusLogic.icon) {
-        const createPerk = (logic: PactLogic): Perk => ({
-            id: logic.id,
-            name: logic.i18nKey || logic.id,
-            icon: (logic.icon as IconName) || 'help-circle',
-            description: `desc_${logic.i18nKey || logic.id}`, // Conventional description key
-            ranking: logic.ranking || 0,
-            category: (logic.category as PerkCategory) || 'Other',
-        });
-
-        const bonusPerk = createPerk(bonusLogic);
-        const malusPerk = createPerk(malusLogic);
-
-        PERK_LIBRARY[bonusLogic.id] = bonusPerk;
-        PERK_LIBRARY[malusLogic.id] = malusPerk;
-
-        const pactCard: Pact = {
-            id: def.id,
-            title: `title_${def.id}`, // Conventional title key
-            bonus: bonusPerk,
-            malus: malusPerk,
-            description: `desc_pact_${def.id}`, // Conventional description key
-        };
-
-        const existingIndex = PACT_CARDS.findIndex(p => p.id === def.id);
-        if (existingIndex >= 0) {
-            PACT_CARDS[existingIndex] = pactCard;
-        } else {
-            PACT_CARDS.push(pactCard);
+        const idx = original.indexOf(match);
+        const lookahead = original.substring(idx, idx + 150);
+        // Avoid replacing twice
+        if (lookahead.includes('icon:')) {
+            return match;
         }
+
+        return prefix + '\n        icon: \'' + perk.icon + '\',\n        ranking: ' + perk.ranking + ',\n        category: \'' + perk.category + '\',';
+    });
+
+    if (content !== original) {
+        fs.writeFileSync(filePath, content, 'utf8');
+        changedCount++;
+        console.log('Migrated', f);
     }
 }
+console.log('Migrated', changedCount, 'files.');

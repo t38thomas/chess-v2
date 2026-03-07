@@ -65,6 +65,9 @@ export const TheThief = definePact('thief')
         }
     })
     .malus('wanted', {
+        icon: 'handcuffs',
+        ranking: -4,
+        category: 'Promotion',
         effects: [Effects.rules.restrictPromotion(['knight'])]
     })
     .build();

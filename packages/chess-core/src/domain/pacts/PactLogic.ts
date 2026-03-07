@@ -15,13 +15,17 @@ export interface PieceQueryResult extends Array<{ piece: Piece; coord: Coordinat
 }
 
 export interface PactContext {
-
     game: IChessGame;
     playerId: PieceColor;
     pactId: string;
+    /**
+     * Stack of active pact/engine calls. Used to detect and prevent infinite recursion
+     * (e.g. Sentinel logic checking captureability while being checked for capture).
+     */
+    callStack?: string[];
 }
 
-export interface PactContextWithState<T> extends PactContext {
+export interface PactContextWithState<T, TSibling = Record<string, unknown>> extends PactContext {
     readonly state: Readonly<T>;
     updateState: (update: Partial<T> | ((prev: Readonly<T>) => Readonly<T>)) => void;
     /**
@@ -29,7 +33,7 @@ export interface PactContextWithState<T> extends PactContext {
      * WHY: sibling pact state type cannot be known statically at the call site;
      * callers must narrow the result themselves.
      */
-    getSiblingState: <TSibling = Record<string, unknown>>() => Readonly<TSibling> | null;
+    getSiblingState: () => Readonly<TSibling> | null;
     /**
      * Fluent query API for common board/piece operations.
      */
@@ -57,13 +61,13 @@ export enum PactPriority {
 /**
  * Represents a reusable piece of pact logic.
  */
-export interface PactEffect<T = Record<string, unknown>> {
-    modifiers?: RuleModifiers<T>;
+export interface PactEffect<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
+    modifiers?: RuleModifiers<T, TSibling>;
     priority?: number; // Defines execution order (higher priority runs earlier), default 0
     onEvent?: <K extends keyof GameEventPayloads>(
         event: K | GameEvent | string,
         payload: K extends keyof GameEventPayloads ? GameEventPayloads[K] : unknown,
-        context: PactContextWithState<T>
+        context: PactContextWithState<T, TSibling>
     ) => void;
 }
 
@@ -75,7 +79,7 @@ export interface PactDefinition {
     malus: PactLogic;
 }
 
-export interface ActiveAbilityConfig<TState = Record<string, unknown>, TParams = unknown> {
+export interface ActiveAbilityConfig<TState = Record<string, unknown>, TSibling = Record<string, unknown>, TParams = unknown> {
     id: string;
     name: string; // Internal name or key for translation
     description: string; // Internal desc or key
@@ -86,7 +90,7 @@ export interface ActiveAbilityConfig<TState = Record<string, unknown>, TParams =
     consumesTurn?: boolean;
     repeatable?: boolean;
     maxTargets?: number;
-    execute: (context: PactContextWithState<TState>, params: TParams) => boolean;
+    execute: (context: PactContextWithState<TState, TSibling>, params: TParams) => boolean;
 }
 
 export interface MoveParams {
@@ -120,42 +124,42 @@ export interface TurnModifierContext {
     eventType: GameEvent;
 }
 
-export interface RuleModifiers<T = Record<string, unknown>> {
+export interface RuleModifiers<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
     // Movement Hooks - Now pure functions passing through a pipeline
-    onModifyMoves?: (currentMoves: Move[], params: MoveParams, context: PactContextWithState<T>) => Move[];
+    onModifyMoves?: (currentMoves: Move[], params: MoveParams, context: PactContextWithState<T, TSibling>) => Move[];
 
     // Movement overrides
-    getMaxRange?: (piece: Piece, context: PactContextWithState<T>) => number;
-    getFixedDistances?: (piece: Piece, context: PactContextWithState<T>) => number[] | null;
-    canDoubleMove?: (piece: Piece, y: number, startY: number, context: PactContextWithState<T>) => boolean;
-    canDiagonalDash?: (piece: Piece, context: PactContextWithState<T>) => boolean;
-    canSidewaysMove?: (piece: Piece, context: PactContextWithState<T>) => boolean;
-    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context: PactContextWithState<T>) => boolean;
-    canMoveLikeKnight?: (pieceType: PieceType, context: PactContextWithState<T>) => boolean;
-    hasEcholocation?: (piece: Piece, context: PactContextWithState<T>) => boolean;
-    canMovePiece?: (params: MoveContext, context: PactContextWithState<T>) => boolean;
+    getMaxRange?: (piece: Piece, context: PactContextWithState<T, TSibling>) => number;
+    getFixedDistances?: (piece: Piece, context: PactContextWithState<T, TSibling>) => number[] | null;
+    canDoubleMove?: (piece: Piece, y: number, startY: number, context: PactContextWithState<T, TSibling>) => boolean;
+    canDiagonalDash?: (piece: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    canSidewaysMove?: (piece: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    canMoveThroughFriendlies?: (mover: Piece, obstacle: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    canMoveLikeKnight?: (pieceType: PieceType, context: PactContextWithState<T, TSibling>) => boolean;
+    hasEcholocation?: (piece: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    canMovePiece?: (params: MoveContext, context: PactContextWithState<T, TSibling>) => boolean;
 
     // Promotion overrides
-    getAllowedPromotionTypes?: (piece: Piece, context: PactContextWithState<T>) => PieceType[];
+    getAllowedPromotionTypes?: (piece: Piece, context: PactContextWithState<T, TSibling>) => PieceType[];
 
     // Capture overrides
-    canCapture?: (params: CaptureContext, context: PactContextWithState<T>) => boolean;
+    canCapture?: (params: CaptureContext, context: PactContextWithState<T, TSibling>) => boolean;
 
     // King Safety
-    canCastleWhileMoved?: (piece: Piece, context: PactContextWithState<T>) => boolean;
-    canCastle?: (piece: Piece, context: PactContextWithState<T>) => boolean;
-    mustMoveKingInCheck?: (color: PieceColor, context: PactContextWithState<T>) => boolean;
+    canCastleWhileMoved?: (piece: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    canCastle?: (piece: Piece, context: PactContextWithState<T, TSibling>) => boolean;
+    mustMoveKingInCheck?: (color: PieceColor, context: PactContextWithState<T, TSibling>) => boolean;
 
     // Turn Economy & Special Rules
-    modifyNextTurn?: (params: TurnModifierContext, context: PactContextWithState<T>) => PieceColor | null;
-    onExecuteMove?: (game: IChessGame, move: Move, context: PactContextWithState<T>) => void;
+    modifyNextTurn?: (params: TurnModifierContext, context: PactContextWithState<T, TSibling>) => PieceColor | null;
+    onExecuteMove?: (game: IChessGame, move: Move, context: PactContextWithState<T, TSibling>) => void;
 
     // Attack/Defense modifiers
-    canBeCaptured?: (params: CaptureContext, context: PactContextWithState<T>) => boolean;
-    isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<T>) => boolean;
+    canBeCaptured?: (params: CaptureContext, context: PactContextWithState<T, TSibling>) => boolean;
+    isImmuneToCheckmate?: (game: IChessGame, context: PactContextWithState<T, TSibling>) => boolean;
 }
 
-export abstract class PactLogic<T = Record<string, unknown>> {
+export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
     abstract id: string;
     public target: 'self' | 'enemy' | 'global' = 'self';
     public siblingId?: string;
@@ -163,7 +167,13 @@ export abstract class PactLogic<T = Record<string, unknown>> {
     /**
      * Used by RuleEngine to access effects. Properly typed via PactLogicOptions in GenericPact.
      */
-    public options?: PactLogicOptions<T>;
+    public options?: PactLogicOptions<T, TSibling>;
+
+    // Metadata Getters (SPoD)
+    public get icon(): string | undefined { return this.options?.icon; }
+    public get ranking(): number | undefined { return this.options?.ranking; }
+    public get category(): string | undefined { return this.options?.category; }
+    public get i18nKey(): string | undefined { return this.options?.i18nKey || this.id; }
 
     /**
      * Returns the initial state for this pact.
@@ -177,7 +187,7 @@ export abstract class PactLogic<T = Record<string, unknown>> {
      * Helper to get or initialize the state for this pact from the game instance.
      * WHY: pactState is a heterogeneous map keyed by pact+color. The cast to T is
      * unavoidable at this single boundary point; all callers inside the domain
-     * receive properly-typed PactContextWithState<T>.
+     * receive properly-typed PactContextWithState<T, TSibling>.
      */
     protected getState(game: IChessGame, color: PieceColor, pactId?: string): T {
         const id = pactId || this.id;
@@ -206,11 +216,12 @@ export abstract class PactLogic<T = Record<string, unknown>> {
         game.pactState[key] = state;
     }
 
-    public createContextWithState(context: PactContext): PactContextWithState<T> {
+    public createContextWithState(context: PactContext): PactContextWithState<T, TSibling> {
         const state = this.getState(context.game, context.playerId);
 
         return {
             ...context,
+            callStack: context.callStack || [],
             state,
             updateState: (update) => {
                 const currentState = this.getState(context.game, context.playerId);
@@ -225,7 +236,7 @@ export abstract class PactLogic<T = Record<string, unknown>> {
                 this.setState(context.game, context.playerId, nextState);
             },
 
-            getSiblingState: <TSibling = Record<string, unknown>>() => {
+            getSiblingState: () => {
                 if (!this.siblingId) return null;
                 // WHY: sibling type TSibling is unknown at this point; callers narrow it.
                 return this.getState(context.game, context.playerId, this.siblingId) as unknown as TSibling;
@@ -284,10 +295,10 @@ export abstract class PactLogic<T = Record<string, unknown>> {
     }
 
     // Typed Hooks (Override these for cleaner logic)
-    protected onMove?(payload: GameEventPayloads['move'], context: PactContextWithState<T>): void;
-    protected onCapture?(payload: GameEventPayloads['capture'], context: PactContextWithState<T>): void;
-    protected onCheckmate?(payload: GameEventPayloads['checkmate'], context: PactContextWithState<T>): void;
-    protected onPromotion?(payload: GameEventPayloads['promotion'], context: PactContextWithState<T>): void;
+    protected onMove?(payload: GameEventPayloads['move'], context: PactContextWithState<T, TSibling>): void;
+    protected onCapture?(payload: GameEventPayloads['capture'], context: PactContextWithState<T, TSibling>): void;
+    protected onCheckmate?(payload: GameEventPayloads['checkmate'], context: PactContextWithState<T, TSibling>): void;
+    protected onPromotion?(payload: GameEventPayloads['promotion'], context: PactContextWithState<T, TSibling>): void;
 
     // Turn Hooks
     onTurnStart(pactContext: PactContext): void {
@@ -300,8 +311,8 @@ export abstract class PactLogic<T = Record<string, unknown>> {
         this.onTurnEndHook?.(ctx);
     }
 
-    protected onTurnStartHook?(context: PactContextWithState<T>): void;
-    protected onTurnEndHook?(context: PactContextWithState<T>): void;
+    protected onTurnStartHook?(context: PactContextWithState<T, TSibling>): void;
+    protected onTurnEndHook?(context: PactContextWithState<T, TSibling>): void;
 
     // Ability configuration
     activeAbility?: ActiveAbilityConfig<T>;
@@ -419,7 +430,7 @@ class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
 /**
  * Builder for defining pacts declaratively.
  */
-export interface PactLogicOptions<T = Record<string, unknown>> {
+export interface PactLogicOptions<T = Record<string, unknown>, TSibling = Record<string, unknown>> {
     target?: 'self' | 'enemy' | 'global';
     effects?: PactEffect<T>[];
     modifiers?: RuleModifiers<T>;
@@ -430,15 +441,21 @@ export interface PactLogicOptions<T = Record<string, unknown>> {
     validateState?: (state: T) => boolean;
 
 
-    onMove?: (payload: GameEventPayloads['move'], context: PactContextWithState<T>) => void;
-    onCapture?: (payload: GameEventPayloads['capture'], context: PactContextWithState<T>) => void;
-    onCheckmate?: (payload: GameEventPayloads['checkmate'], context: PactContextWithState<T>) => void;
-    onPromotion?: (payload: GameEventPayloads['promotion'], context: PactContextWithState<T>) => void;
-    onTurnStart?: (context: PactContextWithState<T>) => void;
-    onTurnEnd?: (context: PactContextWithState<T>) => void;
+    onMove?: (payload: GameEventPayloads['move'], context: PactContextWithState<T, TSibling>) => void;
+    onCapture?: (payload: GameEventPayloads['capture'], context: PactContextWithState<T, TSibling>) => void;
+    onCheckmate?: (payload: GameEventPayloads['checkmate'], context: PactContextWithState<T, TSibling>) => void;
+    onPromotion?: (payload: GameEventPayloads['promotion'], context: PactContextWithState<T, TSibling>) => void;
+    onTurnStart?: (context: PactContextWithState<T, TSibling>) => void;
+    onTurnEnd?: (context: PactContextWithState<T, TSibling>) => void;
     initialState?: () => T;
     activeAbility?: ActiveAbilityConfig<T>;
-    getTurnCounters?: (context: PactContextWithState<T>) => TurnCounter[];
+    getTurnCounters?: (context: PactContextWithState<T, TSibling>) => TurnCounter[];
+
+    // Metadata (SPoD)
+    icon?: IconName | string;
+    ranking?: number; // 1-5 stars
+    category?: string;
+    i18nKey?: string; // Optional: can be derived from ID
 }
 
 export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<string, unknown>> {
@@ -449,8 +466,6 @@ export class PactBuilder<TBonus = Record<string, unknown>, TMalus = Record<strin
 
     bonus<T = TBonus>(id: string, options: PactLogicOptions<T>): PactBuilder<T, TMalus> {
         this.bonusLogic = { id, ...options } as unknown as { id: string } & PactLogicOptions<TBonus>;
-        // WHY: TypeScript cannot narrow the return type of the builder when TBonus changes.
-        // The cast is safe because GenericPact enforces the type at construction time.
         return this as unknown as PactBuilder<T, TMalus>;
     }
 

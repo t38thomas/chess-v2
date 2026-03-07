@@ -12,6 +12,9 @@ const DISPLACE_COOLDOWN = 3;
  */
 export const TheIllusionist = definePact('illusionist')
     .bonus('displace', {
+        icon: 'shimmer',
+        ranking: 5,
+        category: 'Action',
         target: 'self',
         activeAbility: {
             id: 'displace',
@@ -45,6 +48,9 @@ export const TheIllusionist = definePact('illusionist')
         }
     })
     .malus('vanished_illusion', {
+        icon: 'ghost',
+        ranking: -1,
+        category: 'Board Transform',
         target: 'self',
         effects: [
             Effects.state.oncePerMatch({

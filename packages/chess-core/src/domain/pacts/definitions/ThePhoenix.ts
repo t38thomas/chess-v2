@@ -10,6 +10,9 @@ import { Move } from '../../models/Move';
  */
 export const ThePhoenix = definePact('phoenix')
     .bonus('rebirth', {
+        icon: 'fire',
+        ranking: 4,
+        category: 'Board Transform',
         modifiers: {
             canBeCaptured: (params, context) => {
                 const immunityTurn = (context.state as any)['rebirth_turn'];
@@ -43,6 +46,9 @@ export const ThePhoenix = definePact('phoenix')
         ]
     })
     .malus('wingless', {
+        icon: 'feather',
+        ranking: -3,
+        category: 'Board Transform',
         effects: [Effects.rules.removePiecesAtStart('rook')]
     })
     .build();

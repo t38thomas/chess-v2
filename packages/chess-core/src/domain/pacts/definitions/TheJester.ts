@@ -8,6 +8,9 @@ import { Effects } from '../PactEffects';
  */
 export const TheJester = definePact('jester')
     .bonus('chaos', {
+        icon: 'drama-masks',
+        ranking: 3,
+        category: 'Movement',
         effects: [Effects.movement.swapMovement('bishop', 'knight')],
         getTurnCounters: (context) => [{
             id: 'chaos_swap',
@@ -19,6 +22,9 @@ export const TheJester = definePact('jester')
         }]
     })
     .malus('jester', {
+        icon: 'party-popper',
+        ranking: -3,
+        category: 'Movement',
         effects: [Effects.movement.swapMovement('knight', 'bishop')],
         getTurnCounters: (context) => [{
             id: 'jester_swap',

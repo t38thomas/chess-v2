@@ -17,6 +17,9 @@ interface ChangelingState extends Record<string, unknown> {
  */
 export const TheChangeling = definePact<ChangelingState, ChangelingState>('changeling')
     .bonus('mimicry', {
+        icon: 'shape',
+        ranking: 4,
+        category: 'Movement',
         effects: [
             Effects.state.temporaryState<{ type: PieceType }, ChangelingState>({
                 key: 'mimicry_activeMimics',
@@ -71,6 +74,9 @@ export const TheChangeling = definePact<ChangelingState, ChangelingState>('chang
         }
     })
     .malus('unstable_identity', {
+        icon: 'alert-circle-outline',
+        ranking: -3,
+        category: 'Board Transform',
         effects: [
             Effects.state.onStreak({
                 key: 'unstable_identity',

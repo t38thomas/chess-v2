@@ -15,6 +15,9 @@ interface SwarmBonusState {
  */
 export const TheSwarm = definePact<SwarmBonusState>('swarm')
     .bonus('hydra', {
+        icon: 'bacteria',
+        ranking: 5,
+        category: 'Board Transform',
         target: 'self',
         initialState: () => ({ hydraCount: 0 }),
         onCapture: (params, context) => {
@@ -40,6 +43,9 @@ export const TheSwarm = definePact<SwarmBonusState>('swarm')
     })
 
     .malus('hive_queen', {
+        icon: 'crown-circle',
+        ranking: -5,
+        category: 'King Safety',
         target: 'self',
         effects: [Effects.combat.loseOnPieceCapture('queen', 'death', 'crown', 'swarm')]
     })

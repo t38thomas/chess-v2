@@ -10,6 +10,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheGolem = definePact('golem')
     .bonus('stone_skin', {
+        icon: 'wall',
+        ranking: 4,
+        category: 'King Safety',
         target: 'self',
         effects: [
             Effects.combat.protectKingAgainstRanged(3),
@@ -41,6 +44,9 @@ export const TheGolem = definePact('golem')
         }
     })
     .malus('lead_feet', {
+        icon: 'weight-kilogram',
+        ranking: -3,
+        category: 'Movement',
         target: 'self',
         effects: [Effects.movement.disableDiagonal('king')]
     })

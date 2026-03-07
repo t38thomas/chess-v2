@@ -8,6 +8,9 @@ import { PactUtils } from '../PactUtils';
  */
 export const TheTimekeeper = definePact('timekeeper')
     .bonus('time_stop', {
+        icon: 'clock-remove',
+        ranking: 5,
+        category: 'Action',
         activeAbility: {
             id: 'time_stop',
             name: 'time_stop',
@@ -35,7 +38,10 @@ export const TheTimekeeper = definePact('timekeeper')
             }
         }
     })
-    .malus('paradox', {})
+    .malus('paradox', {
+        icon: 'infinity',
+        ranking: -4,
+        category: 'Board Transform',})
     .build();
 
 

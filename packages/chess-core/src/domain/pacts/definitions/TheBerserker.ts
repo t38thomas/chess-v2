@@ -14,6 +14,9 @@ interface BerserkerState {
  */
 export const TheBerserker = definePact<BerserkerState>('berserker')
     .bonus('frenzy', {
+        icon: 'axe',
+        ranking: 4,
+        category: 'Turn Economy',
         target: 'self',
         initialState: () => ({ isFrenzyActive: false, frenzyPieceId: null as string | null }),
         modifiers: {
@@ -51,6 +54,9 @@ export const TheBerserker = definePact<BerserkerState>('berserker')
         }
     })
     .malus('missing_knight', {
+        icon: 'chess-knight',
+        ranking: -3,
+        category: 'Board Transform',
         effects: [Effects.rules.removeRandomPiecesAtStart('knight', 1)]
     })
     .build();

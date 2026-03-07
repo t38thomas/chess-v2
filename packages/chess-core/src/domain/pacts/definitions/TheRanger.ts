@@ -11,6 +11,9 @@ import { Coordinate } from '../../models/Coordinate';
  */
 export const TheRanger = definePact('ranger')
     .bonus('snipe', {
+        icon: 'bow-arrow',
+        ranking: 4,
+        category: 'Action',
         activeAbility: {
             id: 'snipe',
             name: 'perks.snipe.name',
@@ -79,6 +82,9 @@ export const TheRanger = definePact('ranger')
         }
     })
     .malus('short_sighted', {
+        icon: 'glasses',
+        ranking: -2,
+        category: 'Movement',
         modifiers: {
             getMaxRange: (piece) => piece.type === 'bishop' ? 4 : 8
         }

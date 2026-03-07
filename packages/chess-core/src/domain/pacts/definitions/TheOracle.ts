@@ -13,9 +13,15 @@ interface OracleMalusState {
 export const TheOracle = definePact('oracle')
     .bonus('prescience', {
         target: 'self',
+        icon: 'eye',
+        ranking: 3,
+        category: 'special',
     })
     .malus<OracleMalusState>('inevitable_fate', {
         target: 'self',
+        icon: 'skull',
+        ranking: 4,
+        category: 'special',
         initialState: () => ({ capablePieceIds: [] }),
         onTurnStart: (context) => {
             const { game, playerId } = context;

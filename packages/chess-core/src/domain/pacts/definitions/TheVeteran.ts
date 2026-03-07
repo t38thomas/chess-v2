@@ -8,6 +8,9 @@ import { Effects } from '../PactEffects';
  */
 export const TheVeteran = definePact('veteran')
     .bonus('bayonet', {
+        icon: 'knife',
+        ranking: 3,
+        category: 'Capture Rules',
         effects: [Effects.pawn.canCaptureStraight()],
         getTurnCounters: (context) => {
             const pawns = context.query.pieces().friendly().ofTypes(['pawn']);
@@ -24,6 +27,9 @@ export const TheVeteran = definePact('veteran')
         }
     })
     .malus('old_guard', {
+        icon: 'human-cane',
+        ranking: -1,
+        category: 'Movement',
         effects: [Effects.pawn.disableDoubleMove()]
     })
     .build();

@@ -35,30 +35,30 @@ export class MoveGenerator {
         return res;
     }
 
-    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], perkUsage: Set<string> = new Set(), game?: IChessGame): Move[] {
+    public static getPseudoLegalMoves(board: BoardModel, piece: Piece, from: Coordinate, enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], perkUsage: Set<string> = new Set(), game?: IChessGame, callStack: string[] = []): Move[] {
         const moves: Move[] = [];
 
         // Apply any perk-specific baseline movement restrictions (Slug Move, Heavy Crown)
-        if (game && !RuleEngine.canMovePiece(game, from, pacts, board)) {
+        if (game && !RuleEngine.canMovePiece(game, from, pacts, board, callStack)) {
             return [];
         }
 
         switch (piece.type) {
             case 'pawn':
-                this.addPawnMoves(board, piece, from, moves, enPassantTarget, pacts, game);
+                this.addPawnMoves(board, piece, from, moves, enPassantTarget, pacts, game, callStack);
                 break;
             case 'rook':
-                const rookRange = RuleEngine.getMaxRange(piece, pacts, game);
-                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, pacts, game);
+                const rookRange = RuleEngine.getMaxRange(piece, pacts, game, callStack);
+                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, rookRange, pacts, game, callStack);
                 break;
             case 'bishop':
-                const bishopRange = RuleEngine.getMaxRange(piece, pacts, game);
-                const bishopFixedDistances = RuleEngine.getFixedDistances(piece, pacts, game);
+                const bishopRange = RuleEngine.getMaxRange(piece, pacts, game, callStack);
+                const bishopFixedDistances = RuleEngine.getFixedDistances(piece, pacts, game, callStack);
 
                 if (bishopFixedDistances) {
-                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances, pacts, game);
+                    this.addFixedDistanceMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopFixedDistances, pacts, game, callStack);
                 } else {
-                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, pacts, game);
+                    this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, bishopRange, pacts, game, callStack);
                 }
 
                 // Zealous Bishops: 1 square horizontal/vertical
@@ -67,33 +67,33 @@ export class MoveGenerator {
                 }
                 break;
             case 'queen':
-                const queenRange = RuleEngine.getMaxRange(piece, pacts, game);
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, queenRange, pacts, game);
+                const queenRange = RuleEngine.getMaxRange(piece, pacts, game, callStack);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, queenRange, pacts, game, callStack);
                 break;
             case 'knight':
                 const knightDirs = pacts.some(p => p.id === 'knight_reach') ? MoveGenerator.KNIGHT_REACH_DIRS : MoveGenerator.KNIGHT_DIRS;
-                this.addSteppingMoves(board, from, knightDirs, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, knightDirs, piece, moves, pacts, game, callStack);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game, callStack);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game, callStack);
 
-                if (RuleEngine.canMoveLikeKnight(piece.type, pacts, perkUsage, game)) {
-                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game);
+                if (RuleEngine.canMoveLikeKnight(piece.type, pacts, perkUsage, game, callStack)) {
+                    this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game, callStack);
                 }
 
                 // Super Pawn / Prince logic: if type is something else (or we just check if it should move like king)
-                this.addCastlingMoves(board, piece, from, moves, pacts, game);
+                this.addCastlingMoves(board, piece, from, moves, pacts, game, callStack);
                 break;
             default:
                 // Handle custom pieces like "Prince" from Super Pawn
-                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game);
-                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, pacts, game, callStack);
+                this.addSteppingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, pacts, game, callStack);
                 break;
         }
 
         // Apply any perk-specific custom move additions
-        return RuleEngine.onModifyMoves(board, from, piece, moves, pacts, game);
+        return RuleEngine.onModifyMoves(board, from, piece, moves, pacts, game, callStack);
     }
 
     private static isEmpty(board: BoardModel, x: number, y: number): boolean {
@@ -101,7 +101,7 @@ export class MoveGenerator {
         return !!target && !target.piece;
     }
 
-    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], game?: IChessGame) {
+    private static addPawnMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], enPassantTarget?: Coordinate | null, pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []) {
         const { x, y } = from;
         const orientation = game?.orientation || 0;
 
@@ -213,7 +213,7 @@ export class MoveGenerator {
         // Override startY logic for check
         // RuleEngine.canPawnDoubleMove expects (piece, y, startY, pacts)
         // We use our orientation-aware 'onStartRank' logic to determine if we are at startY.
-        const canDoubleMove = RuleEngine.canPawnDoubleMove(piece, onStartRank ? 1 : 0, 1, pacts, game);
+        const canDoubleMove = RuleEngine.canPawnDoubleMove(piece, onStartRank ? 1 : 0, 1, pacts, game, callStack);
 
         const to = new Coordinate(x + forward.dx, y + forward.dy);
 
@@ -228,7 +228,7 @@ export class MoveGenerator {
         }
 
         // Diagonal Dash
-        if (RuleEngine.canPawnDiagonalDash(piece, pacts, game)) {
+        if (RuleEngine.canPawnDiagonalDash(piece, pacts, game, callStack)) {
             // Rotate Diagonal Vectors?
             // Std: (-1, dy), (1, dy).
             // Rotated: Left+Forward, Right+Forward?
@@ -247,7 +247,7 @@ export class MoveGenerator {
         }
 
         // Scout Path: Sideways moves (relative to forward)
-        if (RuleEngine.canPawnSidewaysMove(piece, pacts, game)) {
+        if (RuleEngine.canPawnSidewaysMove(piece, pacts, game, callStack)) {
             const left = this.rotateVector(-1, 0, orientation);
             const right = this.rotateVector(1, 0, orientation);
 
@@ -285,25 +285,25 @@ export class MoveGenerator {
                 // The captured pawn is at the same X as diagL but same Y as from
                 const victimCoord = new Coordinate(diagL.x, from.y);
                 const victim = board.getSquare(victimCoord)?.piece;
-                if (victim && RuleEngine.canCapture(game, piece, victim, diagL, from, board, pacts)) {
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagL, from, board, pacts, callStack)) {
                     moves.push(new Move(from, diagL, piece, null, false, true));
                 }
             }
             if (enPassantTarget.equals(diagR)) {
                 const victimCoord = new Coordinate(diagR.x, from.y);
                 const victim = board.getSquare(victimCoord)?.piece;
-                if (victim && RuleEngine.canCapture(game, piece, victim, diagR, from, board, pacts)) {
+                if (victim && RuleEngine.canCapture(game, piece, victim, diagR, from, board, pacts, callStack)) {
                     moves.push(new Move(from, diagR, piece, null, false, true));
                 }
             }
         }
     }
 
-    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame) {
+    public static addCapture(board: BoardModel, x: number, y: number, piece: Piece, moves: Move[], from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []) {
         const target = board.getSquare(new Coordinate(x, y));
         if (target && target.piece && target.piece.color !== piece.color) {
             // RuleEngine check for capture restrictions
-            if (!RuleEngine.canCapture(game, piece, target.piece, target.coordinate, from, board, pacts)) return;
+            if (!RuleEngine.canCapture(game, piece, target.piece, target.coordinate, from, board, pacts, callStack)) return;
 
             moves.push(new Move(from, new Coordinate(x, y), piece, target.piece));
         }
@@ -317,7 +317,8 @@ export class MoveGenerator {
         moves: Move[],
         maxRange: number = BoardModel.SIZE,
         pacts: PactLogic[] = [],
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -333,15 +334,15 @@ export class MoveGenerator {
                     moves.push(new Move(from, coord, piece));
                 } else {
                     if (target.piece.color !== piece.color) {
-                        this.addCapture(board, x, y, piece, moves, from, pacts, game);
+                        this.addCapture(board, x, y, piece, moves, from, pacts, game, callStack);
                         // Echolocation: Continue after capture/enemy
-                        if (RuleEngine.hasEcholocation(piece, pacts, game)) {
+                        if (RuleEngine.hasEcholocation(piece, pacts, game, callStack)) {
                             x += dx;
                             y += dy;
                             range++;
                             continue;
                         }
-                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, pacts, game) || RuleEngine.hasEcholocation(piece, pacts, game)) {
+                    } else if (RuleEngine.canMoveThroughFriendlies(piece, target.piece, pacts, game, callStack) || RuleEngine.hasEcholocation(piece, pacts, game, callStack)) {
                         // Keep going if we can move through friendlies OR have echolocation
                         x += dx;
                         y += dy;
@@ -365,7 +366,8 @@ export class MoveGenerator {
         moves: Move[],
         distances: number[],
         pacts: PactLogic[] = [],
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -388,7 +390,7 @@ export class MoveGenerator {
                             if (!target.piece) {
                                 moves.push(new Move(from, coord, piece, null));
                             } else if (target.piece.color !== piece.color) {
-                                this.addCapture(board, x, y, piece, moves, from, pacts, game);
+                                this.addCapture(board, x, y, piece, moves, from, pacts, game, callStack);
                             }
                         }
                     }
@@ -404,7 +406,8 @@ export class MoveGenerator {
         piece: Piece,
         moves: Move[],
         pacts: PactLogic[] = [],
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ) {
         const { x: startX, y: startY } = from;
         dirs.forEach(([dx, dy]) => {
@@ -417,19 +420,19 @@ export class MoveGenerator {
                     if (!target.piece) {
                         moves.push(new Move(from, coord, piece, null));
                     } else if (target.piece.color !== piece.color) {
-                        this.addCapture(board, x, y, piece, moves, from, pacts, game);
+                        this.addCapture(board, x, y, piece, moves, from, pacts, game, callStack);
                     }
                 }
             }
         });
     }
 
-    private static addCastlingMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], pacts: PactLogic[] = [], game?: IChessGame) {
+    private static addCastlingMoves(board: BoardModel, piece: Piece, from: Coordinate, moves: Move[], pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []) {
         // King must not have moved (unless RuleEngine allows it)
-        if (piece.hasMoved && !RuleEngine.canCastleWhileMoved(piece, pacts, game)) return;
+        if (piece.hasMoved && !RuleEngine.canCastleWhileMoved(piece, pacts, game, callStack)) return;
 
         // Check if castling is generally allowed by active pacts
-        if (!RuleEngine.canCastle(piece, pacts, game)) return;
+        if (!RuleEngine.canCastle(piece, pacts, game, callStack)) return;
 
         const { x, y } = from;
         const baseRank = piece.color === 'white' ? 0 : 7;
@@ -441,7 +444,7 @@ export class MoveGenerator {
         if (x !== 4 || y !== baseRank) return;
 
         // Check if king is in check (cannot castle out of check)
-        if (this.isSquareUnderAttack(board, from, piece.color, pacts, game)) return;
+        if (this.isSquareUnderAttack(board, from, piece.color, pacts, game, callStack)) return;
 
         // Kingside castling (O-O)
         const kingsideRookSquare = board.getSquare(new Coordinate(7, baseRank));
@@ -456,8 +459,8 @@ export class MoveGenerator {
                 const f = new Coordinate(5, baseRank);
                 const g = new Coordinate(6, baseRank);
 
-                if (!this.isSquareUnderAttack(board, f, piece.color, pacts, game) &&
-                    !this.isSquareUnderAttack(board, g, piece.color, pacts, game)) {
+                if (!this.isSquareUnderAttack(board, f, piece.color, pacts, game, callStack) &&
+                    !this.isSquareUnderAttack(board, g, piece.color, pacts, game, callStack)) {
                     moves.push(new Move(from, g, piece, null, true, false));
                 }
             }
@@ -479,15 +482,15 @@ export class MoveGenerator {
                 const c = new Coordinate(2, baseRank);
                 const d = new Coordinate(3, baseRank);
 
-                if (!this.isSquareUnderAttack(board, c, piece.color, pacts, game) &&
-                    !this.isSquareUnderAttack(board, d, piece.color, pacts, game)) {
-                    moves.push(new Move(from, c, piece, null, true, false));
+                if (!this.isSquareUnderAttack(board, c, piece.color, pacts, game, callStack) &&
+                    !this.isSquareUnderAttack(board, d, piece.color, pacts, game, callStack)) {
+                    moves.push(new Move(from, d, piece, null, true, false));
                 }
             }
         }
     }
 
-    private static isSquareUnderAttack(board: BoardModel, square: Coordinate, byColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame): boolean {
+    private static isSquareUnderAttack(board: BoardModel, square: Coordinate, byColor: PieceColor, pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []): boolean {
         const opponentColor: PieceColor = byColor === 'white' ? 'black' : 'white';
 
         // Check all opponent pieces to see if any can attack this square
@@ -497,7 +500,7 @@ export class MoveGenerator {
                 // For attack checking, we should use the opponent's perks
                 // BUT perks are currently assigned to the game, not the piece.
                 // We'll assume the caller passes the relevant perks if needed.
-                const opponentMoves = this.getPseudoLegalMovesSimple(board, sq.piece, sq.coordinate, pacts, game);
+                const opponentMoves = this.getPseudoLegalMovesSimple(board, sq.piece, sq.coordinate, pacts, game, callStack);
                 if (opponentMoves.some(m => m.to.equals(square))) {
                     return true;
                 }
@@ -507,27 +510,27 @@ export class MoveGenerator {
     }
 
     // Simplified version without castling to avoid recursion
-    private static getPseudoLegalMovesSimple(board: BoardModel, piece: Piece, from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame): Move[] {
+    private static getPseudoLegalMovesSimple(board: BoardModel, piece: Piece, from: Coordinate, pacts: PactLogic[] = [], game?: IChessGame, callStack: string[] = []): Move[] {
         const moves: Move[] = [];
 
         switch (piece.type) {
             case 'pawn':
-                this.addPawnMoves(board, piece, from, moves, null, pacts, game);
+                this.addPawnMoves(board, piece, from, moves, null, pacts, game, callStack);
                 break;
             case 'rook':
-                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, undefined, pacts, game);
+                this.addSlidingMoves(board, from, MoveGenerator.ROOK_DIRS, piece, moves, undefined, pacts, game, callStack);
                 break;
             case 'bishop':
-                this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, undefined, pacts, game);
+                this.addSlidingMoves(board, from, MoveGenerator.BISHOP_DIRS, piece, moves, undefined, pacts, game, callStack);
                 break;
             case 'queen':
-                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, pacts, game);
+                this.addSlidingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, undefined, pacts, game, callStack);
                 break;
             case 'knight':
-                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.KNIGHT_DIRS, piece, moves, pacts, game, callStack);
                 break;
             case 'king':
-                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, pacts, game);
+                this.addSteppingMoves(board, from, MoveGenerator.QUEEN_DIRS, piece, moves, pacts, game, callStack);
                 break;
         }
 

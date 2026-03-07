@@ -8,8 +8,15 @@ import { PactUtils } from '../PactUtils';
  * Bonus (High Flyer): Bishops can jump over friendly pieces. Jumping over a piece unlocks adjacent captures this turn.
  * Malus (Distant Predator): Bishops cannot capture adjacent pieces unless they just jumped over a piece.
  */
-export const TheHawk = definePact('hawk')
+interface HawkBonusState {
+    jumpedThisTurn?: boolean;
+}
+
+export const TheHawk = definePact<HawkBonusState, Record<string, unknown>>('hawk')
     .bonus('high_flyer', {
+        icon: 'bird',
+        ranking: 4,
+        category: 'Movement',
         target: 'self',
         effects: [Effects.movement.canMoveThroughFriendlies('bishop')],
         onMove: (move, context) => {
@@ -39,6 +46,9 @@ export const TheHawk = definePact('hawk')
         }
     })
     .malus('distant_predator', {
+        icon: 'eye-minus',
+        ranking: -2,
+        category: 'Capture Rules',
         target: 'self',
         modifiers: {
             canCapture: (params, context) => {
@@ -47,15 +57,15 @@ export const TheHawk = definePact('hawk')
                 const dy = Math.abs(params.to.y - params.from.y);
 
                 if (dx <= 1 && dy <= 1) {
-                    const sharedState = context.getSiblingState<any>() || {};
-                    return !!sharedState['jumpedThisTurn'];
+                    const sharedState = context.getSiblingState() || {};
+                    return !!sharedState.jumpedThisTurn;
                 }
                 return true;
             }
         },
         getTurnCounters: (context) => {
-            const sharedState = context.getSiblingState<any>() || {};
-            if (sharedState['jumpedThisTurn']) {
+            const sharedState = context.getSiblingState() || {};
+            if (sharedState.jumpedThisTurn) {
                 return [{
                     id: 'hawk_boost',
                     label: 'claws_ready',

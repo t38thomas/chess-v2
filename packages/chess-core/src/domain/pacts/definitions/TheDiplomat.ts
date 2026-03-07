@@ -8,8 +8,15 @@ import { Move } from '../../models/Move';
  * Bonus (Diplomatic Immunity): The Queen cannot be captured by pawns until she crosses the midfield line.
  * Malus (Internal Sabotage): Knights are blocked until the Queen crosses the midfield line.
  */
-export const TheDiplomat = definePact('diplomat')
+interface DiplomatBonusState {
+    has_crossed_midfield?: boolean;
+}
+
+export const TheDiplomat = definePact<DiplomatBonusState, Record<string, unknown>>('diplomat')
     .bonus('diplomatic_immunity', {
+        icon: 'passport',
+        ranking: 5,
+        category: 'King Safety',
         target: 'self',
         modifiers: {
             canBeCaptured: (params, context) => {
@@ -49,14 +56,17 @@ export const TheDiplomat = definePact('diplomat')
         }
     })
     .malus('internal_sabotage', {
+        icon: 'bomb',
+        ranking: -4,
+        category: 'Movement',
         target: 'self',
         modifiers: {
             canMovePiece: (params, context) => {
                 const b = params.board;
                 const piece = b.getSquare(params.from)?.piece;
                 if (piece?.type === 'knight') {
-                    const sharedState = context.getSiblingState<any>() || {};
-                    return !!(sharedState['has_crossed_midfield']);
+                    const sharedState = context.getSiblingState() || {};
+                    return !!(sharedState.has_crossed_midfield);
                 }
                 return true;
             }

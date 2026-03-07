@@ -16,17 +16,23 @@ export class RuleEngine {
     }
 
 
-    private static buildContext(game: IChessGame | undefined, playerId: PieceColor, pactId: string): PactContextWithState<Record<string, unknown>> | undefined {
+    private static buildContext(
+        game: IChessGame | undefined,
+        playerId: PieceColor,
+        pactId: string,
+        callStack: string[] = []
+    ): PactContextWithState<Record<string, unknown>> | undefined {
         if (!game) return undefined;
         const logic = PactRegistry.getInstance().get(pactId) as PactLogic;
-        return logic?.createContextWithState({ game, playerId, pactId });
+        return logic?.createContextWithState({ game, playerId, pactId, callStack });
     }
 
     private static getAppliedModifiers<K extends keyof RuleModifiers>(
         key: K,
         pacts: PactLogic[],
         subjectColor: PieceColor,
-        game?: IChessGame
+        game?: IChessGame,
+        callStack: string[] = []
     ): { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<Record<string, unknown>>; priority: number }[] {
         const result: { modifier: NonNullable<RuleModifiers[K]>; context: PactContextWithState<Record<string, unknown>>; priority: number }[] = [];
         const registry = PactRegistry.getInstance();
@@ -35,25 +41,34 @@ export class RuleEngine {
             const logic = registry.get(meta.id);
             if (!logic) continue;
 
+            // Punto 8: Targeting Strictness - Validate target before even looking for modifiers
+            // We assume 'subjectColor' is the color of the piece/player that "owns" the pacts list being passed.
+            // But verify: RuleEngine calls pass game.pacts[color]. If logic.target is 'enemy', 
+            // it should only apply if subjectColor != movingPieceColor.
+            // Actually, RuleEngine.evaluateModifierTarget is more robust.
+            if (!RuleEngine.evaluateModifierTarget(logic, subjectColor, subjectColor)) continue;
+
             const modifiers = registry.getCachedModifiers(meta.id) || {};
             const modifier = (modifiers as RuleModifiers)[key] as NonNullable<RuleModifiers[K]>;
             if (!modifier) continue;
 
-            const context = RuleEngine.buildContext(game, subjectColor, meta.id);
+            // Punto 4: Recursion Guard - Add current pact+hook to stack
+            const currentCall = `${meta.id}:${key}`;
+            const nextStack = [...callStack, currentCall];
+
+            const context = RuleEngine.buildContext(game, subjectColor, meta.id, nextStack);
             if (!context) continue;
 
-            if (RuleEngine.evaluateModifierTarget(logic, subjectColor, subjectColor)) {
-                // Find highest priority among effects that implement this modifier key
-                let maxPriority = 0; // PactPriority.NORMAL
-                if (logic.options && logic.options.effects) {
-                    for (const effect of logic.options.effects) {
-                        if (effect.modifiers && effect.modifiers[key]) {
-                            maxPriority = Math.max(maxPriority, effect.priority ?? 0);
-                        }
+            // Find highest priority among effects that implement this modifier key
+            let maxPriority = 0; // PactPriority.NORMAL
+            if (logic.options && logic.options.effects) {
+                for (const effect of logic.options.effects) {
+                    if (effect.modifiers && effect.modifiers[key]) {
+                        maxPriority = Math.max(maxPriority, effect.priority ?? 0);
                     }
                 }
-                result.push({ modifier, context, priority: maxPriority });
             }
+            result.push({ modifier, context, priority: maxPriority });
         }
 
         // Sort by priority descending (higher number = earlier execution)
@@ -64,9 +79,9 @@ export class RuleEngine {
 
     // --- PAWN RULES ---
 
-    public static canPawnDoubleMove(piece: Piece, y: number, startY: number, pacts: PactLogic[], game?: IChessGame): boolean {
+    public static canPawnDoubleMove(piece: Piece, y: number, startY: number, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
         let allowed = y === startY;
-        const modifiers = RuleEngine.getAppliedModifiers('canDoubleMove', pacts, piece.color, game);
+        const modifiers = RuleEngine.getAppliedModifiers('canDoubleMove', pacts, piece.color, game, callStack);
 
         for (const { modifier, context } of modifiers) {
             allowed = modifier(piece, y, startY, context);
@@ -75,29 +90,29 @@ export class RuleEngine {
         return allowed;
     }
 
-    public static canPawnDiagonalDash(piece: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('canDiagonalDash', pacts, piece.color, game);
+    public static canPawnDiagonalDash(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('canDiagonalDash', pacts, piece.color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
-    public static canPawnSidewaysMove(piece: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('canSidewaysMove', pacts, piece.color, game);
+    public static canPawnSidewaysMove(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('canSidewaysMove', pacts, piece.color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     // --- MOVEMENT RANGE ---
 
-    public static getMaxRange(piece: Piece, pacts: PactLogic[], game?: IChessGame): number {
+    public static getMaxRange(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): number {
         let max = 8;
-        const modifiers = RuleEngine.getAppliedModifiers('getMaxRange', pacts, piece.color, game);
+        const modifiers = RuleEngine.getAppliedModifiers('getMaxRange', pacts, piece.color, game, callStack);
         for (const { modifier, context } of modifiers) {
             max = Math.min(max, modifier(piece, context));
         }
         return max;
     }
 
-    public static getFixedDistances(piece: Piece, pacts: PactLogic[], game?: IChessGame): number[] | null {
-        const modifiers = RuleEngine.getAppliedModifiers('getFixedDistances', pacts, piece.color, game);
+    public static getFixedDistances(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): number[] | null {
+        const modifiers = RuleEngine.getAppliedModifiers('getFixedDistances', pacts, piece.color, game, callStack);
         for (const { modifier, context } of modifiers) {
             const dists = modifier(piece, context);
             if (dists) return dists;
@@ -105,14 +120,15 @@ export class RuleEngine {
         return null;
     }
 
-    public static canMoveLikeKnight(pieceType: PieceType, pacts: PactLogic[], usedPerks: Set<string>, game?: IChessGame): boolean {
+    public static canMoveLikeKnight(pieceType: PieceType, pacts: PactLogic[], usedPerks: Set<string>, game?: IChessGame, callStack: string[] = []): boolean {
         const unusedPerks = pacts.filter(p => !usedPerks.has(p.id));
-        const color = "white"; // TODO correct color mapping later? Knight is symmetric
-        const modifiers = RuleEngine.getAppliedModifiers('canMoveLikeKnight', unusedPerks, color, game);
+        // Punto 3 bonus: Fix hardcoded color mapping. Use game logic color (it's called from MoveGenerator where piece.color is known)
+        const color = game?.turn || "white";
+        const modifiers = RuleEngine.getAppliedModifiers('canMoveLikeKnight', unusedPerks, color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(pieceType, context));
     }
 
-    public static canMovePiece(game: IChessGame, from: Coordinate, pacts: PactLogic[], board?: BoardModel): boolean {
+    public static canMovePiece(game: IChessGame, from: Coordinate, pacts: PactLogic[], board?: BoardModel, callStack: string[] = []): boolean {
         // Core Rule: Generic Cooldown check
         const targetBoard = board || game.board;
         const square = targetBoard.getSquare(from);
@@ -122,7 +138,7 @@ export class RuleEngine {
         }
 
         const pieceColor = square?.piece?.color || "white";
-        const modifiers = RuleEngine.getAppliedModifiers('canMovePiece', pacts, pieceColor, game);
+        const modifiers = RuleEngine.getAppliedModifiers('canMovePiece', pacts, pieceColor, game, callStack);
         const params: MoveContext = { game, board: targetBoard, from };
 
         for (const { modifier, context } of modifiers) {
@@ -133,10 +149,10 @@ export class RuleEngine {
 
     // --- PROMOTION ---
 
-    public static getAllowedPromotionTypes(piece: Piece, pacts: PactLogic[], game?: IChessGame): PieceType[] {
+    public static getAllowedPromotionTypes(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): PieceType[] {
         const allTypes: PieceType[] = ['queen', 'rook', 'bishop', 'knight'];
         let allowed = new Set(allTypes);
-        const modifiers = RuleEngine.getAppliedModifiers('getAllowedPromotionTypes', pacts, piece.color, game);
+        const modifiers = RuleEngine.getAppliedModifiers('getAllowedPromotionTypes', pacts, piece.color, game, callStack);
 
         for (const { modifier, context } of modifiers) {
             const types = modifier(piece, context);
@@ -147,22 +163,22 @@ export class RuleEngine {
         return Array.from(allowed);
     }
 
-    public static canMoveThroughFriendlies(mover: Piece, obstacle: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('canMoveThroughFriendlies', pacts, mover.color, game);
+    public static canMoveThroughFriendlies(mover: Piece, obstacle: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('canMoveThroughFriendlies', pacts, mover.color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(mover, obstacle, context));
     }
 
-    public static hasEcholocation(piece: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('hasEcholocation', pacts, piece.color, game);
+    public static hasEcholocation(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('hasEcholocation', pacts, piece.color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
     // --- CAPTURE RULES ---
 
-    public static canCapture(game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, pacts: PactLogic[]): boolean {
+    public static canCapture(game: IChessGame | undefined, attacker: Piece, victim: Piece, to: Coordinate, from: Coordinate, board: BoardModel, pacts: PactLogic[], callStack: string[] = []): boolean {
         const params: CaptureContext = { game, board, attacker, victim, from, to };
 
-        const attackerModifiers = RuleEngine.getAppliedModifiers('canCapture', pacts, attacker.color, game);
+        const attackerModifiers = RuleEngine.getAppliedModifiers('canCapture', pacts, attacker.color, game, callStack);
         for (const { modifier, context } of attackerModifiers) {
             if (modifier(params, context) === false) return false;
         }
@@ -170,7 +186,7 @@ export class RuleEngine {
         // Check if victim has a pact that prevents it from being captured
         if (game) {
             const victimPacts = game.pacts[victim.color].map(p => [p.bonus, p.malus]).flat();
-            const victimModifiers = RuleEngine.getAppliedModifiers('canBeCaptured', victimPacts, victim.color, game);
+            const victimModifiers = RuleEngine.getAppliedModifiers('canBeCaptured', victimPacts, victim.color, game, callStack);
             for (const { modifier, context } of victimModifiers) {
                 if (modifier(params, context) === false) return false;
             }
@@ -181,37 +197,37 @@ export class RuleEngine {
 
     // --- KING SAFETY ---
 
-    public static canCastleWhileMoved(piece: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('canCastleWhileMoved', pacts, piece.color, game);
+    public static canCastleWhileMoved(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('canCastleWhileMoved', pacts, piece.color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(piece, context));
     }
 
-    public static canCastle(piece: Piece, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('canCastle', pacts, piece.color, game);
+    public static canCastle(piece: Piece, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('canCastle', pacts, piece.color, game, callStack);
         for (const { modifier, context } of modifiers) {
             if (modifier(piece, context) === false) return false;
         }
         return true;
     }
 
-    public static mustMoveKingInCheck(color: PieceColor, pacts: PactLogic[], game?: IChessGame): boolean {
-        const modifiers = RuleEngine.getAppliedModifiers('mustMoveKingInCheck', pacts, color, game);
+    public static mustMoveKingInCheck(color: PieceColor, pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): boolean {
+        const modifiers = RuleEngine.getAppliedModifiers('mustMoveKingInCheck', pacts, color, game, callStack);
         return modifiers.some(({ modifier, context }) => modifier(color, context));
     }
 
     // --- TURN ECONOMY & EVENTS ---
 
-    public static onExecuteMove(game: IChessGame, move: Move, pacts: PactLogic[]) {
+    public static onExecuteMove(game: IChessGame, move: Move, pacts: PactLogic[], callStack: string[] = []) {
         const pieceColor = move.piece?.color || "white";
-        const modifiers = RuleEngine.getAppliedModifiers('onExecuteMove', pacts, pieceColor, game);
+        const modifiers = RuleEngine.getAppliedModifiers('onExecuteMove', pacts, pieceColor, game, callStack);
         for (const { modifier, context } of modifiers) {
             modifier(game, move, context);
         }
     }
 
-    public static getNextTurn(game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, pacts: PactLogic[]): PieceColor {
+    public static getNextTurn(game: IChessGame, currentTurn: PieceColor, eventType: GameEvent, pacts: PactLogic[], callStack: string[] = []): PieceColor {
         const opponent: PieceColor = currentTurn === 'white' ? 'black' : 'white';
-        const modifiers = RuleEngine.getAppliedModifiers('modifyNextTurn', pacts, currentTurn, game);
+        const modifiers = RuleEngine.getAppliedModifiers('modifyNextTurn', pacts, currentTurn, game, callStack);
 
         // 1. Check if any pact wants to modify the turn sequence
         for (const { modifier, context } of modifiers) {
@@ -272,8 +288,8 @@ export class RuleEngine {
         });
     }
 
-    public static onModifyMoves(board: BoardModel, from: Coordinate, piece: Piece, initialMoves: Move[], pacts: PactLogic[], game?: IChessGame): Move[] {
-        const modifiers = RuleEngine.getAppliedModifiers('onModifyMoves', pacts, piece.color, game);
+    public static onModifyMoves(board: BoardModel, from: Coordinate, piece: Piece, initialMoves: Move[], pacts: PactLogic[], game?: IChessGame, callStack: string[] = []): Move[] {
+        const modifiers = RuleEngine.getAppliedModifiers('onModifyMoves', pacts, piece.color, game, callStack);
 
         return modifiers.reduce((currentMoves, { modifier, context }) => {
             return modifier(currentMoves, {
