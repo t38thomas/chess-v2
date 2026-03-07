@@ -12,7 +12,7 @@ type ThiefBonusState = Record<string, number>;
  * Malus (Wanted): Pawns cannot promote.
  */
 export const TheThief = definePact<ThiefBonusState, {}>('thief')
-    .bonus('pickpocket', {
+    .bonus<ThiefBonusState>('pickpocket', {
         initialState: () => ({}),
         onMove: (move, context) => {
             const { game, playerId } = context;
@@ -30,7 +30,7 @@ export const TheThief = definePact<ThiefBonusState, {}>('thief')
                             const enemySquare = game.board.getSquare(neighbor);
                             const enemyPiece = enemySquare?.piece;
                             if (enemyPiece && enemyPiece.color !== playerId && (enemyPiece.type === 'rook' || enemyPiece.type === 'queen')) {
-                                const historyKey = `pickpocket_${pawn.id}_${enemyPiece.id}`;
+                                const historyKey = `${pawn.id}_${enemyPiece.id}`;
                                 const lastTurn = context.state[historyKey] ?? -10;
                                 if (game.totalTurns - lastTurn > 2 && (game.pieceCooldowns.get(enemyPiece.id) ?? 0) < 2) {
                                     game.applyCooldown!(enemyPiece.id, 2);

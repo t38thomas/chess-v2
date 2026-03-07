@@ -318,7 +318,7 @@ export abstract class PactLogic<T = Record<string, unknown>, TSibling = Record<s
 
 
     // Hooks primarily for RuleEngine integration
-    getRuleModifiers(): RuleModifiers<T> {
+    getRuleModifiers(): RuleModifiers<T, TSibling> {
         return {};
     }
 
@@ -383,7 +383,7 @@ class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown
         return this.options.initialState ? this.options.initialState() : null;
     }
 
-    getRuleModifiers(): RuleModifiers<T> {
+    getRuleModifiers(): RuleModifiers<T, TSibling> {
         const wrapModifier = (fn: ModifierFn): ModifierFn => {
             return (...args: unknown[]) => {
                 const context = args[args.length - 1] as PactContext;
@@ -392,17 +392,17 @@ class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown
             };
         };
 
-        const wrapAll = (mods: RuleModifiers<T>): RuleModifiers<T> => {
-            const result: Partial<RuleModifiers<T>> = {};
-            (Object.keys(mods) as Array<keyof RuleModifiers<T>>).forEach((key) => {
+        const wrapAll = <TState, TSib>(mods: RuleModifiers<TState, TSib>): RuleModifiers<TState, TSib> => {
+            const result: Partial<RuleModifiers<TState, TSib>> = {};
+            (Object.keys(mods) as Array<keyof RuleModifiers<TState, TSib>>).forEach((key) => {
                 const val = mods[key];
                 if (typeof val === 'function') {
-                    (result as Record<keyof RuleModifiers<T>, ModifierFn>)[key] = wrapModifier(val as ModifierFn);
+                    (result as Record<string, ModifierFn>)[key as string] = wrapModifier(val as ModifierFn);
                 } else {
                     result[key] = val;
                 }
             });
-            return result as RuleModifiers<T>;
+            return result as RuleModifiers<TState, TSib>;
         };
 
         const base = wrapAll(this.options.modifiers || {});
@@ -413,8 +413,8 @@ class GenericPact<T = Record<string, unknown>, TSibling = Record<string, unknown
 
         const effectModifiers = sortedEffects
             .map(e => e.modifiers)
-            .filter(m => m !== undefined)
-            .map(m => wrapAll(m! as any));
+            .filter((m): m is RuleModifiers<T, TSibling> => m !== undefined)
+            .map(m => wrapAll(m));
 
         if (effectModifiers.length === 0) return base;
 
