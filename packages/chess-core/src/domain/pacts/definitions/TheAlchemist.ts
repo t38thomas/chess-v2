@@ -21,6 +21,7 @@ export const TheAlchemist = definePact('alchemist')
             maxUses: 2,
             cooldown: 2,
             targetType: 'square',
+            maxTargets: 2,
             consumesTurn: true,
             execute: (context, params) => {
                 const { game, playerId } = context;
@@ -76,6 +77,3 @@ export const TheAlchemist = definePact('alchemist')
         }
     })
     .build();
-
-
-

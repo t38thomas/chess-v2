@@ -192,6 +192,16 @@ export const it: Translations = {
         south: "SUD",
         east: "EST",
         west: "OVEST",
+        claws_ready: "Artigli Pronti",
+        bayonets_ready: "Baionette Pronte",
+        shadow_protected: "Protetto dall'Ombra",
+        capture_required: "Cattura Richiesta",
+        queen_rank: "Rango Regina",
+        king_moves_streak: "Mosse del Re",
+        queen_crossed: "Regina Oltre Metà",
+        queen_protected: "Regina Protetta",
+        mimicry_active_mimics: "Mimiche Attive",
+        movement_swapped: "Movimento Scambiato",
         toasts: {
             swarm: {
                 hydra: {

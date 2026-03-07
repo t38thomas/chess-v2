@@ -52,19 +52,20 @@ export const TheHawk = definePact<HawkBonusState, Record<string, unknown>>('hawk
         target: 'self',
         modifiers: {
             canCapture: (params, context) => {
-                if (params.attacker.type !== 'bishop') return true;
+                if (params.attacker.type !== 'bishop' || params.attacker.color !== context.playerId) return true;
                 const dx = Math.abs(params.to.x - params.from.x);
                 const dy = Math.abs(params.to.y - params.from.y);
+                const sharedState: HawkBonusState = context.getSiblingState?.() || {};
 
-                if (dx <= 1 && dy <= 1) {
-                    const sharedState = context.getSiblingState() || {};
-                    return !!sharedState.jumpedThisTurn;
+                if (sharedState.jumpedThisTurn) {
+                    return dx <= 1 && dy <= 1;
                 }
-                return true;
+
+                return dx > 1 || dy > 1;
             }
         },
         getTurnCounters: (context) => {
-            const sharedState = context.getSiblingState() || {};
+            const sharedState: HawkBonusState = context.getSiblingState() || {};
             if (sharedState.jumpedThisTurn) {
                 return [{
                     id: 'hawk_boost',

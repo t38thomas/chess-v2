@@ -155,18 +155,31 @@ export class ChessGame implements IChessGame {
         const currentCooldown = (this.pactState[stateCooldownKey] as number) || 0;
         if (currentCooldown > 0) return false;
 
+        // Check maxUses
+        const logic = PactRegistry.getInstance().get(abilityId);
+        if (logic?.activeAbility?.maxUses !== undefined) {
+            const stateUsesKey = `${abilityId}_${this.turn}_uses`;
+            const currentUses = (this.pactState[stateUsesKey] as number) || 0;
+            if (currentUses >= logic.activeAbility.maxUses) return false;
+        }
+
         if (!abilityPerk.activeAbility.cooldown && this.perkUsage[this.turn].has(abilityId)) return false;
 
         const success = RuleEngine.useAbility(this, abilityId, params, playerPacts);
 
         // Mark as used if successful (unless repeatable)
         if (success) {
-            const logic = PactRegistry.getInstance().get(abilityId);
-
             if (logic?.activeAbility?.cooldown) {
                 this.pactState[stateCooldownKey] = logic.activeAbility.cooldown;
             } else if (!logic?.activeAbility?.repeatable) {
                 this.perkUsage[this.turn].add(abilityId);
+            }
+
+            // Increment maxUses counter
+            if (logic?.activeAbility?.maxUses !== undefined) {
+                const stateUsesKey = `${abilityId}_${this.turn}_uses`;
+                const currentUses = (this.pactState[stateUsesKey] as number) || 0;
+                this.pactState[stateUsesKey] = currentUses + 1;
             }
 
             this.emit('ability_activated', { abilityId, playerId: this.turn });
@@ -186,11 +199,20 @@ export class ChessGame implements IChessGame {
     public getAvailableAbilities(): string[] {
         if (this.phase !== 'playing') return [];
         const playerPacts = this.pacts[this.turn].map(p => [p.bonus, p.malus]).flat();
+        const registry = PactRegistry.getInstance();
         return playerPacts
             .filter(p => {
                 if (!p.activeAbility) return false;
                 const currentCooldown = (this.pactState[`${p.id}_${this.turn}_cooldown`] as number) || 0;
                 if (currentCooldown > 0) return false;
+
+                // Check maxUses
+                const logic = registry.get(p.id);
+                if (logic?.activeAbility?.maxUses !== undefined) {
+                    const currentUses = (this.pactState[`${p.id}_${this.turn}_uses`] as number) || 0;
+                    if (currentUses >= logic.activeAbility.maxUses) return false;
+                }
+
                 return p.activeAbility.cooldown || !this.perkUsage[this.turn].has(p.id);
             })
             .map(p => p.id);

@@ -56,6 +56,9 @@ describe('The Illusionist Pact', () => {
             expect(game.board.getSquare(targetPos)!.piece).toBeNull();
             // Verify piece is at new pos
             expect(game.board.getSquare(targetAdjacent!)!.piece?.id).toBe(originalPiece.id);
+
+            // Verify turn consumed
+            expect(game.turn).toBe('black');
         });
 
         it('should fail if no adjacent empty squares exist', () => {

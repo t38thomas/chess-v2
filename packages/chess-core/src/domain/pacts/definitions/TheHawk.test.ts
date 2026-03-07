@@ -78,5 +78,42 @@ describe('The Hawk Pact', () => {
             const canCapture = rules.canCapture!({ game, board: game.board, attacker: queen, victim: enemy, to: toAdjacent, from }, { game, playerId: 'white', pactId: malus.id } as any);
             expect(canCapture).toBe(true);
         });
+
+        it('should not affect opponent bishop', () => {
+            const opponentBishop = new Piece('bishop', 'black', 'black-bishop');
+            const enemy = new Piece('pawn', 'white', 'white-pawn');
+
+            const from = new Coordinate(4, 4);
+            const toAdjacent = new Coordinate(5, 5);
+
+            const rules = malus.getRuleModifiers();
+
+            const canCapture = rules.canCapture!({ game, board: game.board, attacker: opponentBishop, victim: enemy, to: toAdjacent, from }, { game, playerId: 'white', pactId: malus.id } as any);
+            expect(canCapture).toBe(true);
+        });
+
+        it('should prevent distant capture if jumped this turn', () => {
+            const bishop = new Piece('bishop', 'white', 'white-bishop');
+            const enemy = new Piece('pawn', 'black', 'black-pawn');
+
+            const from = new Coordinate(4, 4);
+            const toDistant = new Coordinate(6, 6); // G7 (Range 2)
+
+            const rules = malus.getRuleModifiers();
+
+            // Simulate having jumped this turn
+            (game as any).pactState = {
+                'high_flyer_white': { jumpedThisTurn: true }
+            };
+
+            const contextWithJump = {
+                game,
+                playerId: 'white',
+                pactId: malus.id
+            } as any;
+
+            const canCaptureDistant = rules.canCapture!({ game, board: game.board, attacker: bishop, victim: enemy, to: toDistant, from }, contextWithJump);
+            expect(canCaptureDistant).toBe(false); // Distant capture should be blocked if jumped
+        });
     });
 });

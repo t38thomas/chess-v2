@@ -76,7 +76,7 @@ const CounterItem: React.FC<{ counter: TurnCounter; icon: IconName }> = ({ count
             </View>
             <View style={styles.textContainer}>
                 <Text variant="caption" style={{ color: colors.text, flex: 1 }}>
-                    {t(`pact.${counter.label}`)}
+                    {counter.label.includes('.') ? t(counter.label) : t(`pact.${counter.label}`)}
                 </Text>
                 <View style={[styles.badge, { backgroundColor: counter.type === 'cooldown' ? 'rgba(214,48,49,0.15)' : colors.primaryMuted }]}>
                     <Text variant="caption" bold style={{ color: counter.type === 'cooldown' ? colors.danger : colors.primary }}>

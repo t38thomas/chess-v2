@@ -48,6 +48,36 @@ describe('The Alchemist', () => {
 
             expect(result).toBe(false);
         });
+
+        it('should respect maxUses: 2', () => {
+            game.phase = 'setup';
+            game.assignPact('white', TheAlchemist);
+            game.phase = 'playing';
+
+            // First use
+            game.turn = 'white';
+            let success = game.useAbility('transmutation', { from: { x: 0, y: 1 }, to: { x: 1, y: 1 } });
+            expect(success).toBe(true);
+
+            // Cooldown and turn reset for testing
+            game.pactState['transmutation_white_cooldown'] = 0;
+            game.turn = 'white';
+
+            // Second use
+            success = game.useAbility('transmutation', { from: { x: 0, y: 0 }, to: { x: 1, y: 0 } });
+            expect(success).toBe(true);
+
+            // Cooldown and turn reset
+            game.pactState['transmutation_white_cooldown'] = 0;
+            game.turn = 'white';
+
+            // Third use - should fail
+            success = game.useAbility('transmutation', { from: { x: 2, y: 0 }, to: { x: 3, y: 0 } });
+            expect(success).toBe(false);
+
+            // Check if it's in available abilities
+            expect(game.getAvailableAbilities()).not.toContain('transmutation');
+        });
     });
 
     describe('Alchemist Malus: Volatile Reagents', () => {

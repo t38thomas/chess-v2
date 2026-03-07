@@ -429,7 +429,7 @@ class GenericPact<T = Record<string, unknown>> extends PactLogic<T> {
             if (cd > 0) {
                 counters.push({
                     id: `${this.id}_cooldown`,
-                    label: this.activeAbility.name,
+                    label: `perks.${this.id}.name`,
                     value: cd,
                     pactId: this.id,
                     type: 'cooldown'

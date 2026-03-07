@@ -23,6 +23,8 @@ export const TheIllusionist = definePact('illusionist')
             icon: 'shimmer',
             cooldown: DISPLACE_COOLDOWN,
             targetType: 'square',
+            maxTargets: 2,
+            consumesTurn: true,
             execute: (context, params) => {
                 const { game } = context;
                 const p = params as { from: Coordinate; to: Coordinate } | undefined;

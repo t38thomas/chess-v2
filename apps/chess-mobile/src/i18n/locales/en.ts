@@ -190,6 +190,16 @@ export const en = {
         south: 'SOUTH',
         east: 'EAST',
         west: 'WEST',
+        claws_ready: 'Claws Ready',
+        bayonets_ready: 'Bayonets Ready',
+        shadow_protected: 'Shadow Protected',
+        capture_required: 'Capture Required',
+        queen_rank: 'Queen Rank',
+        king_moves_streak: 'King Moves',
+        queen_crossed: 'Queen Crossed',
+        queen_protected: 'Queen Protected',
+        mimicry_active_mimics: 'Active Mimics',
+        movement_swapped: 'Movement Swapped',
         toasts: {
             swarm: {
                 hydra: {

@@ -410,16 +410,11 @@ export class GameFacade {
         const logic = PactRegistry.getInstance().get(this._activeAbilityId);
         if (!logic?.activeAbility) return;
 
-        // Determine required targets: use maxTargets if defined, fallback to targetType or hardcoded logic
+        // Determine required targets: use maxTargets if defined, fallback to targetType
         let requiredTargets = logic.activeAbility.maxTargets ?? 0;
 
-        // Backward compatibility for old hardcoded abilities if maxTargets is not set
         if (requiredTargets === 0 && logic.activeAbility.targetType !== 'none') {
-            if (this._activeAbilityId === 'transmutation' || this._activeAbilityId === 'void_jump') {
-                requiredTargets = 2;
-            } else {
-                requiredTargets = 1;
-            }
+            requiredTargets = 1;
         }
 
         if (this.pendingTargets.length === requiredTargets) {
