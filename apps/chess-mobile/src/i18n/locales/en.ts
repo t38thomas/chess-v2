@@ -192,7 +192,7 @@ export const en = {
         west: 'WEST',
         toasts: {
             swarm: {
-                spawn: {
+                hydra: {
                     title: 'Hydra Spawn',
                     desc: 'A new pawn has sprouted from the sacrifice!',
                 },
@@ -214,7 +214,11 @@ export const en = {
                 },
             },
             necromancer: {
-                cost: {
+                reclaimer: {
+                    title: 'Reanimation',
+                    desc: 'A fallen ally has been brought back to life!',
+                },
+                ascension_cost: {
                     title: 'Ascension Cost',
                     desc: 'A higher price was paid for promotion. The opponent gains an extra turn!',
                 },
@@ -287,9 +291,11 @@ export const en = {
             },
             illusionist: {
                 displace: {
-                    triggered: 'The piece vanished and reappeared nearby!',
+                    title: 'Illusory Displacement',
+                    desc: 'The piece vanished and reappeared nearby!',
                 },
                 vanished_illusion: {
+                    title: 'Vanished Illusion',
                     desc: 'A pawn was just an illusion and has vanished!',
                 },
             },
@@ -319,6 +325,18 @@ export const en = {
                 sabotage_ended: {
                     title: 'Sabotage Ended',
                     desc: 'The Queen has shown her strength. Your Knights are now ready for battle!',
+                },
+            },
+            hawk: {
+                high_flyer_boost: {
+                    title: 'Flight Boost',
+                    desc: 'The Hawk takes to the skies and gains momentum!',
+                },
+            },
+            golem: {
+                extra_turn: {
+                    title: 'Golem Step',
+                    desc: 'The Golem moves with relentless force and gains an extra turn!',
                 },
             },
         },

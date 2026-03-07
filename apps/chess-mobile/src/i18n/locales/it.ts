@@ -194,7 +194,7 @@ export const it: Translations = {
         west: "OVEST",
         toasts: {
             swarm: {
-                spawn: {
+                hydra: {
                     title: "Rinascita dell'Idra",
                     desc: "Un nuovo pedone è germogliato dal sacrificio!",
                 },
@@ -205,9 +205,11 @@ export const it: Translations = {
             },
             illusionist: {
                 displace: {
-                    triggered: 'Il pezzo è svanito e riapparso nelle vicinanze!',
+                    title: 'Spostamento Illusorio',
+                    desc: 'Il pezzo è svanito e riapparso nelle vicinanze!',
                 },
                 vanished_illusion: {
+                    title: 'Illusione Svanita',
                     desc: 'Un pedone era solo un\'illusione ed è svanito!',
                 }
             },
@@ -224,7 +226,11 @@ export const it: Translations = {
                 },
             },
             necromancer: {
-                cost: {
+                reclaimer: {
+                    title: "Rianimazione",
+                    desc: "Un alleato caduto è stato riportato in vita!",
+                },
+                ascension_cost: {
                     title: "Costo dell'Ascensione",
                     desc: "Un prezzo più alto è stato pagato per la promozione. L'avversario ottiene un turno extra!",
                 },
@@ -321,6 +327,18 @@ export const it: Translations = {
                 sabotage_ended: {
                     title: 'Sabotaggio Terminato',
                     desc: 'La Regina ha mostrato la sua forza. I tuoi Cavalli sono pronti alla battaglia!',
+                },
+            },
+            hawk: {
+                high_flyer_boost: {
+                    title: 'Spinta in Volo',
+                    desc: 'Il Falco prende il volo e guadagna slancio!',
+                },
+            },
+            golem: {
+                extra_turn: {
+                    title: 'Passo del Golem',
+                    desc: 'Il Golem si muove con forza implacabile e ottiene un turno extra!',
                 },
             },
         },
