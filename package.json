@@ -13,7 +13,8 @@
     "mobile": "npm run build && cd apps/chess-mobile && npm run android",
     "server": "npm run build && cd apps/chess-server && npm run dev",
     "export-mobile": "npm run build && cd apps/chess-mobile/android && gradlew assembleRelease",
-    "push": "node push.js"
+    "push": "node push.js",
+    "tunnel": "cloudflared tunnel run pactchess-8080"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
