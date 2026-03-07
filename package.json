@@ -14,7 +14,7 @@
     "server": "npm run build && cd apps/chess-server && npm run dev",
     "export-mobile": "npm run build && cd apps/chess-mobile/android && gradlew assembleRelease",
     "push": "node push.js",
-    "tunnel": "cloudflared tunnel run pactchess-8080"
+    "tunnel": "cloudflared tunnel run --token eyJhIjoiNTIyYjkzNmVkODU0YzQ1M2FjYTMzMzNmODIxZDIwZWMiLCJ0IjoiMmI1OTE0NjktNGYzOS00MmExLWEyODEtZWMxY2VkMjBhZjk3IiwicyI6Ik56SXhPVEl5TVdJdFpqRTFZeTAwWkdZNUxXSTFOemN0WkRjMU5qUXdPR0V4T1dObCJ9"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
