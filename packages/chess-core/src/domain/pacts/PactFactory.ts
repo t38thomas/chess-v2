@@ -19,8 +19,7 @@ export class PactFactory {
         const registry = PactRegistry.getInstance();
 
         for (const pactDef of PactFactory.PACTS) {
-            registry.register(pactDef.bonus);
-            registry.register(pactDef.malus);
+            registry.registerDefinition(pactDef);
         }
     }
 }

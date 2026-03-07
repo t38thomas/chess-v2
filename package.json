@@ -6,7 +6,9 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "clean": "npx rimraf node_modules/chess-core node_modules/chess-server && npm i",
+    "build": "npm run clean && npm run build --workspaces --if-present"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
